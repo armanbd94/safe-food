@@ -30,6 +30,10 @@ class AdjustmentFormRequest extends FormRequest
                 $this->messages['products.'.$key.'.base_unit_qty.required'] = 'This field is required';
                 $this->messages['products.'.$key.'.base_unit_qty.numeric']  = 'The value must be numeric';
                 $this->messages['products.'.$key.'.base_unit_qty.gt']       = 'The value must be greater than 0';
+                $this->rules   ['products.'.$key.'.base_unit_cost']          = ['required','numeric','gt:0'];
+                $this->messages['products.'.$key.'.base_unit_cost.required'] = 'This field is required';
+                $this->messages['products.'.$key.'.base_unit_cost.numeric']  = 'The value must be numeric';
+                $this->messages['products.'.$key.'.base_unit_cost.gt']       = 'The value must be greater than 0';
             }
         }
         return $this->rules;

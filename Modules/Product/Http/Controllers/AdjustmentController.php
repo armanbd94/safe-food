@@ -23,10 +23,10 @@ class AdjustmentController extends BaseController
     
     public function index()
     {
-        if(permission('adjustment-access')){
-            $this->setPageData('Manage Adjustment','Manage Adjustment','fas fa-shopping-cart',[['name' => 'Manage Adjustment']]);
+        if(permission('finish-goods-stock-access')){
+            $this->setPageData('Manage Finish Goods Stock','Manage Finish Goods Stock','fas fa-shopping-cart',[['name' => 'Manage Finish Goods Stock']]);
             $warehouses = DB::table('warehouses')->where('status',1)->pluck('name','id');
-            return view('product::adjustment.index',compact('warehouses'));
+            return view('product::finish-goods-stock.index',compact('warehouses'));
         }else{
             return $this->access_blocked();
         }
@@ -35,7 +35,7 @@ class AdjustmentController extends BaseController
     public function get_datatable_data(Request $request)
     {
         if($request->ajax()){
-            if(permission('adjustment-access')){
+            if(permission('finish-goods-stock-access')){
 
                 if (!empty($request->adjustment_no)) {
                     $this->model->setAdjustmentNo($request->adjustment_no);
@@ -57,20 +57,20 @@ class AdjustmentController extends BaseController
                 foreach ($list as $value) {
                     $no++;
                     $action = '';
-                    if(permission('adjustment-edit')){
-                        $action .= ' <a class="dropdown-item" href="'.route("adjustment.edit",$value->id).'">'.self::ACTION_BUTTON['Edit'].'</a>';
+                    if(permission('finish-goods-stock-edit')){
+                        $action .= ' <a class="dropdown-item" href="'.route("finish.goods.stock.edit",$value->id).'">'.self::ACTION_BUTTON['Edit'].'</a>';
                     }
 
-                    if(permission('adjustment-view')){
-                        $action .= ' <a class="dropdown-item view_data" href="'.route("adjustment.view",$value->id).'">'.self::ACTION_BUTTON['View'].'</a>';
+                    if(permission('finish-goods-stock-view')){
+                        $action .= ' <a class="dropdown-item view_data" href="'.route("finish.goods.stock.view",$value->id).'">'.self::ACTION_BUTTON['View'].'</a>';
                     }
                     
-                    if(permission('adjustment-delete')){
+                    if(permission('finish-goods-stock-delete')){
                         $action .= ' <a class="dropdown-item delete_data"  data-id="' . $value->id . '" data-name="' . $value->adjustment_no . '">'.self::ACTION_BUTTON['Delete'].'</a>';
                     }
                     
                     $row = [];
-                    if(permission('adjustment-bulk-delete')){
+                    if(permission('finish-goods-stock-bulk-delete')){
                         $row[] = row_checkbox($value->id);//custom helper function to show the table each row checkbox
                     }
                     $products = '';
@@ -88,7 +88,7 @@ class AdjustmentController extends BaseController
                     $row[] = $value->item;
                     $row[] = $products;
                     $row[] = number_format($value->total_qty,2,'.','');
-                    $row[] = number_format($value->grand_total,2,'.','');
+                    $row[] = number_format($value->total_cost,2,'.','');
                     $row[] = $value->created_by;
                     $row[] = date('d-M-Y',strtotime($value->created_at));
                     $row[] = action_button($action);//custom helper function for action button
@@ -104,13 +104,13 @@ class AdjustmentController extends BaseController
 
     public function create()
     {
-        if(permission('adjustment-add')){
+        if(permission('finish-goods-stock-add')){
             $this->setPageData('Add Adjustment','Add Adjustment','fas fa-adjust',[['name' => 'Add Adjustment']]);
             $data = [
                 'adjustment_no' => 'ADJ-'.date('my').rand(1,999),
                 'warehouses'    => DB::table('warehouses')->where('status',1)->pluck('name','id')
             ];
-            return view('product::adjustment.create',$data);
+            return view('product::finish-goods-stock.create',$data);
         }else{
             return $this->access_blocked();
         }
@@ -120,7 +120,7 @@ class AdjustmentController extends BaseController
     public function store(AdjustmentFormRequest $request)
     {
         if($request->ajax()){
-            if(permission('adjustment-add')){
+            if(permission('finish-goods-stock-add')){
                 // dd($request->all());
                 DB::beginTransaction();
                 try {
@@ -129,8 +129,7 @@ class AdjustmentController extends BaseController
                         'warehouse_id'  => $request->warehouse_id,
                         'item'          => $request->item,
                         'total_qty'     => $request->total_qty,
-                        'total_tax'     => $request->total_tax,
-                        'grand_total'   => $request->grand_total,
+                        'total_cost'   => $request->total_cost,
                         'note'          => $request->note,
                         'created_by'    => auth()->user()->name
                     ];
@@ -141,21 +140,20 @@ class AdjustmentController extends BaseController
                     {
                         foreach ($request->products as $value) {
                             $products[] = [
-                                'adjustment_id'   => $adjustment->id,
-                                'product_id'      => $value['id'],
-                                'base_unit_id'    => $value['base_unit_id'],
-                                'base_unit_qty'   => $value['base_unit_qty'],
-                                'base_unit_price' => $value['base_unit_price'],
-                                'tax_rate'        => $value['tax_rate'],
-                                'tax'             => $value['tax'],
-                                'total'           => $value['subtotal'],
-                                'created_at'      => date('Y-m-d')
+                                'adjustment_id'  => $adjustment->id,
+                                'product_id'     => $value['id'],
+                                'base_unit_id'   => $value['base_unit_id'],
+                                'base_unit_qty'  => $value['base_unit_qty'],
+                                'base_unit_cost' => $value['base_unit_cost'],
+                                'total_cost'     => $value['subtotal'],
+                                'created_at'     => date('Y-m-d')
                             ];
 
                             $warehouse_product = WarehouseProduct::where([
                                 ['warehouse_id', $request->warehouse_id],
                                 ['product_id', $value['id']],
                             ])->first();
+
                             if ($warehouse_product) {
                                 $warehouse_product->qty += $value['base_unit_qty'];
                                 $warehouse_product->update();
@@ -166,13 +164,12 @@ class AdjustmentController extends BaseController
                                     'qty'          => $value['base_unit_qty'],
                                 ]);
                             }
-
                         }
+
                         if(count($products) > 0)
                         {
                             AdjustmentProduct::insert($products);
                         }
-
                     }
                     $output  = $this->store_message($adjustment, null);
                     DB::commit();
@@ -192,10 +189,10 @@ class AdjustmentController extends BaseController
 
     public function show(int $id)
     {
-        if(permission('adjustment-view')){
-            $this->setPageData('Adjustment Details','Adjustment Details','fas fa-file',[['name'=>'Adjustment','link' => route('adjustment')],['name' => 'Adjustment Details']]);
+        if(permission('finish-goods-stock-view')){
+            $this->setPageData('Adjustment Details','Adjustment Details','fas fa-file',[['name'=>'Finish Goods Stock','link' => route('finish.goods.stock')],['name' => 'Finish Goods Stock Details']]);
             $adjustment = $this->model->with(['warehouse:id,name','products'])->find($id);
-            return view('product::adjustment.details',compact('adjustment'));
+            return view('product::finish-goods-stock.details',compact('adjustment'));
         }else{
             return $this->access_blocked();
         }
@@ -203,13 +200,13 @@ class AdjustmentController extends BaseController
     public function edit(int $id)
     {
 
-        if(permission('adjustment-edit')){
-            $this->setPageData('Edit Adjustment','Edit Adjustment','fas fa-edit',[['name'=>'Adjustment','link' => route('adjustment')],['name' => 'Edit Adjustment']]);
+        if(permission('finish-goods-stock-edit')){
+            $this->setPageData('Edit Adjustment','Edit Adjustment','fas fa-edit',[['name'=>'Finish Goods Stock','link' => route('finish.goods.stock')],['name' => 'Edit Finish Goods Stock']]);
             $data = [
                 'adjustment'   => $this->model->with('products')->find($id),
                 'warehouses'    => DB::table('warehouses')->where('status',1)->pluck('name','id')
             ];
-            return view('product::adjustment.edit',$data);
+            return view('product::finish-goods-stock.edit',$data);
         }else{
             return $this->access_blocked();
         }
@@ -218,7 +215,7 @@ class AdjustmentController extends BaseController
     public function update(AdjustmentFormRequest $request)
     {
         if($request->ajax()){
-            if(permission('adjustment-edit')){
+            if(permission('finish-goods-stock-edit')){
                 // dd($request->all());
                 DB::beginTransaction();
                 try {
@@ -302,7 +299,7 @@ class AdjustmentController extends BaseController
     public function delete(Request $request)
     {
         if($request->ajax()){
-            if(permission('adjustment-delete')){
+            if(permission('finish-goods-stock-delete')){
                 DB::beginTransaction();
                 try {
                     $adjustmentData = $this->model->with('products')->find($request->id);
@@ -340,7 +337,7 @@ class AdjustmentController extends BaseController
     public function bulk_delete(Request $request)
     {
         if($request->ajax()){
-            if(permission('adjustment-bulk-delete')){
+            if(permission('finish-goods-stock-bulk-delete')){
                 DB::beginTransaction();
                 try {
                     foreach ($request->ids as $id) {

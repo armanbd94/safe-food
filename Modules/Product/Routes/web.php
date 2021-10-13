@@ -35,8 +35,8 @@ Route::group(['middleware' => ['auth']], function () {
 
 
     //Adjustment Routes
-    Route::get('adjustment', 'AdjustmentController@index')->name('adjustment');
-    Route::group(['prefix' => 'adjustment', 'as'=>'adjustment.'], function () {
+    Route::get('finish-goods-stock', 'AdjustmentController@index')->name('finish.goods.stock');
+    Route::group(['prefix' => 'finish-goods-stock', 'as'=>'finish.goods.stock.'], function () {
         Route::get('add', 'AdjustmentController@create')->name('add');
         Route::post('datatable-data', 'AdjustmentController@get_datatable_data')->name('datatable.data');
         Route::post('store', 'AdjustmentController@store')->name('store');

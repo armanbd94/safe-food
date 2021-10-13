@@ -19,14 +19,11 @@ class CreateAdjustmentProductsTable extends Migration
             $table->foreign('adjustment_id')->references('id')->on('adjustments');
             $table->unsignedBigInteger('product_id');
             $table->foreign('product_id')->references('id')->on('products');
-            $table->string('batch_no');
             $table->unsignedBigInteger('base_unit_id')->nullable();
             $table->foreign('base_unit_id')->references('id')->on('units');
             $table->double('base_unit_qty');
-            $table->double('base_unit_price');
-            $table->double('tax_rate');
-            $table->double('tax');
-            $table->double('total');
+            $table->double('base_unit_cost');
+            $table->double('total_cost');
             $table->timestamps();
         });
     }

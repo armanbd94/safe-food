@@ -3,13 +3,13 @@
 namespace Modules\Product\Entities;
 
 use App\Models\BaseModel;
-use Modules\Product\Entities\AdjustmentProduct;
+use Modules\Product\Entities\Product;
 use Modules\Setting\Entities\Warehouse;
 
 class Adjustment extends BaseModel
 {
-    protected $fillable = [ 'adjustment_no', 'warehouse_id', 'item', 'total_qty', 'total_tax', 
-    'grand_total', 'note', 'created_by', 'modified_by'];
+
+    protected $fillable = ['adjustment_no', 'warehouse_id', 'item', 'total_qty', 'total_cost', 'note', 'created_by', 'modified_by'];
 
     public function warehouse()
     {
@@ -18,11 +18,11 @@ class Adjustment extends BaseModel
 
     public function products(){
         return $this->belongsToMany(Product::class,'adjustment_products','adjustment_id','product_id','id','id')
-                    ->withPivot('id', 'base_unit_id', 'base_unit_qty','base_unit_price', 'tax_rate', 'tax', 'total')
+                    ->withPivot('id', 'base_unit_id', 'base_unit_qty', 'base_unit_cost', 'total_cost')
                     ->withTimestamps();
     }
 
-         /******************************************
+     /******************************************
      * * * Begin :: Custom Datatable Code * * *
     *******************************************/
     //custom search column property
@@ -53,10 +53,10 @@ class Adjustment extends BaseModel
 
     private function get_datatable_query()
     {
-        if (permission('adjustment-bulk-delete')){
-            $this->column_order = [null,'id','adjustment_no','warehouse_id', 'item',null,'total_qty','grand_total','created_by','created_at', null];
+        if (permission('finish-goods-stock-bulk-delete')){
+            $this->column_order = [null,'id','adjustment_no','warehouse_id', 'item',null,'total_qty','total_cost','created_by','created_at', null];
         }else{
-            $this->column_order = ['id','adjustment_no','warehouse_id', 'item',null,'total_qty','grand_total','created_by','created_at', null];
+            $this->column_order = ['id','adjustment_no','warehouse_id', 'item',null,'total_qty','total_cost','created_by','created_at', null];
         }
         
         $query = self::with(['warehouse:id,name','products']);

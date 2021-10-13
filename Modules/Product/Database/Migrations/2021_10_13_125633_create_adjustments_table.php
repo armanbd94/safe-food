@@ -20,8 +20,7 @@ class CreateAdjustmentsTable extends Migration
             $table->foreign('warehouse_id')->references('id')->on('warehouses');
             $table->float('item');
             $table->float('total_qty');
-            $table->double('total_tax');
-            $table->double('grand_total');
+            $table->double('total_cost');
             $table->text('note')->nullable();
             $table->string('created_by')->nullable();
             $table->string('modified_by')->nullable();

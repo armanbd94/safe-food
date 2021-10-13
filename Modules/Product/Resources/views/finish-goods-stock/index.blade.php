@@ -20,8 +20,8 @@
                 </div>
                 <div class="card-toolbar">
                     <!--begin::Button-->
-                    @if (permission('adjustment-add'))
-                    <a href="{{ route('adjustment.add') }}"  class="btn btn-primary btn-sm font-weight-bolder"> 
+                    @if (permission('finish-goods-stock-add'))
+                    <a href="{{ route('finish.goods.stock.add') }}"  class="btn btn-primary btn-sm font-weight-bolder"> 
                         <i class="fas fa-plus-circle"></i> Add New</a>
                         @endif
                     <!--end::Button-->
@@ -73,7 +73,7 @@
                             <table id="dataTable" class="table table-bordered table-hover">
                                 <thead class="bg-primary">
                                     <tr>
-                                        @if (permission('adjustment-bulk-delete'))
+                                        @if (permission('finish-goods-stock-bulk-delete'))
                                         <th>
                                             <div class="custom-control custom-checkbox">
                                                 <input type="checkbox" class="custom-control-input" id="select_all" onchange="select_all()">
@@ -142,7 +142,7 @@
                 zeroRecords: '<strong class="text-danger">No Data Found</strong>'
             },
             "ajax": {
-                "url": "{{route('adjustment.datatable.data')}}",
+                "url": "{{route('finish.goods.stock.datatable.data')}}",
                 "type": "POST",
                 "data": function (data) {
                     data.adjustment_no   = $("#form-filter #adjustment_no").val();
@@ -153,7 +153,7 @@
                 }
             },
             "columnDefs": [{
-                    @if (permission('adjustment-bulk-delete'))
+                    @if (permission('finish-goods-stock-bulk-delete'))
                     "targets": [0,10],
                     @else
                     "targets": [9],
@@ -162,7 +162,7 @@
                     "className": "text-center"
                 },
                 {
-                    @if (permission('adjustment-bulk-delete'))
+                    @if (permission('finish-goods-stock-bulk-delete'))
                     "targets": [1,2,3,4,5,6,8,9],
                     @else
                     "targets": [0,1,2,3,4,5,7,8],
@@ -170,7 +170,7 @@
                     "className": "text-center"
                 },
                 {
-                    @if (permission('adjustment-bulk-delete'))
+                    @if (permission('finish-goods-stock-bulk-delete'))
                     "targets": [7],
                     @else
                     "targets": [6],
@@ -183,7 +183,7 @@
                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'<'float-right'p>>>",
     
             "buttons": [
-                @if (permission('adjustment-report'))
+                @if (permission('finish-goods-stock-report'))
                 {
                     'extend':'colvis','className':'btn btn-secondary btn-sm text-white','text':'Column','columns': ':gt(0)'
                 },
@@ -195,7 +195,7 @@
                     "orientation": "landscape", //portrait
                     "pageSize": "A4", //A3,A5,A6,legal,letter
                     "exportOptions": {
-                        @if (permission('adjustment-bulk-delete'))
+                        @if (permission('finish-goods-stock-bulk-delete'))
                         columns: ':visible:not(:eq(0),:eq(10))' 
                         @else
                         columns: ':visible:not(:eq(9))' 
@@ -217,7 +217,7 @@
                     "title": "{{ $page_title }} List",
                     "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                     "exportOptions": {
-                        @if (permission('adjustment-bulk-delete'))
+                        @if (permission('finish-goods-stock-bulk-delete'))
                         columns: ':visible:not(:eq(0),:eq(10))' 
                         @else
                         columns: ':visible:not(:eq(9))' 
@@ -231,7 +231,7 @@
                     "title": "{{ $page_title }} List",
                     "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                     "exportOptions": {
-                        @if (permission('adjustment-bulk-delete'))
+                        @if (permission('finish-goods-stock-bulk-delete'))
                         columns: ':visible:not(:eq(0),:eq(10))' 
                         @else
                         columns: ':visible:not(:eq(9))' 
@@ -247,7 +247,7 @@
                     "orientation": "landscape", //portrait
                     "pageSize": "A4", //A3,A5,A6,legal,letter
                     "exportOptions": {
-                        @if (permission('adjustment-bulk-delete'))
+                        @if (permission('finish-goods-stock-bulk-delete'))
                         columns: ':visible:not(:eq(0),:eq(10))' 
                         @else
                         columns: ':visible:not(:eq(9))' 
@@ -260,7 +260,7 @@
                     }  
                 },
                 @endif
-                @if (permission('adjustment-bulk-delete'))
+                @if (permission('finish-goods-stock-bulk-delete'))
                 {
                     'className':'btn btn-danger btn-sm delete_btn d-none text-white',
                     'text':'Delete',
@@ -288,7 +288,7 @@
             let id    = $(this).data('id');
             let name  = $(this).data('name');
             let row   = table.row($(this).parent('tr'));
-            let url   = "{{ route('adjustment.delete') }}";
+            let url   = "{{ route('finish.goods.stock.delete') }}";
             delete_data(id, url, table, row, name);
         });
 
@@ -307,7 +307,7 @@
                     icon: 'warning',
                 });
             }else{
-                let url = "{{route('adjustment.bulk.delete')}}";
+                let url = "{{route('finish.goods.stock.bulk.delete')}}";
                 bulk_delete(ids,url,table,rows);
             }
         }
