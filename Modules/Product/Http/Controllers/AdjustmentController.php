@@ -225,8 +225,7 @@ class AdjustmentController extends BaseController
                         'warehouse_id' => $request->warehouse_id,
                         'item'         => $request->item,
                         'total_qty'    => $request->total_qty,
-                        'total_tax'    => $request->total_tax,
-                        'grand_total'  => $request->grand_total,
+                        'total_cost'   => $request->total_cost,
                         'note'         => $request->note,
                         'updated_at'   => date('Y-m-d'),
                         'modified_by'  => auth()->user()->name
@@ -251,12 +250,10 @@ class AdjustmentController extends BaseController
                     {
                         foreach ($request->products as $key => $value) {
                             $products[$value['id']] = [
-                                'base_unit_id'    => $value['base_unit_id'],
-                                'base_unit_qty'   => $value['base_unit_qty'],
-                                'base_unit_price' => $value['base_unit_price'],
-                                'tax_rate'        => $value['tax_rate'],
-                                'tax'             => $value['tax'],
-                                'total'           => $value['subtotal']
+                                'base_unit_id'   => $value['base_unit_id'],
+                                'base_unit_qty'  => $value['base_unit_qty'],
+                                'base_unit_cost' => $value['base_unit_cost'],
+                                'total_cost'     => $value['subtotal']
                             ];
 
                             $warehouse_product = WarehouseProduct::where([

@@ -32,17 +32,17 @@
                 <div id="kt_datatable_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
                     <form action="" id="store_form" method="post" enctype="multipart/form-data">
                         @csrf
-                        <input type="hidden" name="update_id">
+                        <input type="hidden" name="update_id" value="{{ $adjustment->id }}">
                         <div class="row">
                             <div class="form-group col-md-4 required">
                                 <label for="adjustment_no">Adjustment No.</label>
-                                <input type="text" class="form-control" name="adjustment_no" id="adjustment_no" value="{{ $adjustment_no }}" readonly />
+                                <input type="text" class="form-control" name="adjustment_no" id="adjustment_no" value="{{ $adjustment->adjustment_no }}" readonly />
                             </div>
 
                             <x-form.selectbox labelName="Warehouse" name="warehouse_id" col="col-md-4" required="required" class="selectpicker">
                                 @if (!$warehouses->isEmpty())
                                 @foreach ($warehouses as $id => $name)
-                                    <option value="{{ $id }}" {{ $id==1 ? 'selected' : '' }}>{{ $name }}</option>
+                                    <option value="{{ $id }}" {{ $adjustment->warehouse_id == $id ? 'selected' : '' }}>{{ $name }}</option>
                                 @endforeach
                                 @endif
                             </x-form.selectbox>
@@ -67,13 +67,33 @@
                                         <th class="text-center"><i class="fas fa-trash text-white"></i></th>
                                     </thead>
                                     <tbody>
-                                        
+                                        @if (!$adjustment->products->isEmpty())
+                                            @foreach ($adjustment->products as $key => $adjustment_product)
+                                            <tr>
+                                                @php
+                                                    $base_unit = DB::table('units')->find($adjustment_product->pivot->base_unit_id);
+                                                    $unit_name = $base_unit ? $base_unit->unit_name.' ('.$base_unit->unit_code.')' : '';
+                                                @endphp
+                                                <td>{{  $adjustment_product->name.' - ('.$adjustment_product->code.')' }}</td>
+                                                <td class="text-center">{{ $unit_name }}</td>
+                                                <td><input type="text" class="form-control base_unit_qty base_unit_qty_{{ $key + 1 }} text-center" onkeyup="calculateRowTotal('{{ $key + 1 }}')" value="{{ $adjustment_product->pivot->base_unit_qty }}" name="products[`+count+`][base_unit_qty]" id="products_`+count+`_base_unit_qty" data-row="{{ $key + 1 }}"></td>
+                                                <td><input type="text" class="form-control base_unit_cost base_unit_cost_{{ $key + 1 }} text-center" onkeyup="calculateRowTotal('{{ $key + 1 }}')" value="{{ $adjustment_product->pivot->base_unit_cost }}" name="products[`+count+`][base_unit_cost]" id="products_`+count+`_base_unit_cost" data-row="{{ $key + 1 }}"></td>
+                                                <td class="sub-total sub-total_{{ $key + 1 }} text-right" data-row="{{ $key + 1 }}">{{ number_format($adjustment_product->pivot->total_cost,2,'.','') }}</td>
+                                                <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-product small-btn"><i class="fas fa-trash"></i></button></td>
+                                                <input type="hidden" class="product-id product-id_{{ $key + 1 }}" name="products[`+count+`][id]" value="{{ $adjustment_product->id }}" data-row="{{ $key + 1 }}">
+                                                <input type="hidden"  name="products[`+count+`][name]" value="{{ $adjustment_product->name }}" data-row="{{ $key + 1 }}">
+                                                <input type="hidden" class="product-code product-code_{{ $key + 1 }}" name="products[`+count+`][code]" value="{{ $adjustment_product->code }}" data-row="{{ $key + 1 }}">
+                                                <input type="hidden" class="product-unit product-unit_{{ $key + 1 }}" name="products[`+count+`][base_unit_id]" value="{{ $adjustment_product->pivot->base_unit_id }}" data-row="{{ $key + 1 }}">
+                                                <input type="hidden" class="subtotal-value subtotal-value_{{ $key + 1 }}" name="products[`+count+`][subtotal]" data-row="{{ $key + 1 }}" value="{{ number_format($adjustment_product->pivot->total_cost,2,'.','') }}">
+                                            </tr>
+                                            @endforeach 
+                                        @endif
                                     </tbody>
                                     <tfoot class="bg-primary">
                                         <th colspan="2" class="font-weight-bolder">Total</th>
-                                        <th id="total-qty" class="text-center font-weight-bolder">0</th>
+                                        <th id="total-qty" class="text-center font-weight-bolder">{{ $adjustment->total_qty }}</th>
                                         <th></th>
-                                        <th id="total" class="text-right font-weight-bolder">0.00</th>
+                                        <th id="total" class="text-right font-weight-bolder">{{ number_format($adjustment->total_cost,2,'.','') }}</th>
                                         <th></th>
                                     </tfoot>
                                 </table>
@@ -82,21 +102,21 @@
                            
                             <div class="form-group col-md-12">
                                 <label for="shipping_cost">Note</label>
-                                <textarea  class="form-control" name="note" id="note" cols="30" rows="3"></textarea>
+                                <textarea  class="form-control" name="note" id="note" cols="30" rows="3">{{ $adjustment->note }}</textarea>
                             </div>
 
                             <div class="col-md-12">
                                 <table class="table table-bordered">
                                     <thead class="bg-primary">
-                                        <th width="50%"><strong>Items</strong><span class="float-right" id="item">0.00</span></th>
-                                        <th width="50%"><strong>Grand Total</strong><span class="float-right" id="total-cost">0.00</span></th>
+                                        <th width="50%"><strong>Items</strong><span class="float-right" id="item">{{ $adjustment->item.'('.$adjustment->total_qty.')' }}</span></th>
+                                        <th width="50%"><strong>Grand Total</strong><span class="float-right" id="total-cost">{{ number_format($adjustment->grand_total,2,'.','') }}</span></th>
                                     </thead>
                                 </table>
                             </div>
                             <div class="col-md-12">
-                                <input type="hidden" name="total_qty">
-                                <input type="hidden" name="total_cost">
-                                <input type="hidden" name="item">
+                                <input type="hidden" name="total_qty" value="{{ $adjustment->total_qty }}">
+                                <input type="hidden" name="total_cost" value="{{ $adjustment->total_cost }}">
+                                <input type="hidden" name="item" value="{{ $adjustment->item }}">
                             </div>
                             <div class="form-group col-md-12 text-center pt-5">
                                 <button type="button" class="btn btn-danger btn-sm mr-3"><i class="fas fa-sync-alt"></i> Reset</button>
@@ -163,7 +183,12 @@ $(document).ready(function () {
         calculateGrandTotal();
     });
 
+    @if (!$adjustment->products->isEmpty())
+    var count = "{{ count($adjustment->products) + 1 }}";
+    @else
     var count = 1;
+    @endif
+    
 
     function productSearch(data) {
         $.ajax({
