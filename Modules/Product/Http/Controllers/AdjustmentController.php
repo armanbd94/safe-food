@@ -105,7 +105,7 @@ class AdjustmentController extends BaseController
     public function create()
     {
         if(permission('finish-goods-stock-add')){
-            $this->setPageData('Add Adjustment','Add Adjustment','fas fa-adjust',[['name' => 'Add Adjustment']]);
+            $this->setPageData('Finish Goods Stock','Finish Goods Stock','fas fa-adjust',[['name' => 'Finish Goods Stock']]);
             $data = [
                 'adjustment_no' => 'ADJ-'.date('my').rand(1,999),
                 'warehouses'    => DB::table('warehouses')->where('status',1)->pluck('name','id')
@@ -190,7 +190,7 @@ class AdjustmentController extends BaseController
     public function show(int $id)
     {
         if(permission('finish-goods-stock-view')){
-            $this->setPageData('Adjustment Details','Adjustment Details','fas fa-file',[['name'=>'Finish Goods Stock','link' => route('finish.goods.stock')],['name' => 'Finish Goods Stock Details']]);
+            $this->setPageData('Finish Goods Stock Details','Finish Goods Stock Details','fas fa-file',[['name'=>'Finish Goods Stock','link' => route('finish.goods.stock')],['name' => 'Finish Goods Stock Details']]);
             $adjustment = $this->model->with(['warehouse:id,name','products'])->find($id);
             return view('product::finish-goods-stock.details',compact('adjustment'));
         }else{
@@ -201,7 +201,7 @@ class AdjustmentController extends BaseController
     {
 
         if(permission('finish-goods-stock-edit')){
-            $this->setPageData('Edit Adjustment','Edit Adjustment','fas fa-edit',[['name'=>'Finish Goods Stock','link' => route('finish.goods.stock')],['name' => 'Edit Finish Goods Stock']]);
+            $this->setPageData('Edit Finish Goods Stock','Edit Finish Goods Stock','fas fa-edit',[['name'=>'Finish Goods Stock','link' => route('finish.goods.stock')],['name' => 'Edit Finish Goods Stock']]);
             $data = [
                 'adjustment'   => $this->model->with('products')->find($id),
                 'warehouses'    => DB::table('warehouses')->where('status',1)->pluck('name','id')
