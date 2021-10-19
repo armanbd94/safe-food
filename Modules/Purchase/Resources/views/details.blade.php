@@ -362,7 +362,7 @@
                                             <th class="text-center">QUANTITY</th>
                                             <th class="text-right">PRICE</th>
                                             <th class="text-right">DISCOUNT</th>
-                                            <th class="text-right">LABOR COST</th>
+                                            {{-- <th class="text-right">LABOR COST</th> --}}
                                             <th class="text-right">TAX</th>
                                             <th class="text-right">SUBTOTAL</th>
                                         </tr>
@@ -383,7 +383,7 @@
                                                     <td class="text-center qty">{{ $item->pivot->qty.' '.$item->pivot->purchase_unit }}</td>
                                                     <td class="text-right price">{{ number_format($item->pivot->net_unit_cost,2) }}</td>
                                                     <td class="text-right discount">{{ number_format($item->pivot->discount,2) }}</td>
-                                                    <td class="text-right discount">{{ number_format($item->pivot->labor_cost,2) }}</td>
+                                                    {{-- <td class="text-right discount">{{ number_format($item->pivot->labor_cost,2) }}</td> --}}
                                                     <td class="text-right tax">{{ number_format($item->pivot->tax,2) }}</td>
                                                     <td class="text-right total">
                                                         @if (config('settings.currency_position') == 2)
@@ -398,7 +398,7 @@
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <td colspan="5"></td>
+                                            <td colspan="4"></td>
                                             <td colspan="2"  class="text-right">TOTAL</td>
                                             <td class="text-right">
                                                 @if (config('settings.currency_position') == 2)
@@ -409,7 +409,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td colspan="5"></td>
+                                            <td colspan="4"></td>
                                             <td colspan="2"  class="text-right">DISCOUNT</td>
                                             <td class="text-right">
                                                 @if (config('settings.currency_position') == 2)
@@ -420,7 +420,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td colspan="5"></td>
+                                            <td colspan="4"></td>
                                             <td colspan="2"  class="text-right">TAX {{ $purchase->order_tax_rate }}%</td>
                                             <td class="text-right">
                                                 @if (config('settings.currency_position') == 2)
@@ -431,7 +431,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td colspan="5"></td>
+                                            <td colspan="4"></td>
                                             <td colspan="2"  class="text-right">SHIPPING COST</td>
                                             <td class="text-right">
                                                 @if (config('settings.currency_position') == 2)
@@ -441,9 +441,20 @@
                                                 @endif
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <td colspan="4"></td>
+                                            <td colspan="2"  class="text-right">LABOR COST</td>
+                                            <td class="text-right">
+                                                @if (config('settings.currency_position') == 2)
+                                                    {{ number_format($purchase->total_labor_cost,2) }} {{ config('settings.currency_symbol') }}
+                                                @else 
+                                                    {{ config('settings.currency_symbol') }} {{ number_format($purchase->total_labor_cost,2) }}
+                                                @endif
+                                            </td>
+                                        </tr>
 
                                         <tr>
-                                            <td colspan="5"></td>
+                                            <td colspan="4"></td>
                                             <td colspan="2"  class="text-right">GRAND TOTAL</td>
                                             <td class="text-right">
                                                 @if (config('settings.currency_position') == 2)
@@ -455,7 +466,7 @@
                                         </tr>
 
                                         <tr>
-                                            <td colspan="5"></td>
+                                            <td colspan="4"></td>
                                             <td colspan="2"  class="text-right">PAID AMOUNT</td>
                                             <td class="text-right">
                                                 @if (config('settings.currency_position') == 2)
@@ -466,7 +477,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td colspan="5"></td>
+                                            <td colspan="4"></td>
                                             <td colspan="2"  class="text-right">DUE AMOUNT</td>
                                             <td class="text-right">
                                                 @if (config('settings.currency_position') == 2)

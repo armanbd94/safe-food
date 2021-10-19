@@ -871,7 +871,7 @@ function store_data(){
                 } else {
                     notification(data.status, data.message);
                     if (data.status == 'success') {
-                        window.location.replace("{{ route('purchase') }}");
+                        window.location.replace("{{ url('purchase/view') }}/"+data.purchase_id);
                         
                     }
                 }

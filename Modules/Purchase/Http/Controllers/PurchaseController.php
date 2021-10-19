@@ -269,7 +269,12 @@ class PurchaseController extends BaseController
                     
                     $supplier = Supplier::with('coa')->find($request->supplier_id);
                     $this->purchase_balance_add($result->id,$request->grand_total,$supplier->coa->id,$supplier->name,$request->purchase_date,$payment_data);
-                    $output  = $this->store_message($result, $request->update_id);
+                    if($result)
+                    {
+                        $output = ['status'=>'success','message'=>'Data has been saved successfully','purchase_id'=>$result->id];
+                    }else{
+                        $output = ['status'=>'error','message'=>'Failed to save data','purchase_id'=>''];
+                    }
                     DB::commit();
                     // return response()->json($output);
                 } catch (Exception $e) {
