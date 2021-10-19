@@ -43,7 +43,7 @@
                                     </div>
                                 </div>
 
-                                <x-form.selectbox labelName="Barcode Symbology" name="barcode_symbology" required="required" col="col-md-4" class="selectpicker">
+                                <x-form.selectbox labelName="Barcode Symbol" name="barcode_symbology" required="required" col="col-md-4" class="selectpicker">
                                     @foreach (BARCODE_SYMBOL as $key => $value)
                                         <option value="{{ $key }}" {{ ($key == 1) ? 'selected' : '' }}>{{ $value }}</option>
                                     @endforeach
@@ -59,8 +59,8 @@
                                 </x-form.selectbox>
                                 
                                 <div class="form-group col-md-4 required">
-                                    <label for="base_unit_id">Base Unit</label>
-                                    <select name="base_unit_id" id="base_unit_id"  onchange="populate_unit(this.value,1)" class="form-control selectpicker" data-live-search="true"  data-live-search-placeholder="Search">
+                                    <label for="base_unit_id">Unit</label>
+                                    <select name="base_unit_id" id="base_unit_id" class="form-control selectpicker" data-live-search="true"  data-live-search-placeholder="Search">
                                         <option value="">Select Please</option>
                                         @if (!$units->isEmpty())
                                             @foreach ($units as $unit)
@@ -72,13 +72,13 @@
                                     </select>
                                 </div>
         
-                                <div class="form-group col-md-4 required">
+                                {{-- <div class="form-group col-md-4 required">
                                     <label for="unit_id">Unit</label>
                                     <select name="unit_id" id="unit_id"  class="form-control selectpicker" data-live-search="true"  data-live-search-placeholder="Search"></select>
-                                </div>
+                                </div> --}}
         
-                                <x-form.textbox labelName="Unit Price" name="unit_price" required="required" col="col-md-4" />
-                                <x-form.textbox labelName="Base Unit Price" name="base_unit_price" required="required" col="col-md-4" />
+                                {{-- <x-form.textbox labelName="Unit Price" name="unit_price" required="required" col="col-md-4" /> --}}
+                                <x-form.textbox labelName="Price" name="base_unit_price" required="required" col="col-md-4" />
                                 
                                 
                                 <x-form.textbox labelName="Alert Quantity" name="alert_quantity"  col="col-md-4" />
@@ -128,7 +128,7 @@
                             <textarea class="form-control" name="description" id="description"></textarea>
                         </div>
 
-                        <div class="col-md-12 pt-5" id="material-section">
+                        {{-- <div class="col-md-12 pt-5" id="material-section">
                             <div class="row" style="position: relative;border: 1px solid #E4E6EF;padding: 10px 0 0 0; margin: 0;border-radius:5px;">
                                 <div style="width: 100px;background: #fa8c15;text-align: center;margin: 0 auto;color: white;padding: 5px 0;
                                     position: absolute;top:-16px;left:10px;">Materials</div>
@@ -155,7 +155,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> --}}
 
                         <div class="form-group col-md-12 pt-5">
                             <button type="button" class="btn btn-primary btn-sm" id="save-btn-1" onclick="storeData(1)">Save</button>
@@ -199,38 +199,38 @@ $(document).ready(function () {
 
 
     /** Start :: Add More Material Field **/
-    var material_count = 1;
-    function add_more_material_field(row){
-        html = ` <div class="row row_remove">
-                    <div class="form-group col-md-5 required">
-                        <select name="materials[`+row+`][id]" id="materials_`+row+`_id" required="required" class="form-control selectpicker">
-                            <option value="">Select Please</option>
-                            @if (!$materials->isEmpty())
-                                @foreach ($materials as $material)
-                                    <option value="{{ $material->id }}">{{ $material->material_name }}</option>
-                                @endforeach 
-                            @endif
-                        </select>
-                    </div>
-                    <div class="form-group col-md-2">
-                        <button type="button" class="btn btn-danger btn-sm remove" data-toggle="tooltip" 
-                            data-placement="top" data-original-title="Remove">
-                            <i class="fas fa-minus-square"></i>
-                        </button>
-                    </div>
-                </div>`;
-        $('.material_section').append(html);
-        $('.selectpicker').selectpicker('refresh');
-    }
+    // var material_count = 1;
+    // function add_more_material_field(row){
+    //     html = ` <div class="row row_remove">
+    //                 <div class="form-group col-md-5 required">
+    //                     <select name="materials[`+row+`][id]" id="materials_`+row+`_id" required="required" class="form-control selectpicker">
+    //                         <option value="">Select Please</option>
+    //                         @if (!$materials->isEmpty())
+    //                             @foreach ($materials as $material)
+    //                                 <option value="{{ $material->id }}">{{ $material->material_name }}</option>
+    //                             @endforeach 
+    //                         @endif
+    //                     </select>
+    //                 </div>
+    //                 <div class="form-group col-md-2">
+    //                     <button type="button" class="btn btn-danger btn-sm remove" data-toggle="tooltip" 
+    //                         data-placement="top" data-original-title="Remove">
+    //                         <i class="fas fa-minus-square"></i>
+    //                     </button>
+    //                 </div>
+    //             </div>`;
+    //     $('.material_section').append(html);
+    //     $('.selectpicker').selectpicker('refresh');
+    // }
 
-    $(document).on('click','#add-material',function(){
-        material_count++;
-        add_more_material_field(material_count);
-    });
-    $(document).on('click','.remove',function(){
-        material_count--;
-        $(this).closest('.row_remove').remove();
-    });
+    // $(document).on('click','#add-material',function(){
+    //     material_count++;
+    //     add_more_material_field(material_count);
+    // });
+    // $(document).on('click','.remove',function(){
+    //     material_count--;
+    //     $(this).closest('.row_remove').remove();
+    // });
     /** End :: Add More Material Field **/
 
     
