@@ -15,7 +15,16 @@ class CreateStockOutMaterialsTable extends Migration
     {
         Schema::create('stock_out_materials', function (Blueprint $table) {
             $table->id();
-
+            $table->unsignedBigInteger('stock_out_id');
+            $table->foreign('stock_out_id')->references('id')->on('stock_outs');
+            $table->string('batch_no');
+            $table->unsignedBigInteger('material_id');
+            $table->foreign('material_id')->references('id')->on('materials');
+            $table->unsignedBigInteger('unit_id')->nullable();
+            $table->foreign('unit_id')->references('id')->on('units');
+            $table->double('qty');
+            $table->double('net_unit_cost');
+            $table->double('total');
             $table->timestamps();
         });
     }

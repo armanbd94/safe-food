@@ -3,16 +3,18 @@
 namespace Modules\MaterialStockOut\Entities;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Material\Entities\Material;
 
 class StockOutMaterial extends Model
 {
-    use HasFactory;
+    protected $fillable = ['stock_out_id', 'batch_no', 'material_id', 'unit_id', 'qty', 'net_unit_cost', 'total'];
 
-    protected $fillable = [];
-    
-    protected static function newFactory()
+    public function stock_out()
     {
-        return \Modules\MaterialStockOut\Database\factories\StockOutMaterialFactory::new();
+        return $this->belongsTo(StockOut::class,'stock_out_id','id'); 
+    }
+    public function material()
+    {
+        return $this->belongsTo(Material::class,'material_id','id'); 
     }
 }
