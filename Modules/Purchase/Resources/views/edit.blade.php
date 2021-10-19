@@ -79,7 +79,7 @@
                                         <th class="text-right">Net Unit Cost</th>
                                         <th class="text-right">Discount</th>
                                         <th class="text-right">Tax</th>
-                                        <th class="text-right">Labor Cost</th>
+                                        {{-- <th class="text-right">Labor Cost</th> --}}
                                         <th class="text-right">Subtotal</th>
                                         <th></th>
                                     </thead>
@@ -125,9 +125,9 @@
                                                                 }
                                                             }else{
                                                                 if($unit_operator[0] == '*'){
-                                                                    $material_cost = ((($purchase_material->pivot->total - $purchase_material->pivot->labor_cost) + ($purchase_material->pivot->discount / $purchase_material->pivot->qty)) / $purchase_material->pivot->qty) / $unit_operation_value[0];
+                                                                    $material_cost = (($purchase_material->pivot->total + ($purchase_material->pivot->discount / $purchase_material->pivot->qty)) / $purchase_material->pivot->qty) / $unit_operation_value[0];
                                                                 }elseif ($unit_operator[0] == '/') {
-                                                                    $material_cost = ((($purchase_material->pivot->total - $purchase_material->pivot->labor_cost) + ($purchase_material->pivot->discount / $purchase_material->pivot->qty)) / $purchase_material->pivot->qty) * $unit_operation_value[0];
+                                                                    $material_cost = (($purchase_material->pivot->total + ($purchase_material->pivot->discount / $purchase_material->pivot->qty)) / $purchase_material->pivot->qty) * $unit_operation_value[0];
                                                                 }
                                                             }
                                                             
@@ -148,7 +148,7 @@
                                                     <td><input type="text" class="form-control net-unit-cost text-right net_unit_cost" name="materials[{{ $key+1 }}][net_unit_cost]" value="{{ $purchase_material->pivot->net_unit_cost }}" data-row="{{ $key + 1 }}"></td>
                                                     <td class="discount text-right" data-row="{{ $key + 1 }}">{{ number_format((float)$purchase_material->pivot->discount, 2, '.','') }}</td>
                                                     <td class="tax text-right" data-row="{{ $key + 1 }}">{{ number_format((float)$purchase_material->pivot->tax, 2, '.','') }}</td>
-                                                    <td><input type="text" class="text-right form-control labor_cost labor-cost" name="materials[1][labor_cost]" id="labor_cost_{{ $key + 1 }}" value= "{{ number_format((float)$purchase_material->pivot->labor_cost, 2, '.','') }}" data-row="{{ $key + 1 }}"></td>
+                                                    {{-- <td><input type="text" class="text-right form-control labor_cost labor-cost" name="materials[1][labor_cost]" id="labor_cost_{{ $key + 1 }}" value= "{{ number_format((float)$purchase_material->pivot->labor_cost, 2, '.','') }}" data-row="{{ $key + 1 }}"></td> --}}
                                                     <td class="sub-total text-right" data-row="{{ $key + 1 }}">{{ number_format((float)$purchase_material->pivot->total, 2, '.','') }}</td>
                                                     <td class="text-center"><button type="button" class="edit-material btn btn-sm btn-primary mr-2 small-btn" data-toggle="modal"
                                                         data-target="#editModal"><i class="fas fa-edit"></i></button>
@@ -168,7 +168,7 @@
                                                     @endif
                                                     <input type="hidden" class="tax-method" value="{{ $purchase_material->tax_method }}" data-row="{{ $key + 1 }}">
                                                     <input type="hidden" class="tax-value" name="materials[{{ $key+1 }}][tax]" value="{{ $purchase_material->pivot->tax }}" data-row="{{ $key + 1 }}">
-                                                    <input type="hidden" class="labor-cost" name="materials[{{ $key+1 }}][labor_cost]" value="{{ $purchase_material->pivot->labor_cost }}" data-row="{{ $key + 1 }}">
+                                                    {{-- <input type="hidden" class="labor-cost" name="materials[{{ $key+1 }}][labor_cost]" value="{{ $purchase_material->pivot->labor_cost }}" data-row="{{ $key + 1 }}"> --}}
                                                     <input type="hidden" class="subtotal-value" name="materials[{{ $key+1 }}][subtotal]" value="{{ $purchase_material->pivot->total }}" data-row="{{ $key + 1 }}">
                                 
                                                 </tr>
@@ -182,13 +182,14 @@
                                         <th></th>
                                         <th id="total-discount" class="text-right font-weight-bolder">{{ number_format($purchase->total_discount,2,'.',',') }}</th>
                                         <th id="total-tax" class="text-right font-weight-bolder">{{ number_format($purchase->total_tax,2,'.',',') }}</th>
-                                        <th id="total-labor-cost" class="text-right font-weight-bolder">{{ number_format($purchase->total_labor_cost,2,'.',',') }}</th>
+                                        {{-- <th id="total-labor-cost" class="text-right font-weight-bolder">{{ number_format($purchase->total_labor_cost,2,'.',',') }}</th> --}}
                                         <th id="total" class="text-right font-weight-bolder">{{ number_format($purchase->total_cost,2,'.',',') }}</th>
                                         <th class="text-center"><button type="button" class="btn btn-success small-btn btn-md add-material"><i class="fas fa-plus"></i></button></th>
                                     </tfoot>
                                 </table>
                             </div>
-                            <x-form.selectbox labelName="Order Tax" name="order_tax_rate" col="col-md-4">
+
+                            <x-form.selectbox labelName="Order Tax" name="order_tax_rate" col="col-md-3">
                                 <option value="0" selected>No Tax</option>
                                 @if (!$taxes->isEmpty())
                                     @foreach ($taxes as $tax)
@@ -197,18 +198,23 @@
                                 @endif
                             </x-form.selectbox>
 
-                            <div class="form-group col-md-4">
+                            <div class="form-group col-md-3">
                                 <label for="order_discount">Order Discount</label>
                                 <input type="text" class="form-control" name="order_discount" id="order_discount" value="{{ $purchase->order_discount }}">
                             </div>
-                            <div class="form-group col-md-4">
+                            <div class="form-group col-md-3">
                                 <label for="shipping_cost">Shipping Cost</label>
                                 <input type="text" class="form-control" name="shipping_cost" id="shipping_cost" value="{{ $purchase->shipping_cost }}">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label for="labor_cost">Labor Cost</label>
+                                <input type="text" class="form-control" name="labor_cost" id="labor_cost" value="{{ $purchase->total_labor_cost }}">
                             </div>
                             <div class="form-group col-md-12">
                                 <label for="shipping_cost">Note</label>
                                 <textarea  class="form-control" name="note" id="note" cols="30" rows="3">{{ $purchase->note }}</textarea>
                             </div>
+
                             <div class="col-md-12">
                                 <table class="table table-bordered">
                                     <thead class="bg-primary">
@@ -217,6 +223,7 @@
                                         <th><strong>Order Tax</strong><span class="float-right" id="order_total_tax">0.00</span></th>
                                         <th><strong>Order Discount</strong><span class="float-right" id="order_total_discount">0.00</span></th>
                                         <th><strong>Shipping Cost</strong><span class="float-right" id="shipping_total_cost">0.00</span></th>
+                                        <th><strong>Labor Cost</strong><span class="float-right" id="labor_total_cost">0.00</span></th>
                                         <th><strong>Grand Total</strong><span class="float-right" id="grand_total">0.00</span></th>
                                     </thead>
                                 </table>
@@ -225,7 +232,6 @@
                                 <input type="hidden" name="total_qty" value="{{ $purchase->total_qty }}">
                                 <input type="hidden" name="total_discount" value="{{ $purchase->total_discount }}">
                                 <input type="hidden" name="total_tax" value="{{ $purchase->total_tax }}">
-                                <input type="hidden" name="total_labor_cost" value="{{ $purchase->total_labor_cost }}">
                                 <input type="hidden" name="total_cost" value="{{ $purchase->total_cost }}">
                                 <input type="hidden" name="item" value="{{ $purchase->item }}">
                                 <input type="hidden" name="order_tax" value="{{ $purchase->order_tax }}">
@@ -266,7 +272,7 @@
             <div class="modal-body">
                 <div class="row">
                     <x-form.textbox labelName="Quantity" name="edit_qty" required="required" col="col-md-12"/>
-                    <x-form.textbox labelName="Labor Cost" name="edit_labor_cost" col="col-md-12"/>
+                    {{-- <x-form.textbox labelName="Labor Cost" name="edit_labor_cost" col="col-md-12"/> --}}
                     <x-form.textbox labelName="Unit Discount" name="edit_discount" col="col-md-12"/>
                     <x-form.textbox labelName="Unit Cost" name="edit_unit_cost" col="col-md-12"/>
                     @php 
@@ -329,7 +335,7 @@ var material_qty   = [];
 
 // array data with selection
 var material_cost        = [];
-var material_labor_cost  = [];
+// var material_labor_cost  = [];
 var material_discount    = [];
 var tax_rate             = [];
 var tax_name             = [];
@@ -356,7 +362,7 @@ $(document).ready(function () {
         var total_discount = parseFloat($('#material_table tbody tr:nth-child('+ (rowindex + 1) +')').find('td:nth-child(7)').text())
         var quantity = parseFloat($('#material_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.qty').val())
         material_discount.push((total_discount/quantity).toFixed(2));
-        material_labor_cost.push(parseFloat($('#material_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.labor_cost').val()));
+        // material_labor_cost.push(parseFloat($('#material_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.labor_cost').val()));
         tax_rate.push(parseFloat($('#material_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.tax-rate').val()));
         tax_name.push($('#material_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.tax-name').val());
         tax_method.push($('#material_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.tax-method').val());
@@ -393,6 +399,7 @@ $(document).ready(function () {
         $('input[name="shipping_cost"]').val('0.00');
     }
     $('#shipping_total_cost').text(parseFloat($('input[name="shipping_cost"]').val()).toFixed(2));
+    $('#labor_total_cost').text(parseFloat($('input[name="labor_cost"]').val()).toFixed(2));
     $('#grand_total').text(parseFloat($('input[name="grand_total"]').val()).toFixed(2));
 
      //Edit Product
@@ -405,7 +412,7 @@ $(document).ready(function () {
 
         var qty = $(this).closest('tr').find('.qty').val();
         $('#edit_qty').val(qty);
-        $('#edit_labor_cost').val(parseFloat(material_labor_cost[rowindex]).toFixed(2));
+        // $('#edit_labor_cost').val(parseFloat(material_labor_cost[rowindex]).toFixed(2));
         $('#edit_discount').val(parseFloat(material_discount[rowindex]).toFixed(2));
 
         unitConversion();
@@ -464,7 +471,7 @@ $(document).ready(function () {
             material_cost[rowindex] = $('#edit_unit_cost').val() * row_unit_operation_value;
         }
         
-        material_labor_cost[rowindex] = $('#edit_labor_cost').val();
+        // material_labor_cost[rowindex] = $('#edit_labor_cost').val();
         material_discount[rowindex] = $('#edit_discount').val();
         var position = $('#edit_unit').val();
         var temp_operator = temp_unit_operator[position];
@@ -508,25 +515,25 @@ $(document).ready(function () {
         
     });
     
-    $('#material_table').on('keyup','.labor_cost',function(){
-        rowindex = $(this).closest('tr').index();
-        if($(this).val() <= 0 && $(this).val() == ''){
-            $('#material_table tbody tr:nth-child('+(rowindex + 1)+') .labor_cost ').val(0);
-            notification('error','Labor Cost can\'t be less than 0 OR Empty');
-        }else{
-            material_labor_cost[rowindex] = $('#material_table tbody tr:nth-child('+(rowindex + 1)+') .labor_cost').val();
-        }
-        var qty = $('#material_table tbody tr:nth-child('+(rowindex + 1)+') .qty').val();
-        if(qty > 0){
-            checkQuantity(qty,true,input=1);
-        }
+    // $('#material_table').on('keyup','.labor_cost',function(){
+    //     rowindex = $(this).closest('tr').index();
+    //     if($(this).val() <= 0 && $(this).val() == ''){
+    //         $('#material_table tbody tr:nth-child('+(rowindex + 1)+') .labor_cost ').val(0);
+    //         notification('error','Labor Cost can\'t be less than 0 OR Empty');
+    //     }else{
+    //         material_labor_cost[rowindex] = $('#material_table tbody tr:nth-child('+(rowindex + 1)+') .labor_cost').val();
+    //     }
+    //     var qty = $('#material_table tbody tr:nth-child('+(rowindex + 1)+') .qty').val();
+    //     if(qty > 0){
+    //         checkQuantity(qty,true,input=1);
+    //     }
         
-    });
+    // });
 
     $('#material_table').on('click','.remove-material',function(){
         rowindex = $(this).closest('tr').index();
         material_cost.splice(rowindex,1);
-        material_labor_cost.splice(rowindex,1);
+        // material_labor_cost.splice(rowindex,1);
         material_discount.splice(rowindex,1);
         tax_rate.splice(rowindex,1);
         tax_name.splice(rowindex,1);
@@ -584,7 +591,7 @@ $(document).ready(function () {
         cols += `<td><input type="text" class="net_unit_cost form-control text-right" name="materials[`+count+`][net_unit_cost]" id="materials_net_unit_cost_${count}" data-row="${count}"></td>`;
         cols += `<td class="discount text-right" data-row="${count}"></td>`;
         cols += `<td class="tax text-right" data-row="${count}"></td>`;
-        cols += `<td><input type="text" class="labor_cost labor-cost form-control text-right" name="materials[`+count+`][labor_cost]"  id="labor_cost_${count}" data-row="${count}"></td>`;
+        // cols += `<td><input type="text" class="labor_cost labor-cost form-control text-right" name="materials[`+count+`][labor_cost]"  id="labor_cost_${count}" data-row="${count}"></td>`;
         cols += `<td class="sub-total text-right" data-row="${count}"></td>`;
         cols += `<td class="text-center">
                     <button type="button" class="edit-material btn btn-sm btn-primary mr-2 small-btn d-none" data-toggle="modal" id="edit_modal_${count}" data-target="#editModal"><i class="fas fa-edit"></i></button>
@@ -607,6 +614,9 @@ $(document).ready(function () {
         calculateGrandTotal();
     });
     $('input[name="shipping_cost"]').on('input',function(){
+        calculateGrandTotal();
+    });
+    $('input[name="labor_cost"]').on('input',function(){
         calculateGrandTotal();
     });
     $('select[name="order_tax_rate"]').on('change',function(){
@@ -652,7 +662,7 @@ function materialSearch(data,row) {
                 }
                 console.log(material_cost[rowindex]);
 
-                material_labor_cost.push('0.00');
+                // material_labor_cost.push('0.00');
                 material_discount.push('0.00');
                 tax_rate.push(parseFloat(data.tax_rate));
                 tax_name.push(data.tax_name);
@@ -703,13 +713,13 @@ function calculateProductData(quantity,input=2){
     {
         var net_unit_cost = row_material_cost - material_discount[rowindex];
         var tax = net_unit_cost * quantity * (tax_rate[rowindex]/100);
-        var sub_total = (net_unit_cost * quantity) + tax + parseFloat(material_labor_cost[rowindex]);
+        var sub_total = (net_unit_cost * quantity) + tax;
 
     }else{
         var sub_total_unit = row_material_cost - material_discount[rowindex];
         var net_unit_cost = (100 / (100 + tax_rate[rowindex])) * sub_total_unit;
         var tax = (sub_total_unit - net_unit_cost) * quantity;
-        var sub_total = (sub_total_unit * quantity) + parseFloat(material_labor_cost[rowindex]);
+        var sub_total = (sub_total_unit * quantity);
     }
 
     if(input==2){
@@ -719,11 +729,11 @@ function calculateProductData(quantity,input=2){
     $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(8)').text(tax.toFixed(2));
     $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('.tax-value').val(tax.toFixed(2));
     
-    if(input==2){
-        $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(9)').val(parseFloat(material_labor_cost[rowindex]).toFixed(2));
-        $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('.labor-cost').val(parseFloat(material_labor_cost[rowindex]).toFixed(2));
-    }
-    $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(10)').text(sub_total.toFixed(2));
+    // if(input==2){
+    //     $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(9)').val(parseFloat(material_labor_cost[rowindex]).toFixed(2));
+    //     $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('.labor-cost').val(parseFloat(material_labor_cost[rowindex]).toFixed(2));
+    // }
+    $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(9)').text(sub_total.toFixed(2));
     $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('.subtotal-value').val(sub_total.toFixed(2));
 
     calculateTotal();
@@ -773,12 +783,12 @@ function calculateTotal()
     $('input[name="total_tax"]').val(total_tax.toFixed(2));
 
     //sum of labor cost
-    var total_labor_cost = 0;
-    $('.labor_cost').each(function() {
-        total_labor_cost += parseFloat($(this).val());
-    });
-    $('#total-labor-cost').text(total_labor_cost.toFixed(2));
-    $('input[name="total_labor_cost"]').val(total_labor_cost.toFixed(2));
+    // var total_labor_cost = 0;
+    // $('.labor_cost').each(function() {
+    //     total_labor_cost += parseFloat($(this).val());
+    // });
+    // $('#total-labor-cost').text(total_labor_cost.toFixed(2));
+    // $('input[name="total_labor_cost"]').val(total_labor_cost.toFixed(2));
 
     //sum of subtotal
     var total = 0;
@@ -799,17 +809,19 @@ function calculateGrandTotal()
     var order_tax = parseFloat($('select[name="order_tax_rate"]').val());
     var order_discount = parseFloat($('#order_discount').val());
     var shipping_cost = parseFloat($('#shipping_cost').val());
-
+    var labor_cost = parseFloat($('#labor_cost').val());
     if(!order_discount){
         order_discount = 0.00;
     }
     if(!shipping_cost){
         shipping_cost = 0.00;
     }
-
+    if(!labor_cost){
+        labor_cost = 0.00;
+    }
     item = ++item + '(' + total_qty + ')';
     order_tax = (subtotal - order_discount) * (order_tax / 100);
-    var grand_total = (subtotal + order_tax + shipping_cost) - order_discount;
+    var grand_total = (subtotal + order_tax + shipping_cost+labor_cost) - order_discount;
 
     $('#item').text(item);
     $('input[name="item"]').val($('#material_table tbody tr:last').index() + 1);
@@ -818,6 +830,7 @@ function calculateGrandTotal()
     $('input[name="order_tax"]').val(order_tax.toFixed(2));
     $('#order_total_discount').text(order_discount.toFixed(2));
     $('#shipping_total_cost').text(shipping_cost.toFixed(2));
+    $('#labor_total_cost').text(labor_cost.toFixed(2));
     $('#grand_total').text(grand_total.toFixed(2));
     $('input[name="grand_total"]').val(grand_total.toFixed(2));
 }

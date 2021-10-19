@@ -456,7 +456,7 @@ $(document).ready(function () {
     $('#material_table').on('click','.remove-material',function(){
         rowindex = $(this).closest('tr').index();
         material_cost.splice(rowindex,1);
-        material_labor_cost.splice(rowindex,1);
+        // material_labor_cost.splice(rowindex,1);
         material_discount.splice(rowindex,1);
         tax_rate.splice(rowindex,1);
         tax_name.splice(rowindex,1);
@@ -710,11 +710,6 @@ function unitConversion()
     }else{
         row_material_cost = material_cost[rowindex] / row_unit_operation_value;
     }
-
-    console.log(`rowindex = ${rowindex}`);
-    console.log(`material_cost = ${material_cost[rowindex]}`);
-    console.log(`row_unit_operation_value = ${row_unit_operation_value}`);
-    console.log(`row_material_cost = ${row_material_cost}`);
 }
 
 function calculateTotal()
