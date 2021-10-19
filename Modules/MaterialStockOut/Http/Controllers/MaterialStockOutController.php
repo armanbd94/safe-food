@@ -198,4 +198,81 @@ class MaterialStockOutController extends BaseController
             return $this->access_blocked();
         }
     }
+
+    public function delete(Request $request)
+    {
+        if($request->ajax()){
+            if(permission('material-stock-out-delete')){
+                DB::beginTransaction();
+                try {
+                    $stockOutData = $this->model->with('materials')->find($request->id);
+                    if(!$stockOutData->materials->isEmpty())
+                    {
+                        foreach ($stockOutData->materials as  $stock_out_material) {
+                            $warehouse_material = WarehouseMaterial::where([
+                                ['warehouse_id', $stockOutData->warehouse_id],
+                                ['material_id', $stock_out_material->material_id],
+                            ])->first();
+                            if ($warehouse_material) {
+                                $warehouse_material->qty += $stock_out_material->qty;
+                                $warehouse_material->update();
+                            }
+                        }
+                        $stockOutData->materials()->delete();
+                    }
+                    $result = $stockOutData->delete();
+                    $output = $result ? ['status' => 'success','message' => 'Data has been deleted successfully'] : ['status' => 'error','message' => 'Failed to delete data'];
+                    DB::commit();
+                } catch (Exception $e) {
+                    DB::rollBack();
+                    $output = ['status'=>'error','message'=>$e->getMessage()];
+                }
+                return response()->json($output);
+            }else{
+                $output = $this->access_blocked();
+            }
+            return response()->json($output);
+        }else{
+            return response()->json($this->access_blocked());
+        }
+    }
+
+    public function bulk_delete(Request $request)
+    {
+        if($request->ajax()){
+            if(permission('material-stock-out-bulk-delete')){
+                DB::beginTransaction();
+                try {
+                    foreach ($request->ids as $id) {
+                        $stockOutData = $this->model->with('materials')->find($id);
+                        if(!$stockOutData->materials->isEmpty())
+                        {
+                            foreach ($stockOutData->materials as  $stock_out_material) {
+                                $warehouse_material = WarehouseMaterial::where([
+                                    ['warehouse_id', $stockOutData->warehouse_id],
+                                    ['material_id', $stock_out_material->material_id],
+                                ])->first();
+                                if ($warehouse_material) {
+                                    $warehouse_material->qty += $stock_out_material->qty;
+                                    $warehouse_material->update();
+                                }
+                            }
+                            $stockOutData->materials()->delete();
+                        }
+                    }
+                    $result = $this->model->destroy($request->ids);
+                    $output = $result ? ['status' => 'success','message' => 'Data has been deleted successfully'] : ['status' => 'error','message' => 'failed to delete data'];
+                    DB::commit();
+                } catch (Exception $e) {
+                    DB::rollBack();
+                    $output = ['status'=>'error','message'=>$e->getMessage()];
+                }
+            }else{
+                $output = $this->access_blocked();
+            }
+            return response()->json($output);
+        }else{
+            return response()->json($this->access_blocked());
+        }
+    }
 }
