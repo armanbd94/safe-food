@@ -126,7 +126,7 @@
                 zeroRecords: '<strong class="text-danger">No Data Found</strong>'
             },
             "ajax": {
-                "url": "{{route('route.datatable.data')}}",
+                "url": "{{route('upazila.route.datatable.data')}}",
                 "type": "POST",
                 "data": function (data) {
                     data.route_name      = $("#form-filter #route_name").val();
@@ -242,7 +242,7 @@
         $(document).on('click', '#save-btn', function () {
             let form = document.getElementById('store_or_update_form');
             let formData = new FormData(form);
-            let url = "{{route('route.store.or.update')}}";
+            let url = "{{route('upazila.route.store.or.update')}}";
             let id = $('#update_id').val();
             let method;
             if (id) {
@@ -261,7 +261,7 @@
             $('#store_or_update_form').find('.error').remove();
             if (id) {
                 $.ajax({
-                    url: "{{route('route.edit')}}",
+                    url: "{{route('upazila.route.edit')}}",
                     type: "POST",
                     data: { id: id,_token: _token},
                     dataType: "JSON",
@@ -295,7 +295,7 @@
             let id    = $(this).data('id');
             let name  = $(this).data('name');
             let row   = table.row($(this).parent('tr'));
-            let url   = "{{ route('route.delete') }}";
+            let url   = "{{ route('upazila.route.delete') }}";
             delete_data(id, url, table, row, name);
         });
     
@@ -314,7 +314,7 @@
                     icon: 'warning',
                 });
             }else{
-                let url = "{{route('route.bulk.delete')}}";
+                let url = "{{route('upazila.route.bulk.delete')}}";
                 bulk_delete(ids,url,table,rows);
             }
         }
@@ -324,7 +324,7 @@
             let name   = $(this).data('name');
             let status = $(this).data('status');
             let row    = table.row($(this).parent('tr'));
-            let url    = "{{ route('route.change.status') }}";
+            let url    = "{{ route('upazila.route.change.status') }}";
             change_status(id, url, table, row, name, status);
         });
     

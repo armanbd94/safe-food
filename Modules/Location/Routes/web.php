@@ -38,8 +38,8 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('district-id-wise-upazila-list/{id}','UpazilaController@district_id_wise_upazila_list');
 
     //Route Route List
-    Route::get('route', 'RouteController@index')->name('route');
-    Route::group(['prefix' => 'route', 'as'=>'route.'], function () {
+    Route::get('upazila-route', 'RouteController@index')->name('upazila.route');
+    Route::group(['prefix' => 'upazila-route', 'as'=>'upazila.route.'], function () {
         Route::post('datatable-data', 'RouteController@get_datatable_data')->name('datatable.data');
         Route::post('store-or-update', 'RouteController@store_or_update_data')->name('store.or.update');
         Route::post('edit', 'RouteController@edit')->name('edit');

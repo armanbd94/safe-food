@@ -38,39 +38,5 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('change-status', 'CustomerGroupController@change_status')->name('change.status');
     });
 
-    //Labor Bill Routes
-    Route::get('labor-bill', 'LaborBillController@index')->name('labor.bill');
-    Route::group(['prefix' => 'labor-bill', 'as'=>'labor.bill.'], function () {
-        Route::post('datatable-data', 'LaborBillController@get_datatable_data')->name('datatable.data');
-        Route::post('store-or-update', 'LaborBillController@store_or_update_data')->name('store.or.update');
-        Route::post('edit', 'LaborBillController@edit')->name('edit');
-        Route::post('delete', 'LaborBillController@delete')->name('delete');
-        Route::post('bulk-delete', 'LaborBillController@bulk_delete')->name('bulk.delete');
-        Route::post('change-status', 'LaborBillController@change_status')->name('change.status');
-        Route::post('labor-list', 'LaborBillController@labor_list')->name('list');
-    });
-
-    //Labor Bill Rate Routes
-    Route::get('labor-bill-rate', 'LaborBillRateController@index')->name('labor.bill.rate');
-    Route::group(['prefix' => 'labor-bill-rate', 'as'=>'labor.bill.rate.'], function () {
-        Route::post('datatable-data', 'LaborBillRateController@get_datatable_data')->name('datatable.data');
-        Route::post('store-or-update', 'LaborBillRateController@store_or_update_data')->name('store.or.update');
-        Route::post('edit', 'LaborBillRateController@edit')->name('edit');
-        Route::post('delete', 'LaborBillRateController@delete')->name('delete');
-        Route::post('bulk-delete', 'LaborBillRateController@bulk_delete')->name('bulk.delete');
-        Route::post('change-status', 'LaborBillRateController@change_status')->name('change.status');
-        Route::post('list', 'LaborBillRateController@labor_bill_rate_list')->name('list');
-    });
-
-    //Labor Bill Rate Routes
-    Route::get('bag', 'BagController@index')->name('bag');
-    Route::group(['prefix' => 'bag', 'as'=>'bag.'], function () {
-        Route::post('datatable-data', 'BagController@get_datatable_data')->name('datatable.data');
-        Route::post('store-or-update', 'BagController@store_or_update_data')->name('store.or.update');
-        Route::post('edit', 'BagController@edit')->name('edit');
-        Route::post('delete', 'BagController@delete')->name('delete');
-        Route::post('bulk-delete', 'BagController@bulk_delete')->name('bulk.delete');
-        Route::post('change-status', 'BagController@change_status')->name('change.status');
-    });
 
 });

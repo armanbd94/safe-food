@@ -55,14 +55,4 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::post('area-wise-customer-list', 'CustomerAdvanceController@area_wise_customer_list')->name('area.wise.customer.list');
 
-    //Customer Group Routes
-    Route::get('customer-group', 'CustomerGroupController@index')->name('customer.group');
-    Route::group(['prefix' => 'customer-group', 'as'=>'customer.group.'], function () {
-        Route::post('datatable-data', 'CustomerGroupController@get_datatable_data')->name('datatable.data');
-        Route::post('store-or-update', 'CustomerGroupController@store_or_update_data')->name('store.or.update');
-        Route::post('edit', 'CustomerGroupController@edit')->name('edit');
-        Route::post('delete', 'CustomerGroupController@delete')->name('delete');
-        Route::post('bulk-delete', 'CustomerGroupController@bulk_delete')->name('bulk.delete');
-        Route::post('change-status', 'CustomerGroupController@change_status')->name('change.status');
-    });
 });
