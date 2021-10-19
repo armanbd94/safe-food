@@ -5,6 +5,7 @@ namespace Modules\MaterialStockOut\Http\Controllers;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Material\Entities\Material;
 use Modules\Setting\Entities\Warehouse;
 use App\Http\Controllers\BaseController;
 use Modules\MaterialStockOut\Entities\StockOut;
@@ -156,6 +157,13 @@ class MaterialStockOutController extends BaseController
                                 'total'         => $value['subtotal'],
                                 'created_at'    => date('Y-m-d')
                             ];
+
+                            $material = Material::find($value['id']);
+                            if($material)
+                            {
+                                $material->qty -= $value['qty'];
+                                $material->update();
+                            }
 
                             $warehouse_material = WarehouseMaterial::where([
                                 ['warehouse_id', $request->warehouse_id],

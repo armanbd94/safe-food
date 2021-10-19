@@ -32,6 +32,7 @@
                     <form action="" id="store_form" method="post" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="update_id">
+                        <input type="hidden" name="warehouse_id" value="1">
                         <div class="row">
                             <div class="form-group col-md-4 required">
                                 <label for="stock_out_no">Stock Out No.</label>
@@ -42,13 +43,13 @@
                                 <input type="text" class="form-control date" name="date" id="date" value="{{ date('Y-m-d') }}"  readonly />
                             </div>
 
-                            <x-form.selectbox labelName="Warehouse" name="warehouse_id" col="col-md-4" required="required" class="selectpicker">
+                            {{-- <x-form.selectbox labelName="Warehouse" name="warehouse_id" col="col-md-4" required="required" class="selectpicker">
                                 @if (!$warehouses->isEmpty())
                                 @foreach ($warehouses as $id => $name)
                                     <option value="{{ $id }}">{{ $name }}</option>
                                 @endforeach
                                 @endif
-                            </x-form.selectbox>
+                            </x-form.selectbox> --}}
 
                             <div class="col-md-12">
                                 <table class="table table-bordered" id="material_table">
