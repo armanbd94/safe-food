@@ -12,6 +12,7 @@
         padding: 0 !important;
     }
     .small-btn i{font-size: 10px !important;} 
+    .w18{width: 18%;}
 </style>
 @endpush
 
@@ -76,7 +77,6 @@
                                         <th class="text-right">Net Unit Cost</th>
                                         <th class="text-right">Discount</th>
                                         <th class="text-right">Tax</th>
-                                        <th class="text-right">Labor Cost</th>
                                         <th class="text-right">Subtotal</th>
                                         <th class="text-center"><i class="fas fa-trash text-white"></i></th>
                                     </thead>
@@ -102,7 +102,7 @@
                                         <td><input type="text" class="text-right form-control net_unit_cost" name="materials[1][net_unit_cost]" id="materials_net_unit_cost_1" data-row="1"></td>
                                         <td class="discount text-right" data-row="1"></td>
                                         <td class="tax text-right" data-row="1"></td>
-                                        <td><input type="text" class="text-right form-control labor_cost labor-cost" name="materials[1][labor_cost]" id="labor_cost_1" data-row="1"></td>
+                                        {{-- <td><input type="text" class="text-right form-control labor_cost labor-cost" name="materials[1][labor_cost]" id="labor_cost_1" data-row="1"></td> --}}
                                         <td class="sub-total text-right" data-row="1"></td>
                                         <td class="text-center" data-row="1"><button type="button" class="edit-material btn btn-sm small-btn btn-primary mr-2 small-btn d-none"  id="edit_modal_1" data-toggle="modal" data-target="#editModal"><i class="fas fa-edit"></i></button></td>
                                         <input type="hidden" class="material-id_1" id="material_id_1" name="materials[1][id]" data-row="1">
@@ -120,34 +120,42 @@
                                         <th></th>
                                         <th id="total-discount" class="text-right font-weight-bolder">0.00</th>
                                         <th id="total-tax" class="text-right font-weight-bolder">0.00</th>
-                                        <th id="total-labor-cost" class="text-right font-weight-bolder">0.00</th>
+                                        {{-- <th id="total-labor-cost" class="text-right font-weight-bolder">0.00</th> --}}
                                         <th id="total" class="text-right font-weight-bolder">0.00</th>
                                         <th class="text-center"><button type="button" class="btn btn-success small-btn btn-md add-material"><i class="fas fa-plus"></i></button></th>
                                     </tfoot>
                                 </table>
                             </div>
-                            <x-form.selectbox labelName="Order Tax" name="order_tax_rate" col="col-md-3">
-                                <option value="0" selected>No Tax</option>
-                                @if (!$taxes->isEmpty())
-                                    @foreach ($taxes as $tax)
-                                        <option value="{{ $tax->rate }}">{{ $tax->name }}</option>
-                                    @endforeach
-                                @endif
-                            </x-form.selectbox>
-
-                            <div class="form-group col-md-3">
-                                <label for="order_discount">Order Discount</label>
-                                <input type="text" class="form-control" name="order_discount" id="order_discount">
+                            <div class="col-md-12">
+                                <div class="row" style="justify-content: space-between;padding: 10px 20px;">
+                                    <x-form.selectbox labelName="Order Tax" name="order_tax_rate" col="w18">
+                                        <option value="0" selected>No Tax</option>
+                                        @if (!$taxes->isEmpty())
+                                            @foreach ($taxes as $tax)
+                                                <option value="{{ $tax->rate }}">{{ $tax->name }}</option>
+                                            @endforeach
+                                        @endif
+                                    </x-form.selectbox>
+        
+                                    <div class="form-group w18">
+                                        <label for="order_discount">Order Discount</label>
+                                        <input type="text" class="form-control" name="order_discount" id="order_discount">
+                                    </div>
+                                    <div class="form-group w18">
+                                        <label for="shipping_cost">Shipping Cost</label>
+                                        <input type="text" class="form-control" name="shipping_cost" id="shipping_cost">
+                                    </div>
+                                    <div class="form-group w18">
+                                        <label for="labor_cost">Labor Cost</label>
+                                        <input type="text" class="form-control" name="labor_cost" id="labor_cost">
+                                    </div>
+                                    <x-form.selectbox labelName="Payment Status" name="payment_status" required="required"  col="w18">
+                                        @foreach (PAYMENT_STATUS as $key => $value)
+                                        <option value="{{ $key }}">{{ $value }}</option>
+                                        @endforeach
+                                    </x-form.selectbox>
+                                </div>
                             </div>
-                            <div class="form-group col-md-3">
-                                <label for="shipping_cost">Shipping Cost</label>
-                                <input type="text" class="form-control" name="shipping_cost" id="shipping_cost">
-                            </div>
-                            <x-form.selectbox labelName="Payment Status" name="payment_status" required="required"  col="col-md-3">
-                                @foreach (PAYMENT_STATUS as $key => $value)
-                                <option value="{{ $key }}">{{ $value }}</option>
-                                @endforeach
-                            </x-form.selectbox>
                             
                             <div class="form-group col-md-12">
                                 <label for="shipping_cost">Note</label>
@@ -161,6 +169,7 @@
                                         <th><strong>Order Tax</strong><span class="float-right" id="order_total_tax">0.00</span></th>
                                         <th><strong>Order Discount</strong><span class="float-right" id="order_total_discount">0.00</span></th>
                                         <th><strong>Shipping Cost</strong><span class="float-right" id="shipping_total_cost">0.00</span></th>
+                                        <th><strong>Labor Cost</strong><span class="float-right" id="labor_total_cost">0.00</span></th>
                                         <th><strong>Grand Total</strong><span class="float-right" id="grand_total">0.00</span></th>
                                     </thead>
                                 </table>
@@ -169,7 +178,6 @@
                                 <input type="hidden" name="total_qty">
                                 <input type="hidden" name="total_discount">
                                 <input type="hidden" name="total_tax">
-                                <input type="hidden" name="total_labor_cost">
                                 <input type="hidden" name="total_cost">
                                 <input type="hidden" name="item">
                                 <input type="hidden" name="order_tax">
@@ -233,7 +241,6 @@
             <div class="modal-body">
                 <div class="row">
                     <x-form.textbox labelName="Quantity" name="edit_qty" required="required" col="col-md-12"/>
-                    <x-form.textbox labelName="Labor Cost" name="edit_labor_cost" col="col-md-12"/>
                     <x-form.textbox labelName="Unit Discount" name="edit_discount" col="col-md-12"/>
                     <x-form.textbox labelName="Unit Cost" name="edit_unit_cost" col="col-md-12"/>
                     @php 
@@ -297,7 +304,6 @@ var material_qty   = [];
 
 // array data with selection
 var material_cost        = [];
-var material_labor_cost  = [];
 var material_discount    = [];
 var tax_rate             = [];
 var tax_name             = [];
@@ -327,7 +333,6 @@ $(document).ready(function () {
 
         var qty = $(this).closest('tr').find('.qty').val();
         $('#edit_qty').val(qty);
-        $('#edit_labor_cost').val(parseFloat(material_labor_cost[rowindex]).toFixed(2));
         $('#edit_discount').val(parseFloat(material_discount[rowindex]).toFixed(2));
 
         unitConversion();
@@ -388,7 +393,7 @@ $(document).ready(function () {
 
         console.log(material_cost);
 
-        material_labor_cost[rowindex] = $('#edit_labor_cost').val();
+        // material_labor_cost[rowindex] = $('#edit_labor_cost').val();
         material_discount[rowindex] = $('#edit_discount').val();
         var position = $('#edit_unit').val();
         var temp_operator = temp_unit_operator[position];
@@ -433,20 +438,20 @@ $(document).ready(function () {
         
     });
     
-    $('#material_table').on('keyup','.labor_cost',function(){
-        rowindex = $(this).closest('tr').index();
-        if($(this).val() <= 0 && $(this).val() == ''){
-            $('#material_table tbody tr:nth-child('+(rowindex + 1)+') .labor_cost ').val(0);
-            notification('error','Labor Cost can\'t be less than 0 OR Empty');
-        }else{
-            material_labor_cost[rowindex] = $('#material_table tbody tr:nth-child('+(rowindex + 1)+') .labor_cost').val();
-        }
-        var qty = $('#material_table tbody tr:nth-child('+(rowindex + 1)+') .qty').val();
-        if(qty > 0){
-            checkQuantity(qty,true,input=1);
-        }
+    // $('#material_table').on('keyup','.labor_cost',function(){
+    //     rowindex = $(this).closest('tr').index();
+    //     if($(this).val() <= 0 && $(this).val() == ''){
+    //         $('#material_table tbody tr:nth-child('+(rowindex + 1)+') .labor_cost ').val(0);
+    //         notification('error','Labor Cost can\'t be less than 0 OR Empty');
+    //     }else{
+    //         material_labor_cost[rowindex] = $('#material_table tbody tr:nth-child('+(rowindex + 1)+') .labor_cost').val();
+    //     }
+    //     var qty = $('#material_table tbody tr:nth-child('+(rowindex + 1)+') .qty').val();
+    //     if(qty > 0){
+    //         checkQuantity(qty,true,input=1);
+    //     }
         
-    });
+    // });
 
     $('#material_table').on('click','.remove-material',function(){
         rowindex = $(this).closest('tr').index();
@@ -467,6 +472,9 @@ $(document).ready(function () {
         calculateGrandTotal();
     });
     $('input[name="shipping_cost"]').on('input',function(){
+        calculateGrandTotal();
+    });
+    $('input[name="labor_cost"]').on('input',function(){
         calculateGrandTotal();
     });
     $('select[name="order_tax_rate"]').on('change',function(){
@@ -559,7 +567,7 @@ $(document).ready(function () {
         cols += `<td><input type="text" class="net_unit_cost form-control text-right" name="materials[`+count+`][net_unit_cost]" id="materials_net_unit_cost_${count}" data-row="${count}"></td>`;
         cols += `<td class="discount text-right" data-row="${count}"></td>`;
         cols += `<td class="tax text-right" data-row="${count}"></td>`;
-        cols += `<td><input type="text" class="labor_cost labor-cost form-control text-right" name="materials[`+count+`][labor_cost]"  id="labor_cost_${count}" data-row="${count}"></td>`;
+        //cols += `<td><input type="text" class="labor_cost labor-cost form-control text-right" name="materials[`+count+`][labor_cost]"  id="labor_cost_${count}" data-row="${count}"></td>`;
         cols += `<td class="sub-total text-right" data-row="${count}"></td>`;
         cols += `<td class="text-center">
                     <button type="button" class="edit-material btn btn-sm btn-primary mr-2 small-btn d-none" data-toggle="modal" id="edit_modal_${count}" data-target="#editModal"><i class="fas fa-edit"></i></button>
@@ -614,7 +622,7 @@ function materialSearch(data,row) {
                         material_cost[rowindex] = parseFloat(data.cost);
                     }
                     
-                    material_labor_cost.push('0.00');
+                    // material_labor_cost.push('0.00');
                     material_discount.push('0.00');
                     tax_rate.push(parseFloat(data.tax_rate));
                     tax_name.push(data.tax_name);
@@ -663,13 +671,13 @@ function calculateProductData(quantity,input=2){
     {
         var net_unit_cost = row_material_cost - material_discount[rowindex];
         var tax = net_unit_cost * quantity * (tax_rate[rowindex]/100);
-        var sub_total = (net_unit_cost * quantity) + tax + parseFloat(material_labor_cost[rowindex]);
+        var sub_total = (net_unit_cost * quantity) + tax;
 
     }else{
         var sub_total_unit = row_material_cost - material_discount[rowindex];
         var net_unit_cost = (100 / (100 + tax_rate[rowindex])) * sub_total_unit;
         var tax = (sub_total_unit - net_unit_cost) * quantity;
-        var sub_total = (sub_total_unit * quantity) + parseFloat(material_labor_cost[rowindex]);
+        var sub_total = (sub_total_unit * quantity);
     }
 
     //console.log(`net_unit_cost = ${net_unit_cost}`);
@@ -679,13 +687,13 @@ function calculateProductData(quantity,input=2){
         $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('.net_unit_cost').val(net_unit_cost.toFixed(2));
     }
     
-    if(input==2){
-        $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(9)').val(parseFloat(material_labor_cost[rowindex]).toFixed(2));
-        $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('.labor-cost').val(parseFloat(material_labor_cost[rowindex]).toFixed(2));
-    }
+    // if(input==2){
+    //     $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(9)').val(parseFloat(material_labor_cost[rowindex]).toFixed(2));
+    //     $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('.labor-cost').val(parseFloat(material_labor_cost[rowindex]).toFixed(2));
+    // }
     $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(8)').text(tax.toFixed(2));
     $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('.tax-value').val(tax.toFixed(2));
-    $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(10)').text(sub_total.toFixed(2));
+    $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(9)').text(sub_total.toFixed(2));
     $('#material_table tbody tr:nth-child('+(rowindex + 1)+')').find('.subtotal-value').val(sub_total.toFixed(2));
 
     calculateTotal();
@@ -740,12 +748,12 @@ function calculateTotal()
     $('input[name="total_tax"]').val(total_tax.toFixed(2));
 
     //sum of labor cost
-    var total_labor_cost = 0;
-    $('.labor_cost').each(function() {
-        total_labor_cost += parseFloat($(this).val());
-    });
-    $('#total-labor-cost').text(total_labor_cost.toFixed(2));
-    $('input[name="total_labor_cost"]').val(total_labor_cost.toFixed(2));
+    // var total_labor_cost = 0;
+    // $('.labor_cost').each(function() {
+    //     total_labor_cost += parseFloat($(this).val());
+    // });
+    // $('#total-labor-cost').text(total_labor_cost.toFixed(2));
+    // $('input[name="total_labor_cost"]').val(total_labor_cost.toFixed(2));
 
     //sum of subtotal
     var total = 0;
@@ -766,6 +774,7 @@ function calculateGrandTotal()
     var order_tax = parseFloat($('select[name="order_tax_rate"]').val());
     var order_discount = parseFloat($('#order_discount').val());
     var shipping_cost = parseFloat($('#shipping_cost').val());
+    var labor_cost = parseFloat($('#labor_cost').val());
 
     if(!order_discount){
         order_discount = 0.00;
@@ -773,10 +782,13 @@ function calculateGrandTotal()
     if(!shipping_cost){
         shipping_cost = 0.00;
     }
+    if(!labor_cost){
+        labor_cost = 0.00;
+    }
 
     item = ++item + '(' + total_qty + ')';
     order_tax = (subtotal - order_discount) * (order_tax / 100);
-    var grand_total = (subtotal + order_tax + shipping_cost) - order_discount;
+    var grand_total = (subtotal + order_tax + shipping_cost + labor_cost) - order_discount;
 
     $('#item').text(item);
     $('input[name="item"]').val($('#material_table tbody tr:last').index() + 1);
@@ -785,6 +797,7 @@ function calculateGrandTotal()
     $('input[name="order_tax"]').val(order_tax.toFixed(2));
     $('#order_total_discount').text(order_discount.toFixed(2));
     $('#shipping_total_cost').text(shipping_cost.toFixed(2));
+    $('#labor_total_cost').text(labor_cost.toFixed(2));
     $('#grand_total').text(grand_total.toFixed(2));
     $('input[name="grand_total"]').val(grand_total.toFixed(2));
     if($('#payment_status option:selected').val() == 1)

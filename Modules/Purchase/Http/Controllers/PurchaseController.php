@@ -160,7 +160,7 @@ class PurchaseController extends BaseController
                         'total_qty'        => $request->total_qty,
                         'total_discount'   => $request->total_discount,
                         'total_tax'        => $request->total_tax,
-                        'total_labor_cost' => $request->total_labor_cost ? $request->total_labor_cost : null,
+                        'total_labor_cost' => $request->labor_cost ? $request->labor_cost : null,
                         'total_cost'       => $request->total_cost,
                         'order_tax_rate'   => $request->order_tax_rate,
                         'order_tax'        => $request->order_tax,
@@ -189,6 +189,9 @@ class PurchaseController extends BaseController
 
                     //purchase materials
                     $materials = [];
+                    $labor_cost = $request->labor_cost ? floatval($request->labor_cost) : 0;
+                    $shipping_cost = $request->shipping_cost ? floatval($request->shipping_cost) : 0;
+                    $material_additional_cost = ($request->total_qty > 0) ? ($shipping_cost+$labor_cost) / floatval($request->total_qty) : 0;
                     if($request->has('materials'))
                     {                        
                         foreach ($request->materials as $key => $value) {
@@ -200,23 +203,23 @@ class PurchaseController extends BaseController
                                 $qty = $value['received'] / $unit->operation_value;
                             }
                             $material = Material::find($value['id']);
-                            $labor_cost = $value['labor_cost'] ? floatval($value['labor_cost']) : 0;
-                            $shipping_cost = $request->shipping_cost ? floatval($request->shipping_cost) : 0;
+                            
 
                             if($material->tax_method == 1){
                                 if($unit->operator == '*'){
-                                    $material_cost = (((floatval($value['net_unit_cost'] + ($value['discount'] / $value['qty'])) * $value['qty']) + $labor_cost +  $shipping_cost) /  $value['qty']) / $unit->operation_value;
+                                    $material_cost = (((floatval($value['net_unit_cost'] + ($value['discount'] / $value['qty'])) * $value['qty'])) /  $value['qty']) / $unit->operation_value;
                                 }elseif ($unit->operator == '/') {
-                                    $material_cost = (((floatval($value['net_unit_cost'] + ($value['discount'] / $value['qty'])) * $value['qty']) + $labor_cost +  $shipping_cost) /  $value['qty']) * $unit->operation_value;
+                                    $material_cost = (((floatval($value['net_unit_cost'] + ($value['discount'] / $value['qty'])) * $value['qty'])) /  $value['qty']) * $unit->operation_value;
                                 }
                             }else{
                                 if($unit->operator == '*'){
-                                    $material_cost = ((floatval($value['subtotal'] + ($value['discount'] / $value['qty']) + $shipping_cost) / $value['qty']) / $unit->operation_value);
+                                    $material_cost = ((floatval($value['subtotal'] + ($value['discount'] / $value['qty'])) / $value['qty']) / $unit->operation_value);
                                 }elseif ($unit->operator == '/') {
-                                  	$material_cost = ((floatval($value['subtotal'] + ($value['discount'] / $value['qty']) + $shipping_cost) / $value['qty']) * $unit->operation_value);
+                                  	$material_cost = ((floatval($value['subtotal'] + ($value['discount'] / $value['qty'])) / $value['qty']) * $unit->operation_value);
                                 }
                                 
                             }
+                            $material_cost = $material_cost + $material_additional_cost;
 
                             $new_cost = $material->cost > 0 ? (($material_cost + $material->cost)/2) : $material_cost;
                             $materials[$value['id']] = [
@@ -229,7 +232,6 @@ class PurchaseController extends BaseController
                                 'discount'         => $value['discount'],
                                 'tax_rate'         => $value['tax_rate'],
                                 'tax'              => $value['tax'],
-                                'labor_cost'       => $labor_cost ? $labor_cost : null,
                                 'total'            => $value['subtotal']
                             ];
 

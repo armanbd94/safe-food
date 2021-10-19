@@ -21,6 +21,7 @@ class PurchaseFormRequest extends FormRequest
         $this->rules['purchase_status'] = ['required'];
         $this->rules['order_discount']  = ['nullable','numeric','gte:0'];
         $this->rules['shipping_cost']   = ['nullable','numeric','gte:0'];
+        $this->rules['labor_cost']   = ['nullable','numeric','gte:0'];
         if(request()->has('purchase_id'))
         {
             $this->rules['memo_no'][1] = 'unique:purchases,memo_no,'.request()->purchase_id;
