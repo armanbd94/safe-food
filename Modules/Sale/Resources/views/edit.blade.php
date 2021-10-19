@@ -447,7 +447,7 @@ $(document).ready(function () {
             console.log(qty);
             $('#product_table tbody tr:nth-child('+(rowindex + 1)+') .free_qty').val(0);
         }
-        checkQuantity(qty,true,$(this).val(),rowindex,input=2);
+        // checkQuantity(qty,true,$(this).val(),rowindex,input=2);
     });
 
     $('#product_table').on('keyup','.net_unit_price',function(){
@@ -643,7 +643,7 @@ $(document).ready(function () {
         {
             $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.qty').val(sale_qty);
         }
-        calculateProductData(sale_qty,rowindex,input);
+        calculateProductData(sale_qtyadd,rowindex,input);
     }
 
     function calculateProductData(quantity,rowindex,input=2){ 
@@ -738,6 +738,7 @@ $(document).ready(function () {
     {
         var item           = $('#product_table tbody tr:last').index();
         var total_qty      = parseFloat($('#total-qty').text());
+        var total_free_qty      = parseFloat($('#total-free-qty').text());
         var subtotal       = parseFloat($('#total').text());
         var order_tax      = parseFloat($('select[name="order_tax_rate"]').val());
         var order_discount = parseFloat($('#order_discount').val());
@@ -756,7 +757,7 @@ $(document).ready(function () {
         if(!sr_commission_rate){
             sr_commission_rate = 0.00;
         }
-        item = ++item + '(' + total_qty + ')';
+        item = ++item + '(' + (total_qty+total_free_qty) + ')';
         order_tax = (subtotal - order_discount) * (order_tax / 100);
         var grand_total = (subtotal + order_tax + shipping_cost + labor_cost) - order_discount;
         var previous_due = parseFloat($('#previous_due').val());

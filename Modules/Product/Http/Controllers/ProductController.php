@@ -90,7 +90,7 @@ class ProductController extends BaseController
                     // $row[] = number_format($value->unit_price,2,'.','');
                     $row[] = number_format($value->base_unit_price,2,'.','');
                     // $row[] = $value->unit_qty ?? 0;
-                    $row[] = $value->base_unit_qty ?? 0;
+                    $row[] = (!$value->warehouse_product->isEmpty()) ? number_format($value->warehouse_product[0]->qty,2,'.','') : 0;
                     $row[] = $value->alert_quantity ?? 0;
                     $row[] = permission('product-edit') ? change_status($value->id,$value->status, $value->name) : STATUS_LABEL[$value->status];
                     $row[] = action_button($action);//custom helper function for action button

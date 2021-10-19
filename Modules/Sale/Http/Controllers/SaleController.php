@@ -503,13 +503,13 @@ class SaleController extends BaseController
     {
         if($request->ajax()){
             if(permission('sale-edit')){
-                 //dd($request->all());
+                //  dd($request->all());
                 DB::beginTransaction();
                 try {
                     
                     $sale_data = [
                         'item'           => $request->item,
-                        'total_qty'      => $request->total_qty,
+                        'total_qty'      => $request->total_qty+$request->total_free_qty,
                         'total_free_qty'      => $request->total_free_qty,
                         'total_discount' => $request->total_discount ? $request->total_discount : 0,
                         'total_tax'      => $request->total_tax ? $request->total_tax : 0,
@@ -625,7 +625,7 @@ class SaleController extends BaseController
                         }
                     }
                     $customer = Customer::with('coa')->find( $saleData->customer_id);
-                    $salesmen  = Salesmen::with('coa')->find($request->salesmen_id);
+                    $salesmen  = Salesmen::with('coa')->find($saleData->salesmen_id);
                     $sale = $saleData->update($sale_data);
                     $sum_direct_cost = array_sum($direct_cost);
                     $total_tax = ($request->total_tax ? $request->total_tax : 0) + ($request->order_tax ? $request->order_tax : 0);

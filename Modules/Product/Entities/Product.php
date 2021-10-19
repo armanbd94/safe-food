@@ -23,10 +23,10 @@ class Product extends BaseModel
         return $this->belongsTo(Category::class);
     }
 
-    // public function unit()
-    // {
-    //     return $this->belongsTo(Unit::class,'unit_id','id');
-    // }
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class,'unit_id','id')->default(['unit_name'=>'','unit_code'=>'']);
+    }
 
     public function base_unit()
     {
@@ -41,6 +41,13 @@ class Product extends BaseModel
     public function product_material(){
         return $this->belongsToMany(Material::class,'product_material','product_id','material_id','id','id')
                     ->withTimestamps();
+    }
+
+    public function warehouse_product()
+    {
+        return $this->hasMany(WarehouseProduct::class,'product_id','id')
+        ->selectRaw('warehouse_product.product_id,SUM(warehouse_product.qty) as qty')
+        ->groupBy('warehouse_product.product_id');
     }
 
     /******************************************
@@ -83,7 +90,7 @@ class Product extends BaseModel
             $this->column_order = ['id', 'id', 'name', 'category_id', 'cost', 'base_unit_price', 'base_unit_qty','alert_quantity', 'status', null];
         }
         
-        $query = self::with('category:id,name');
+        $query = self::with('category:id,name','warehouse_product');
 
         //search query
         if (!empty($this->_name)) {

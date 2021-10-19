@@ -77,7 +77,7 @@ class BarcodeController extends BaseController
 
     public function search_product(Request $request)
     {
-        $product_data =Product::with(['tax','unit','base_unit'])->where('code',$request['data'])->first();
+        $product_data =Product::with(['tax','base_unit'])->where('code',$request['data'])->first();
         if($product_data)
         {
             $product['id']             = $product_data->id;

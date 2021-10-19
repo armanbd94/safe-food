@@ -330,7 +330,7 @@ $(document).ready(function () {
             console.log(qty);
             $('#product_table tbody tr:nth-child('+(rowindex + 1)+') .free_qty').val(0);
         }
-        checkQuantity(qty,true,$(this).val(),rowindex,input=2);
+        // checkQuantity(qty,true,$(this).val(),rowindex,input=2);
     });
 
     $('#product_table').on('keyup','.net_unit_price',function(){
