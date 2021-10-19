@@ -43,7 +43,7 @@
                                 <input type="hidden" id="to_date" name="to_date" >
                             </div>
                         </div>
-                        <x-form.selectbox labelName="Warehouse" name="warehouse_id" col="col-md-3" class="selectpicker">
+                        <x-form.selectbox labelName="Depo" name="warehouse_id" col="col-md-3" class="selectpicker">
                             @if (!$warehouses->isEmpty())
                                 @foreach ($warehouses as $id => $name)
                                     <option value="{{ $id }}">{{ $name }}</option>
@@ -83,7 +83,7 @@
                                         @endif
                                         <th>Sl</th>
                                         <th>Adjustment No.</th>
-                                        <th>Warehouse</th>
+                                        <th>Depo</th>
                                         <th>Total Item</th>
                                         <th>Products</th>
                                         <th>Total Quantity</th>

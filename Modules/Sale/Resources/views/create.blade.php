@@ -48,7 +48,7 @@
                                 <label for="sale_date">Sale Date</label>
                                 <input type="text" class="fcs form-control date" name="sale_date" id="sale_date" value="{{ date('Y-m-d') }}" readonly />
                             </div>
-                            <x-form.selectbox labelName="Warehouse" name="warehouse_id" col="col-md-3" required="required" class="fcs">
+                            <x-form.selectbox labelName="Depo" name="warehouse_id" col="col-md-3" required="required" class="fcs">
                                 @if (!$warehouses->isEmpty())
                                 @foreach ($warehouses as $id => $name)
                                     <option value="{{ $id }}" {{ $id == 1 ? 'selected' : '' }}>{{ $name }}</option>

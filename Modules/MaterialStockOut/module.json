@@ -1,0 +1,13 @@
+{
+    "name": "MaterialStockOut",
+    "alias": "materialstockout",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\MaterialStockOut\\Providers\\MaterialStockOutServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

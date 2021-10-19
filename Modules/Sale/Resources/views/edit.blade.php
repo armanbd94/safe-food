@@ -56,7 +56,7 @@
                             </div>
 
                             <div class="form-group col-md-3 required">
-                                <label>Warehosue</label>
+                                <label>Depo</label>
                                 <input type="text" class="form-control" value="{{  $sale->warehouse->name }}" readonly  />
                                 <input type="hidden" class="form-control" value="{{  $sale->warehouse_id }}" id="warehouse_id"  />
                             </div>

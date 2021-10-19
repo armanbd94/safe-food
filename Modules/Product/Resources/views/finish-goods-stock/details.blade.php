@@ -28,7 +28,7 @@
                     <div class="row">
                         <div class="col-md-12 text-center">
                             <h6>Adjustment No.: {{ $adjustment->adjustment_no }}</h6>
-                            <h6>Warehouse: {{ $adjustment->warehouse->name }}</h6>
+                            <h6>Depo: {{ $adjustment->warehouse->name }}</h6>
                             <h6>Date: {{ date('d-M-Y',strtotime($adjustment->created_at)) }}</h6>
                         </div>
 
