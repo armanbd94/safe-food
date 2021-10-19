@@ -199,6 +199,28 @@ class MaterialStockOutController extends BaseController
         }
     }
 
+
+    public function edit(int $id)
+    {
+        if(permission('material-stock-out-view')){
+            $this->setPageData('Material Stock Out Details','Material Stock Out Details','fas fa-box-open',[['name'=>'Material Stock Out','link' => route('material.stock.out')],['name' => 'Material Stock Out Details']]);
+            $materials = DB::table('materials as m')
+            ->join('units as u','m.unit_id','=','u.id')
+            ->selectRaw('m.id,m.material_name,m.material_code,m.qty,m.cost,m.unit_id,u.unit_name')
+            ->get();
+            $data = [
+                'warehouses' => DB::table('warehouses')->where('status',1)->pluck('name','id'),
+                'materials'  => $materials,
+                'stock_out'  => $this->model->with(['warehouse:id,name','materials'])->find($id)
+            ];
+            return view('materialstockout::edit',$data);
+        }else{
+            return $this->access_blocked();
+        }
+    }
+
+
+
     public function delete(Request $request)
     {
         if($request->ajax()){
