@@ -9,7 +9,7 @@ use Modules\Setting\Entities\Warehouse;
 class Adjustment extends BaseModel
 {
 
-    protected $fillable = ['adjustment_no', 'warehouse_id', 'item', 'total_qty', 'total_cost', 'note', 'created_by', 'modified_by'];
+    protected $fillable = ['adjustment_no', 'warehouse_id', 'item', 'total_qty', 'total_cost','date', 'note', 'created_by', 'modified_by'];
 
     public function warehouse()
     {
@@ -54,9 +54,9 @@ class Adjustment extends BaseModel
     private function get_datatable_query()
     {
         if (permission('finish-goods-stock-bulk-delete')){
-            $this->column_order = [null,'id','adjustment_no','warehouse_id', 'item',null,'total_qty','total_cost','created_by','created_at', null];
+            $this->column_order = [null,'id','adjustment_no','warehouse_id', 'item',null,'total_qty','total_cost','created_by','date', null];
         }else{
-            $this->column_order = ['id','adjustment_no','warehouse_id', 'item',null,'total_qty','total_cost','created_by','created_at', null];
+            $this->column_order = ['id','adjustment_no','warehouse_id', 'item',null,'total_qty','total_cost','created_by','date', null];
         }
         
         $query = self::with(['warehouse:id,name','products']);
@@ -70,10 +70,10 @@ class Adjustment extends BaseModel
         }
 
         if (!empty($this->_from_date)) {
-            $query->whereDate('created_at', '>=',$this->_from_date);
+            $query->whereDate('date', '>=',$this->_from_date);
         }
         if (!empty($this->_to_date)) {
-            $query->whereDate('created_at', '<=',$this->_to_date);
+            $query->whereDate('date', '<=',$this->_to_date);
         }
 
 

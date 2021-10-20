@@ -39,6 +39,11 @@
                                 <input type="text" class="form-control" name="adjustment_no" id="adjustment_no" value="{{ $adjustment->adjustment_no }}" readonly />
                             </div>
 
+                            <div class="form-group col-md-4 required">
+                                <label for="date">Date</label>
+                                <input type="text" class="form-control date" name="date" id="date" value="{{ $adjustment->date }}"  readonly />
+                            </div>
+
                             <x-form.selectbox labelName="Depo" name="warehouse_id" col="col-md-4" required="required" class="selectpicker">
                                 @if (!$warehouses->isEmpty())
                                 @foreach ($warehouses as $id => $name)
@@ -136,9 +141,11 @@
 
 @push('scripts')
 <script src="js/jquery-ui.js"></script>
+<script src="js/moment.js"></script>
+<script src="js/bootstrap-datetimepicker.min.js"></script>
 <script>
 $(document).ready(function () {
-
+    $('.date').datetimepicker({format: 'YYYY-MM-DD',ignoreReadonly: true});
 
     $('#product_code_name').autocomplete({
         // source: "{{url('product-autocomplete-search')}}",

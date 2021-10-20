@@ -90,7 +90,7 @@ class AdjustmentController extends BaseController
                     $row[] = number_format($value->total_qty,2,'.','');
                     $row[] = number_format($value->total_cost,2,'.','');
                     $row[] = $value->created_by;
-                    $row[] = date('d-M-Y',strtotime($value->created_at));
+                    $row[] = date('d-M-Y',strtotime($value->date));
                     $row[] = action_button($action);//custom helper function for action button
                     $data[] = $row;
                 }
@@ -130,6 +130,7 @@ class AdjustmentController extends BaseController
                         'item'          => $request->item,
                         'total_qty'     => $request->total_qty,
                         'total_cost'   => $request->total_cost,
+                        'date'          => $request->date,
                         'note'          => $request->note,
                         'created_by'    => auth()->user()->name
                     ];
@@ -216,7 +217,7 @@ class AdjustmentController extends BaseController
     {
         if($request->ajax()){
             if(permission('finish-goods-stock-edit')){
-                // dd($request->all());
+                dd($request->all());
                 DB::beginTransaction();
                 try {
                     $adjustmentData = $this->model->with('products')->find($request->update_id);
@@ -226,6 +227,7 @@ class AdjustmentController extends BaseController
                         'item'         => $request->item,
                         'total_qty'    => $request->total_qty,
                         'total_cost'   => $request->total_cost,
+                        'date'         => $request->date,
                         'note'         => $request->note,
                         'updated_at'   => date('Y-m-d'),
                         'modified_by'  => auth()->user()->name
