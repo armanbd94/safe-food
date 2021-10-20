@@ -2,8 +2,10 @@
 
 namespace Modules\MaterialStockOut\Entities;
 
+use App\Models\Unit;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Material\Entities\Material;
+use Modules\MaterialStockOut\Entities\StockOut;
 
 class StockOutMaterial extends Model
 {
@@ -16,5 +18,9 @@ class StockOutMaterial extends Model
     public function material()
     {
         return $this->belongsTo(Material::class,'material_id','id'); 
+    }
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class,'unit_id','id'); 
     }
 }

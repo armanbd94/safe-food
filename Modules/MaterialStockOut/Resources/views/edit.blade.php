@@ -31,16 +31,16 @@
                 <div id="kt_datatable_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
                     <form action="" id="store_form" method="post" enctype="multipart/form-data">
                         @csrf
-                        <input type="hidden" name="update_id">
-                        <input type="hidden" name="warehouse_id" value="1">
+                        <input type="hidden" name="update_id" value="{{ $stock_out->id }}">
+                        <input type="hidden" name="warehouse_id" value="{{ $stock_out->warehouse_id }}">
                         <div class="row">
                             <div class="form-group col-md-4 required">
                                 <label for="stock_out_no">Stock Out No.</label>
-                                <input type="text" class="form-control bg-secondary" name="stock_out_no" id="stock_out_no" value="{{ $stock_out_no }}" readonly />
+                                <input type="text" class="form-control bg-secondary" name="stock_out_no" id="stock_out_no" value="{{ $stock_out->stock_out_no }}" readonly />
                             </div>
                             <div class="form-group col-md-4 required">
                                 <label for="date">Date</label>
-                                <input type="text" class="form-control date" name="date" id="date" value="{{ date('Y-m-d') }}"  readonly />
+                                <input type="text" class="form-control date" name="date" id="date" value="{{ $stock_out->date }}"  readonly />
                             </div>
 
                             {{-- <x-form.selectbox labelName="Warehouse" name="warehouse_id" col="col-md-4" required="required" class="selectpicker">
@@ -64,34 +64,54 @@
                                         <th class="text-center"><i class="fas fa-trash text-white"></i></th>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td class="col-md-3">                                                  
-                                                <select name="materials[1][id]" id="materials_1_id" class="fcs col-md-12 selectpicker form-control" onchange="calculateRowTotal(1)"  data-live-search="true" data-row="1">                                            
-                                                    @if (!$materials->isEmpty())
-                                                        <option value="0">Please Select</option>
-                                                    @foreach ($materials as $material)
-                                                        <option value="{{ $material->id }}" data-rate="{{ $material->cost }}" data-qty="{{ $material->qty }}" data-unitid="{{ $material->unit_id }}" data-unitname="{{ $material->unit_name }}">{{ $material->material_name.' ('.$material->material_code.')' }}</option>
-                                                    @endforeach
+                                        @if (!$stock_out->materials->isEmpty())
+                                            @foreach ($stock_out->materials as $key => $value)
+                                            <tr>
+                                                <td class="col-md-3">                                                  
+                                                    <select name="materials[{{ $key+1 }}][id]" id="materials_{{ $key+1 }}_id" class="fcs col-md-12 selectpicker form-control" onchange="calculateRowTotal({{ $key+1 }})"  data-live-search="true" data-row="{{ $key+1 }}">                                            
+                                                        @if (!$materials->isEmpty())
+                                                            <option value="0">Please Select</option>
+                                                        @foreach ($materials as $material)
+                                                            @php 
+                                                            $stock_qty = DB::table('stock_out_materials')->where(['stock_out_id'=>$value->stock_out_id,'material_id'=>$material->id])->value('qty'); 
+                                                            if (!$stock_qty) {
+                                                                $stock_qty = 0;
+                                                            }
+                                                            @endphp
+                                                            <option value="{{ $material->id }}" {{ $value->material_id != $material->id ?: 'selected'  }} data-rate="{{ $material->cost }}" data-qty="{{ $material->qty + $stock_qty  }}" data-unitid="{{ $material->unit_id }}" data-unitname="{{ $material->unit_name }}">{{ $material->material_name.' ('.$material->material_code.')' }}</option>
+                                                        @endforeach
+                                                        @endif
+                                                    </select>
+                                                </td>   
+                                                <td><input type="text" class="form-control batch_no text-center" value="{{ $value->batch_no }}" name="materials[{{ $key+1 }}][batch_no]" id="materials_{{ $key+1 }}_batch_no" data-row="{{ $key+1 }}"></td>
+                                                <td class="text-center" id="materials_{{ $key+1 }}_unit_name">{{ $value->material->unit->unit_name }}</td>
+                                                <td class="text-center" id="materials_{{ $key+1 }}_stockqty">{{ $value->material->qty + $value->qty }}</td>
+                                                <td><input type="text" class="form-control qty text-center"  value="{{ $value->qty }}" onkeyup="calculateRowTotal({{ $key+1 }})" name="materials[{{ $key+1 }}][qty]" id="materials_{{ $key+1 }}_qty" data-row="{{ $key+1 }}"></td>
+                                                <td class="text-right" id="materials_{{ $key+1 }}_cost">{{ $value->net_unit_cost }}</td>
+                                                <td class="text-right" id="materials_{{ $key+1 }}_total">{{ $value->total }}</td>
+                                                
+                                                <td class="text-center">
+                                                    @if($key != 0)
+                                                    <button type="button" class="btn btn-danger btn-sm remove" data-toggle="tooltip" 
+                                                    data-placement="top" data-original-title="Remove">
+                                                    <i class="fas fa-minus-square"></i>
+                                                    </button>
                                                     @endif
-                                                </select>
-                                            </td>   
-                                            <td><input type="text" class="form-control batch_no text-center" name="materials[1][batch_no]" id="materials_1_batch_no" data-row="1"></td>
-                                            <td class="text-center" id="materials_1_unit_name"></td>
-                                            <td class="text-center" id="materials_1_stockqty"></td>
-                                            <td><input type="text" class="form-control qty text-center" onkeyup="calculateRowTotal(1)" name="materials[1][qty]" id="materials_1_qty" data-row="1"></td>
-                                            <td class="text-right" id="materials_1_cost"></td>
-                                            <td class="text-right" id="materials_1_total"></td>
-                                            <input type="hidden" class="form-control unit_id text-center" name="materials[1][unit_id]" id="materials_1_unit_id" data-row="1">
-                                            <input type="hidden" class="form-control stock_qty text-center" name="materials[1][stock_qty]" id="materials_1_stock_qty" data-row="1">
-                                            <input type="hidden" class="form-control net_unit_cost text-center" name="materials[1][net_unit_cost]" id="materials_1_net_unit_cost" data-row="1">
-                                            <input type="hidden" class="form-control subtotal text-center" name="materials[1][subtotal]" id="materials_1_subtotal" data-row="1">
-                                        </tr>
+                                                </td>
+                                                <input type="hidden" class="form-control unit_id text-center" value="{{ $value->unit_id }}" name="materials[{{ $key+1 }}][unit_id]" id="materials_{{ $key+1 }}_unit_id" data-row="{{ $key+1 }}">
+                                                <input type="hidden" class="form-control stock_qty text-center"  value="{{ $value->material->qty + $value->qty }}" name="materials[{{ $key+1 }}][stock_qty]" id="materials_{{ $key+1 }}_stock_qty" data-row="{{ $key+1 }}">
+                                                <input type="hidden" class="form-control net_unit_cost text-center" value="{{ $value->net_unit_cost }}" name="materials[{{ $key+1 }}][net_unit_cost]" id="materials_{{ $key+1 }}_net_unit_cost" data-row="{{ $key+1 }}">
+                                                <input type="hidden" class="form-control subtotal text-center" value="{{ $value->total }}" name="materials[{{ $key+1 }}][subtotal]" id="materials_{{ $key+1 }}_subtotal" data-row="{{ $key+1 }}">
+                                            </tr>
+                                            @endforeach
+                                        @endif
+                                        
                                     </tbody>
                                     <tfoot class="bg-primary">
                                         <th colspan="4" class="font-weight-bolder">Total</th>
-                                        <th id="total-qty" class="text-center font-weight-bolder">0</th>
+                                        <th id="total-qty" class="text-center font-weight-bolder">{{ $stock_out->total_qty }}</th>
                                         <th></th>
-                                        <th id="total" class="text-right font-weight-bolder">0.00</th>
+                                        <th id="total" class="text-right font-weight-bolder">{{ $stock_out->grand_total }}</th>
                                         <th class="text-center"><button type="button" class="btn btn-success btn-sm" id="add-material"><i class="fas fa-plus-square"></i></button></th>
                                     </tfoot>
                                 </table>
@@ -100,26 +120,26 @@
                            
                             <div class="form-group col-md-12">
                                 <label for="shipping_cost">Note</label>
-                                <textarea  class="form-control" name="note" id="note" cols="30" rows="3"></textarea>
+                                <textarea  class="form-control" name="note" id="note" cols="30" rows="3">{{ $stock_out->note }}</textarea>
                             </div>
 
                             <div class="col-md-12">
                                 <table class="table table-bordered">
                                     <thead class="bg-primary">
-                                        <th width="30%"><strong>Items</strong><span class="float-right" id="item">0(0)</span></th>
+                                        <th width="30%"><strong>Items</strong><span class="float-right" id="item">{{ $stock_out->item.'('.$stock_out->total_qty.')' }}</span></th>
                                         <th width="40%"></th>
-                                        <th width="30%"><strong>Grand Total</strong><span class="float-right" id="grand_total">0.00</span></th>
+                                        <th width="30%"><strong>Grand Total</strong><span class="float-right" id="grand_total">{{ number_format($stock_out->grand_total,2,'.','') }}</span></th>
                                     </thead>
                                 </table>
                             </div>
                             <div class="col-md-12">
-                                <input type="hidden" name="total_qty">
-                                <input type="hidden" name="total_cost">
-                                <input type="hidden" name="item">
-                                <input type="hidden" name="grand_total">
+                                <input type="hidden" name="total_qty" value="{{ $stock_out->total_qty }}">
+                                <input type="hidden" name="total_cost" value="{{ $stock_out->grand_total }}">
+                                <input type="hidden" name="item" value="{{ $stock_out->item }}">
+                                <input type="hidden" name="grand_total" value="{{ $stock_out->grand_total }}">
                             </div>
                             <div class="form-grou col-md-12 text-center pt-5">
-                                <button type="button" class="btn btn-danger btn-sm mr-3"><i class="fas fa-sync-alt"></i> Reset</button>
+                                <a href="{{ route('material.stock.out') }}"  class="btn btn-danger btn-sm mr-3"><i class="fas fa-sync-alt"></i> Cancel</a>
                                 <button type="button" class="btn btn-primary btn-sm mr-3" id="save-btn" onclick="store_data()"><i class="fas fa-save"></i> Submit</button>
                             </div>
                         </div>
@@ -141,8 +161,11 @@
 $(document).ready(function () {
     $('.date').datetimepicker({format: 'YYYY-MM-DD',ignoreReadonly: true});
 
-
+    @if (!$stock_out->materials->isEmpty())
+    var count = {{ count($stock_out->materials) + 1 }};
+    @else
     var count = 1;
+    @endif
 
     function material_row_add(row){
         var html = `<tr>
@@ -151,7 +174,13 @@ $(document).ready(function () {
                                 @if (!$materials->isEmpty())
                                     <option value="0">Please Select</option>
                                 @foreach ($materials as $material)
-                                <option value="{{ $material->id }}" data-rate="{{ $material->cost }}" data-qty="{{ $material->qty }}" data-unitid="{{ $material->unit_id }}" data-unitname="{{ $material->unit_name }}">{{ $material->material_name.' ('.$material->material_code.')' }}</option>
+                                @php 
+                                $stock_qty = DB::table('stock_out_materials')->where(['stock_out_id'=>$stock_out->id,'material_id'=>$material->id])->value('qty'); 
+                                if (!$stock_qty) {
+                                    $stock_qty = 0;
+                                }
+                                @endphp
+                                <option value="{{ $material->id }}" data-rate="{{ $material->cost }}" data-qty="{{ $material->qty + $stock_qty }}" data-unitid="{{ $material->unit_id }}" data-unitname="{{ $material->unit_name }}">{{ $material->material_name.' ('.$material->material_code.')' }}</option>
                                 @endforeach
                                 @endif
                             </select>
@@ -254,7 +283,7 @@ function store_data(){
     }else{
         let form = document.getElementById('store_form');
         let formData = new FormData(form);
-        let url = "{{route('material.stock.out.store')}}";
+        let url = "{{route('material.stock.out.update')}}";
         $.ajax({
             url: url,
             type: "POST",

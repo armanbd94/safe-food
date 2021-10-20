@@ -128,7 +128,6 @@ class MaterialStockOutController extends BaseController
     {
         if($request->ajax()){
             if(permission('material-stock-out-add')){
-                // dd($request->all());
                 DB::beginTransaction();
                 try {
                     $stock_out_data = [
@@ -210,8 +209,8 @@ class MaterialStockOutController extends BaseController
 
     public function edit(int $id)
     {
-        if(permission('material-stock-out-view')){
-            $this->setPageData('Material Stock Out Details','Material Stock Out Details','fas fa-box-open',[['name'=>'Material Stock Out','link' => route('material.stock.out')],['name' => 'Material Stock Out Details']]);
+        if(permission('material-stock-out-edit')){
+            $this->setPageData('Material Stock Out Edit','Material Stock Out Edit','fas fa-box-open',[['name'=>'Material Stock Out','link' => route('material.stock.out')],['name' => 'Material Stock Out Edit']]);
             $materials = DB::table('materials as m')
             ->join('units as u','m.unit_id','=','u.id')
             ->selectRaw('m.id,m.material_name,m.material_code,m.qty,m.cost,m.unit_id,u.unit_name')
@@ -227,6 +226,99 @@ class MaterialStockOutController extends BaseController
         }
     }
 
+
+    public function update(StockOutMaterialRequest $request)
+    {
+        if($request->ajax()){
+            if(permission('material-stock-out-edit')){
+                // dd($request->all());
+                DB::beginTransaction();
+                try {
+                    $stock_out = $this->model->with('materials')->find($request->update_id);
+
+                    $stock_out_data = [
+                        'stock_out_no'  => $request->stock_out_no,
+                        'date'          => $request->date,
+                        'warehouse_id'  => $request->warehouse_id,
+                        'item'          => $request->item,
+                        'total_qty'     => $request->total_qty,
+                        'grand_total'   => $request->grand_total,
+                        'note'          => $request->note,
+                        'modified_by'    => auth()->user()->name
+                    ];
+
+                    if (!$stock_out->materials->isEmpty()) {
+                        foreach ($stock_out->materials as $value) {
+                            $material = Material::find($value->material_id);
+                            if($material)
+                            {
+                                $material->qty += $value->qty;
+                                $material->update();
+                            }
+
+                            $warehouse_material = WarehouseMaterial::where([
+                                ['warehouse_id', $stock_out->warehouse_id],
+                                ['material_id', $value->material_id],
+                            ])->first();
+                            if ($warehouse_material) {
+                                $warehouse_material->qty += $value->qty;
+                                $warehouse_material->update();
+                            } 
+                        }
+                        $stock_out->materials()->delete();
+                    }
+                    $materials = [];
+                    if($request->has('materials'))
+                    {
+                        foreach ($request->materials as $value) {
+                            $materials[] = [
+                                'stock_out_id'  => $stock_out->id,
+                                'material_id'   => $value['id'],
+                                'batch_no'      => $value['batch_no'],
+                                'unit_id'       => $value['unit_id'],
+                                'qty'           => $value['qty'],
+                                'net_unit_cost' => $value['net_unit_cost'],
+                                'total'         => $value['subtotal'],
+                                'created_at'    => date('Y-m-d')
+                            ];
+
+                            $material = Material::find($value['id']);
+                            if($material)
+                            {
+                                $material->qty -= $value['qty'];
+                                $material->update();
+                            }
+
+                            $warehouse_material = WarehouseMaterial::where([
+                                ['warehouse_id', $request->warehouse_id],
+                                ['material_id', $value['id']],
+                            ])->first();
+                            if ($warehouse_material) {
+                                $warehouse_material->qty -= $value['qty'];
+                                $warehouse_material->update();
+                            } 
+
+                        }
+                        if(count($materials) > 0)
+                        {
+                            StockOutMaterial::insert($materials);
+                        }
+                    }
+                    $result = $stock_out->update($stock_out_data);
+                    $output  = $this->store_message($result, $request->update_id);
+                    DB::commit();
+                } catch (Exception $e) {
+                    DB::rollback();
+                    $output = ['status' => 'error','message' => $e->getMessage()];
+                }
+            }else{
+                $output       = $this->unauthorized();
+            }
+            return response()->json($output);
+        }else{
+            return response()->json($this->unauthorized());
+        }
+    }
 
 
     public function delete(Request $request)
