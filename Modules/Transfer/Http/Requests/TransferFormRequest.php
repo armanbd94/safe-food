@@ -21,11 +21,11 @@ class TransferFormRequest extends FormRequest
         $this->rules['to_warehouse_id']   = ['required','different:from_warehouse_id'];
         $this->rules['carried_by']        = ['required'];
         $this->rules['received_by']       = ['required'];
-        $this->rules['shipping_cost']     = ['numeric', 'gte:0'];
-        $this->rules['labor_cost']        = ['numeric', 'gte:0'];
+        $this->rules['shipping_cost']     = ['nullable','numeric', 'gte:0'];
+        $this->rules['labor_cost']        = ['nullable','numeric', 'gte:0'];
         if(request()->update_id)
         {
-            $this->rules['chalan_no'][1] = 'unique:transfers,chalan_no,'.request()->sale_id;
+            $this->rules['chalan_no'][1] = 'unique:transfers,chalan_no,'.request()->update_id;
         }
         if(request()->has('products'))
         {

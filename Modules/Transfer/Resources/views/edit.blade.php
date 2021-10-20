@@ -41,14 +41,14 @@
                     <form action="" id="sale_store_form" method="post" enctype="multipart/form-data">
                         @csrf
                         <div class="row">
-                            <input type="hidden" name="update_id" id="update_id" >
+                            <input type="hidden" name="update_id" id="update_id" value="{{ $transfer->id }}">
                             <div class="form-group col-md-3 required">
                                 <label for="chalan_no">Chalan No.</label>
-                                <input type="text" class="fcs form-control" name="chalan_no" id="chalan_no" value="{{  $chalan_no }}"/>
+                                <input type="text" class="fcs form-control" name="chalan_no" id="chalan_no" value="{{  $transfer->chalan_no }}"/>
                             </div>
                             <div class="form-group col-md-3 required">
                                 <label for="transfer_date">Transfer Date</label>
-                                <input type="text" class="fcs form-control date" name="transfer_date" id="transfer_date" value="{{ date('Y-m-d') }}" readonly />
+                                <input type="text" class="fcs form-control date" name="transfer_date" id="transfer_date" value="{{$transfer->transfer_date }}" readonly />
                             </div>
   
                             <div class="form-group col-md-3 required">
@@ -57,7 +57,7 @@
                                     <option value="">Select Please</option>
                                     @if (!$warehouses->isEmpty())
                                     @foreach ($warehouses as $id => $name)
-                                        <option value="{{ $id }}">{{ $name }}</option>
+                                        <option value="{{ $id }}" {{ $transfer->from_warehouse_id != $id ?: 'selected' }}>{{ $name }}</option>
                                     @endforeach
                                     @endif
                                 </select>
@@ -68,7 +68,7 @@
                                     <option value="">Select Please</option>
                                     @if (!$warehouses->isEmpty())
                                     @foreach ($warehouses as $id => $name)
-                                        <option value="{{ $id }}">{{ $name }}</option>
+                                        <option value="{{ $id }}" {{ $transfer->to_warehouse_id != $id ?: 'selected' }}>{{ $name }}</option>
                                     @endforeach
                                     @endif
                                 </select>
@@ -88,14 +88,99 @@
                                         <th class="text-center"><i class="fas fa-trash text-white"></i></th>
                                     </thead>
                                     <tbody>
+                                        @php
+                                            $temp_unit_name = [];
+                                            $temp_unit_operator = [];
+                                            $temp_unit_operation_value = [];
+                                        @endphp
+                                        @if (!$transfer->transfer_products->isEmpty())
+                                            @foreach ($transfer->transfer_products as $key => $transfer_product)
+                                            <tr>
+                                                @php
+                                                    $tax = DB::table('taxes')->where('rate',$transfer_product->pivot->tax_rate)->first();
 
+                                                    $units = DB::table('units')->where('base_unit',$transfer_product->pivot->unit_id)
+                                                                                ->orWhere('id',$transfer_product->pivot->unit_id)
+                                                                                ->get();
+                                                    $warehouse_product = DB::table('warehouse_product')->where([
+                                                                            ['warehouse_id', $transfer->from_warehouse_id],
+                                                                            ['product_id',$transfer_product->pivot->product_id]
+                                                                        ])->first();
+                                                    $stock_qty = $transfer_product->pivot->qty + ($warehouse_product ? $warehouse_product->qty : 0);
+                                                    
+                                                    $unit_name            = [];
+                                                    $unit_operator        = [];
+                                                    $unit_operation_value = [];
+
+                                                    if($units){
+                                                        foreach ($units as $unit) {
+                                                            if($transfer_product->pivot->transfer_unit_id == $unit->id)
+                                                            {
+                                                                array_unshift($unit_name,$unit->unit_name);
+                                                                array_unshift($unit_operator,$unit->operator);
+                                                                array_unshift($unit_operation_value,$unit->operation_value);
+                                                            }else{
+                                                                $unit_name           [] = $unit->unit_name;
+                                                                $unit_operator       [] = $unit->operator;
+                                                                $unit_operation_value[] = $unit->operation_value;
+                                                            }
+                                                        }
+
+                                                        if($transfer_product->tax_method == 1){
+                                                            $product_price = $transfer_product->pivot->price;
+                                                        }else{
+                                                            $product_price = $transfer_product->pivot->total / $transfer_product->pivot->qty;
+                                                        }
+
+                                                        if($unit_operator[0] == '*')
+                                                        {
+                                                            $product_price = $product_price * $unit_operation_value[0];
+                                                        }else if($unit_operator[0] == '/')
+                                                        {
+                                                            $product_price = $product_price / $unit_operation_value[0];
+                                                        }
+                                                        
+                                                        $temp_unit_name = $unit_name = implode(",",$unit_name).',';
+                                                        $temp_unit_operator = $unit_operator = implode(",",$unit_operator).',';
+                                                        $temp_unit_operation_value = $unit_operation_value = implode(",",$unit_operation_value).',';
+                                                    }
+                                                @endphp
+                                                <td  data-row="{{ $key + 1 }}">{{ $transfer_product->name.' ('.$transfer_product->code.')' }}</td>
+                                                <td class="product-code_tx_{{ $key + 1 }} text-center" id="products_code_{{ $key + 1 }}" data-row="{{ $key + 1 }}">{{ $transfer_product->code }}</td>
+                                                <td class="unit-name_tx_{{ $key + 1 }} text-center" id="products_unit_{{ $key + 1 }}"  data-row="{{ $key + 1 }}"></td>
+                                                <td class="available-qty_tx_{{ $key + 1 }} text-center" id="products_available_qty_{{ $key + 1 }}" data-row="{{ $key + 1 }}">{{ $stock_qty }}</td>
+                                                <td><input type="text" class="form-control qty text-center" name="products[{{ $key + 1 }}][qty]" id="products_qty_{{ $key + 1 }}" value="{{ number_format($transfer_product->pivot->qty,2,'.','') }}" data-row="{{ $key + 1 }}"></td>
+                                                <td><input type="text" readonly class="fcs text-right form-control net_unit_price" name="products[{{ $key + 1 }}][net_unit_price]" id="products_net_unit_price_{{ $key + 1 }}" value="{{ $product_price }}" data-row="{{ $key + 1 }}"></td>
+                                                <td class="tax text-right" id="tax_tx_{{ $key + 1 }}" data-row="{{ $key + 1 }}">{{ number_format((float)$transfer_product->pivot->tax, 2, '.','') }}</td>
+                                                <td class="sub-total text-right" id="sub_total_tx_{{ $key + 1 }}" data-row="{{ $key + 1 }}">{{ number_format((float)$transfer_product->pivot->total, 2, '.','') }}</td>
+                                                
+                                                <!-- <td class="text-center"><button type="button" class="btn btn-danger btn-md remove-product"><i class="fas fa-trash"></i></button></td> -->
+                                                
+                                                <input type="hidden" class="product-id_vl_{{ $key+1 }}" name="products[{{ $key + 1 }}][id]"  value="{{ $transfer_product->pivot->product_id }}" id="products_id_vl_{{ $key + 1 }}" data-row="{{ $key + 1 }}">
+                                                <input type="hidden" class="product-code_vl_{{ $key+1 }}" name="products[{{ $key + 1 }}][code]" value="{{ $transfer_product->code }}" id="products_code_vl_{{ $key + 1 }}" data-row="{{ $key + 1 }}">
+                                                <input type="hidden"   class="stock-qty_vl_{{ $key+1 }} form-control text-center" name="products[{{ $key+1 }}][stock_qty]"  value="{{ $stock_qty }}" id="products_stock_qty_{{ $key + 1 }}" data-row="{{ $key + 1 }}">
+                                                <input type="hidden" class="transfer-unit_vl_{{ $key+1 }}" name="products[{{ $key+1 }}][unit]" value="{{ $unit_name }}" id="transfer_unit_vl_{{ $key + 1 }}" data-row="{{ $key + 1 }}">
+                                                <input type="hidden" class="transfer-unit-operator_vl_{{ $key+1 }}"  value="{{ $unit_operator }}" id="transfer_unit_operator_vl_{{ $key + 1 }}" data-row="{{ $key + 1 }}">
+                                                <input type="hidden" class="transfer-unit-operation-value_vl_{{ $key+1 }}"  value="{{ $unit_operation_value }}" id="transfer_unit_operation_value_vl_{{ $key + 1 }}" data-row="{{ $key + 1 }}">
+                                                <input type="hidden" class="tax-rate" name="products[{{ $key+1 }}][tax_rate]" value="{{ $transfer_product->pivot->tax_rate }}" id="tax_rate_vl_{{ $key + 1 }}" data-row="{{ $key + 1 }}">
+                                                @if ($tax)
+                                                <input type="hidden" class="tax-name" value="{{ $tax->name }}" id="tax_name_vl_{{ $key + 1 }}" data-row="{{ $key + 1 }}">
+                                                @else
+                                                <input type="hidden" class="tax-name" value="No Tax" id="tax_name_vl_{{ $key + 1 }}" data-row="{{ $key + 1 }}">
+                                                @endif
+                                                <input type="hidden" class="tax-method" value="{{ $transfer_product->tax_method }}" id="tax_method_vl_{{ $key + 1 }}" data-row="{{ $key + 1 }}">
+                                                <input type="hidden" class="tax-value" name="products[{{ $key+1 }}][tax]" value="{{ $transfer_product->pivot->tax }}" id="tax_value_vl_{{ $key + 1 }}" data-row="{{ $key + 1 }}">
+                                                <input type="hidden" class="subtotal-value" name="products[{{ $key+1 }}][subtotal]" value="{{ $transfer_product->pivot->total }}" id="subtotal_value_vl_{{ $key + 1 }}" data-row="{{ $key + 1 }}">
+                                            </tr>
+                                            @endforeach
+                                        @endif
                                     </tbody>
                                     <tfoot class="bg-primary">
                                         <th colspan="4" class="font-weight-bolder">Total</th>
-                                        <th id="total-qty" class="text-center font-weight-bolder">0.00</th>
+                                        <th id="total-qty" class="text-center font-weight-bolder">{{ $transfer->total_qty }}</th>
                                         <th></th>
-                                        <th id="total-tax" class="text-right font-weight-bolder">0.00</th>
-                                        <th id="total" class="text-right font-weight-bolder">0.00</th>
+                                        <th id="total-tax" class="text-right font-weight-bolder">{{ $transfer->total_tax }}</th>
+                                        <th id="total" class="text-right font-weight-bolder">{{ $transfer->total_price }}</th>
                                         <th class="text-center"><button type="button" class="btn btn-success btn-md add-product"><i class="fas fa-plus"></i></button></th>
                                     </tfoot>
                                 </table>
@@ -105,21 +190,21 @@
 
                                     <div class="form-group col-md-3">
                                         <label for="shipping_cost">Shipping Cost</label>
-                                        <input type="text" class="fcs form-control" name="shipping_cost" id="shipping_cost"/>
+                                        <input type="text" class="fcs form-control" value="{{ $transfer->shipping_cost }}" name="shipping_cost" id="shipping_cost"/>
                                     </div>
                                     <div class="form-group col-md-3">
                                         <label for="labor_cost">Labor Cost</label>
-                                        <input type="text" class="fcs form-control" name="labor_cost" id="labor_cost"/>
+                                        <input type="text" class="fcs form-control" value="{{ $transfer->total_labor_cost }}" name="labor_cost" id="labor_cost"/>
                                     </div>
 
                                     <div class="form-group col-md-3 required">
                                         <label for="carried_by">Carried By</label>
-                                        <input type="text" class="fcs form-control" name="carried_by" id="carried_by">
+                                        <input type="text" class="fcs form-control" value="{{ $transfer->carried_by }}" name="carried_by" id="carried_by">
                                     </div>
 
                                     <div class="form-group col-md-3 required">
                                         <label for="received_by">Received By</label>
-                                        <input type="text" class="fcs form-control" name="received_by" id="received_by">
+                                        <input type="text" class="fcs form-control" value="{{ $transfer->received_by }}" name="received_by" id="received_by">
                                     </div>
 
                                 </div>
@@ -128,29 +213,29 @@
                             
                             <div class="form-group col-md-12">
                                 <label for="shipping_cost">Note</label>
-                                <textarea  class="fcs form-control" name="note" id="note" cols="30" rows="3"></textarea>
+                                <textarea  class="fcs form-control" name="note" id="note" cols="30" rows="3">{{ $transfer->note }}</textarea>
                             </div>
                             <div class="col-md-12">
                                 <table class="table table-bordered">
                                     <thead class="bg-primary">
-                                        <th><strong>Items</strong><span class="float-right" id="item">0(0)</span></th>
-                                        <th><strong>Total</strong><span class="float-right" id="subtotal">0.00</span></th>
-                                        <th><strong>Shipping Cost</strong><span class="float-right" id="shipping_total_cost">0.00</span></th>
-                                        <th><strong>Labor Cost</strong><span class="float-right" id="labor_total_cost">0.00</span></th>
-                                        <th><strong>Grand Total</strong><span class="float-right" id="grand_total">0.00</span></th>
+                                        <th><strong>Items</strong><span class="float-right" id="item">{{ $transfer->item.'('.$transfer->total_qty.')' }}</span></th>
+                                        <th><strong>Total</strong><span class="float-right" id="subtotal">{{ $transfer->total_price }}</span></th>
+                                        <th><strong>Shipping Cost</strong><span class="float-right" id="shipping_total_cost">{{ $transfer->shipping_cost }}</span></th>
+                                        <th><strong>Labor Cost</strong><span class="float-right" id="labor_total_cost">{{ $transfer->total_labor_cost }}</span></th>
+                                        <th><strong>Grand Total</strong><span class="float-right" id="grand_total">{{ $transfer->grand_total }}</span></th>
                                     </thead>
                                 </table>
                             </div>
                             <div class="col-md-12">
-                                <input type="hidden" name="total_qty">
-                                <input type="hidden" name="total_tax">
-                                <input type="hidden" name="total_price">
-                                <input type="hidden" name="item">
-                                <input type="hidden" name="grand_total">
+                                <input type="hidden" name="total_qty" value="{{ $transfer->total_qty }}">
+                                <input type="hidden" name="total_tax" value="{{ $transfer->total_tax }}">
+                                <input type="hidden" name="total_price" value="{{ $transfer->total_price }}">
+                                <input type="hidden" name="item" value="{{ $transfer->item }}">
+                                <input type="hidden" name="grand_total" value="{{ $transfer->grand_total }}">
                             </div>
 
                             <div class="form-grou col-md-12 text-center pt-5">
-                                <button type="button" class="btn btn-danger btn-sm mr-3" onclick="window.location.replace('{{ route("transfer.add") }}');"><i class="fas fa-sync-alt"></i> Reset</button>
+                                <button type="button" class="btn btn-danger btn-sm mr-3" onclick="window.location.replace('{{ route("transfer") }}');"><i class="fas fa-sync-alt"></i> Cancel</button>
                                 <button type="button" class="btn btn-primary btn-sm mr-3" id="save-btn" onclick="store_data()"><i class="fas fa-save"></i> Save</button>
                             </div>
                         </div>
@@ -208,6 +293,39 @@
 $(document).ready(function () {
     $('.date').datetimepicker({format: 'YYYY-MM-DD',ignoreReadonly: true});
 
+    var rownumber = $('#product_table tbody tr:last').index();
+
+    for (rowindex = 0; rowindex <= rownumber; rowindex++) {
+        
+        product_price.push(parseFloat($('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.net_unit_price').val()));
+        var quantity = parseFloat($('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.qty').val());
+        product_qty.push(parseFloat($('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.stock-qty_vl_'+(rowindex + 1)).val()));
+        tax_rate.push(parseFloat($('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.tax-rate').val()));
+        tax_name.push($('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.tax-name').val());
+        tax_method.push($('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.tax-method').val());
+        temp_unit_name = $('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.transfer-unit_vl_'+(rowindex + 1)).val().split(',');
+        unit_name.push($('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.transfer-unit_vl_'+(rowindex + 1)).val());
+        unit_operator.push($('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.transfer-unit-operator_vl_'+(rowindex + 1)).val());
+        unit_operation_value.push($('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.transfer-unit-operation-value_vl_'+(rowindex + 1)).val());
+        $('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.transfer-unit_vl_'+(rowindex + 1)).val(temp_unit_name[0]);
+        $('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.unit-name_vl_'+(rowindex + 1)).text(temp_unit_name[0]);
+        $('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.unit-name_tx_'+(rowindex + 1)).text(temp_unit_name[0]);
+    }
+    console.log(temp_unit_name);
+
+    //assigning value
+
+    $('#item').text($('input[name="item"]').val() + '('+$('input[name="total_qty"]').val()+')');
+    $('#subtotal').text(parseFloat($('input[name="total_price"]').val()).toFixed(2));
+
+    $('#shipping_total_cost').text(parseFloat($('input[name="shipping_cost"]').val()).toFixed(2));
+    if(!$('input[name="labor_cost"]').val())
+    {
+        $('input[name="labor_cost"]').val('0.00');
+    }
+    $('#labor_total_cost').text(parseFloat($('input[name="labor_cost"]').val()).toFixed(2));
+    $('#grand_total').text(parseFloat($('input[name="grand_total"]').val()).toFixed(2));
+
     //Update product qty
     $('#product_table').on('keyup','.qty',function(){
         rowindex = $(this).closest('tr').index();
@@ -237,7 +355,11 @@ $(document).ready(function () {
     });
 
     //Remove product from cart table
+    @if (!$transfer->transfer_products->isEmpty())
+    var count = {{ count($transfer->transfer_products) + 1 }};
+    @else 
     var count = 1;
+    @endif
     $('#product_table').on('click','.add-product',function(){
         count++;
         product_row_add(count);
@@ -496,7 +618,7 @@ function store_data(){
     }else{
         let form = document.getElementById('sale_store_form');
         let formData = new FormData(form);
-        let url = "{{route('transfer.store')}}";
+        let url = "{{route('transfer.update')}}";
         $.ajax({
             url: url,
             type: "POST",
@@ -526,7 +648,7 @@ function store_data(){
                 } else {
                     notification(data.status, data.message);
                     if (data.status == 'success') {
-                        window.location.replace("{{ url('transfer/details') }}/"+data.transfer_id);
+                        window.location.replace("{{ url('transfer') }}");
                     }
                 }
 
