@@ -24,8 +24,10 @@
                 </div>
                 <div class="card-toolbar">
                     <!--begin::Button-->
+                    @if(permission('sale-add'))
                     <a href="{{ route('sale.add') }}"  class="btn btn-primary btn-sm font-weight-bolder"> 
                         <i class="fas fa-plus-circle"></i> Add New</a>
+                        @endif
                     <!--end::Button-->
                 </div>
             </div>

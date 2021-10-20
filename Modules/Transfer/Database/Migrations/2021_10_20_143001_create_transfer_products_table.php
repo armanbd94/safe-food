@@ -15,7 +15,17 @@ class CreateTransferProductsTable extends Migration
     {
         Schema::create('transfer_products', function (Blueprint $table) {
             $table->id();
-
+            $table->unsignedBigInteger('transfer_id');
+            $table->foreign('transfer_id')->references('id')->on('transfers');
+            $table->unsignedBigInteger('product_id');
+            $table->foreign('product_id')->references('id')->on('products');
+            $table->unsignedBigInteger('unit_id')->nullable();
+            $table->foreign('unit_id')->references('id')->on('units');
+            $table->double('qty');
+            $table->double('price');
+            $table->double('tax_rate');
+            $table->double('tax');
+            $table->double('total');
             $table->timestamps();
         });
     }
