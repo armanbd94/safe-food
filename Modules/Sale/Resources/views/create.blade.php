@@ -10,6 +10,7 @@
         vertical-align: top !important;
         padding: 0 !important;
     }
+    .product-select-box .bootstrap-select{width:300px !important;}
 </style>
 @endpush
 
@@ -51,7 +52,7 @@
                             <x-form.selectbox labelName="Depo" name="warehouse_id" col="col-md-3" required="required" class="fcs">
                                 @if (!$warehouses->isEmpty())
                                 @foreach ($warehouses as $id => $name)
-                                    <option value="{{ $id }}" {{ $id == 1 ? 'selected' : '' }}>{{ $name }}</option>
+                                    <option value="{{ $id }}">{{ $name }}</option>
                                 @endforeach
                                 @endif
                             </x-form.selectbox>
@@ -97,7 +98,7 @@
                                         <th class="text-center"><i class="fas fa-trash text-white"></i></th>
                                     </thead>
                                     <tbody>
-                                        <tr>
+                                        {{-- <tr>
                                             <td class="col-md-3">                                                
                                                 <select name="products[1][pro_id]" id="product_list_1" class="fcs col-md-12 product_name form-control" onchange="getProductDetails(this,1)"  data-live-search="true" data-row="1">
                                                 
@@ -128,7 +129,7 @@
                                             <input type="hidden" class="tax-value" name="products[1][tax]" id="tax_value_vl_1" data-row="1">
                                             <input type="hidden" class="subtotal-value" name="products[1][subtotal]" id="subtotal_value_vl_1" data-row="1">
 
-                                        </tr>
+                                        </tr> --}}
                                     </tbody>
                                     <tfoot class="bg-primary">
                                         <th colspan="4" class="font-weight-bolder">Total</th>
@@ -373,38 +374,73 @@ $(document).ready(function () {
         product_row_add(count);
     });    
     function product_row_add(count){
-        var newRow = $('<tr>');
-        var cols = '';
-        cols += `<td><select name="products[${count}][pro_id]" id="product_list_${count}" class="fcs selectpicker col-md-12  products-alls product_details_${count} form-control" onchange="getProductDetails(this,${count})" data-live-search="true" data-row="${count}">
-            @if (!$products->isEmpty())
-            <option value="0">Please Select</option>
-            @foreach ($products as $product)
-                <option value="{{ $product->product_id }}"  data-pro_code="{{ $product->code}}" data-pro_avl_qty="{{ $product->qty}}" data-pro_net_price="{{ $product->price}}" data-pro_net_tax_rate="{{ $product->tax_rate}}" data-pro_unit="{{ $product->unit_name}}" >{{ $product->name.' ('.$product->code.') - [Stock Avl. Qty: '.$product->qty.']'; }}</option>
-            @endforeach
-            @endif
-        </select></td>`;
-        cols += `<td class="product-code_tx_${count} text-center" id="products_code_${count}" data-row="${count}"></td>`
-        cols += `<td class="unit-name_tx_${count} text-center" id="products_unit_${count}" data-row="${count}"></td>`;
-        cols += `<td class="available-qty_tx_${count} text-center" id="products_available_qty_${count}" data-row="${count}"></td>`;
-        cols += `<td><input type="text" class="fcs form-control qty text-center" name="products[${count}][qty]" id="products_qty_${count}" value="1" data-row="${count}"></td>`;
-        cols += `<td><input type="text" class="fcs form-control free_qty text-center" name="products[${count}][free_qty]" id="products_free_qty_${count}" value="0" data-row="${count}"></td>`;
-        cols += `<td><input type="text" class="fcs text-right form-control net_unit_price" name="products[${count}][net_unit_price]" id="products_net_unit_price_${count}" data-row="${count}"></td>`;
-        cols += `<td class="tax text-right" id="tax_tx_${count}" data-row="${count}"></td>`;
-        cols += `<td class="sub-total text-right" id="sub_total_tx_${count}" data-row="${count}"></td>`;
-        cols += `<td class="text-center" data-row="${count}"><button type="button" class="btn btn-danger btn-md remove-product"><i class="fas fa-trash"></i></button></td>`;
-        cols += `<input type="hidden" class="product-id_vl_${count}" name="products[${count}][id]" id="products_id_vl_${count}" data-row="${count}">`;
-        cols += `<input type="hidden" class="product-code_vl_${count}" name="products[${count}][code]" id="products_code_vl_${count}" data-row="${count}">`;
-        cols += `<input type="hidden" class="batch-no_vl_${count}" name="products[${count}][batch_no]" id="products_batch_no_${count}"  data-row="${count}">`;
-        cols += `<input type="hidden" class="product-unit_vl_${count}" name="products[${count}][unit]" id="products_unit_vl_${count}">`;
-        cols += `<input type="hidden" class="stock-qty_vl_${count}" name="products[${count}][stock_qty]" id="products_stock_qty_${count}"  data-row="${count}">`;
-        cols += `<input type="hidden" class="free-stock-qty_vl_${count}" name="products[${count}][free_stock_qty]" id="products_free_stock_qty_${count}" data-row="${count}">`;
-        cols += `<input type="hidden" class="tax-rate" name="products[${count}][tax_rate]" id="tax_rate_vl_${count}" data-row="${count}">`;
-        cols += `<input type="hidden" class="tax-value" name="products[${count}][tax]" id="tax_value_vl_${count}" data-row="${count}">`;
-        cols += `<input type="hidden" class="subtotal-value" name="products[${count}][subtotal]" id="subtotal_value_vl_${count}" data-row="${count}">`;
+        var warehouse_id = document.getElementById('warehouse_id').value;
+        var salesmen_id = document.getElementById('salesmen_id').value;
+        var route_id = document.getElementById('route_id').value;
+        var area_id = document.getElementById('area_id').value;
+        var customer_id = document.getElementById('customer_id').value;
+        if(warehouse_id){
+            if(salesmen_id){
+                if(route_id)
+                {
+                    if(area_id)
+                    {
+                        if(customer_id)
+                        {
+                            $.ajax({
+                                url: '{{ route("sale.warehouse.wise.products") }}',
+                                type: 'POST',
+                                data: {
+                                    _token:_token, warehouse_id: warehouse_id
+                                },
+                                success: function(data) {
+                                    console.log(data);
+                                    var newRow = $('<tr>');
+                                    var cols = '';
+                                    cols += `<td class="product-select-box"><select name="products[${count}][pro_id]" id="product_list_${count}" class="fcs selectpicker col-md-12  products-alls product_details_${count} form-control" onchange="getProductDetails(this,${count})" data-live-search="true" data-row="${count}">
+                                                ${data}
+                                                </select></td>`;
+                                    cols += `<td class="product-code_tx_${count} text-center" id="products_code_${count}" data-row="${count}"></td>`
+                                    cols += `<td class="unit-name_tx_${count} text-center" id="products_unit_${count}" data-row="${count}"></td>`;
+                                    cols += `<td class="available-qty_tx_${count} text-center" id="products_available_qty_${count}" data-row="${count}"></td>`;
+                                    cols += `<td><input type="text" class="fcs form-control qty text-center" name="products[${count}][qty]" id="products_qty_${count}" value="1" data-row="${count}"></td>`;
+                                    cols += `<td><input type="text" class="fcs form-control free_qty text-center" name="products[${count}][free_qty]" id="products_free_qty_${count}" value="0" data-row="${count}"></td>`;
+                                    cols += `<td><input type="text" class="fcs text-right form-control net_unit_price" name="products[${count}][net_unit_price]" id="products_net_unit_price_${count}" data-row="${count}"></td>`;
+                                    cols += `<td class="tax text-right" id="tax_tx_${count}" data-row="${count}"></td>`;
+                                    cols += `<td class="sub-total text-right" id="sub_total_tx_${count}" data-row="${count}"></td>`;
+                                    cols += `<td class="text-center" data-row="${count}"><button type="button" class="btn btn-danger btn-md remove-product"><i class="fas fa-trash"></i></button></td>`;
+                                    cols += `<input type="hidden" class="product-id_vl_${count}" name="products[${count}][id]" id="products_id_vl_${count}" data-row="${count}">`;
+                                    cols += `<input type="hidden" class="product-code_vl_${count}" name="products[${count}][code]" id="products_code_vl_${count}" data-row="${count}">`;
+                                    cols += `<input type="hidden" class="batch-no_vl_${count}" name="products[${count}][batch_no]" id="products_batch_no_${count}"  data-row="${count}">`;
+                                    cols += `<input type="hidden" class="product-unit_vl_${count}" name="products[${count}][unit]" id="products_unit_vl_${count}">`;
+                                    cols += `<input type="hidden" class="stock-qty_vl_${count}" name="products[${count}][stock_qty]" id="products_stock_qty_${count}"  data-row="${count}">`;
+                                    cols += `<input type="hidden" class="free-stock-qty_vl_${count}" name="products[${count}][free_stock_qty]" id="products_free_stock_qty_${count}" data-row="${count}">`;
+                                    cols += `<input type="hidden" class="tax-rate" name="products[${count}][tax_rate]" id="tax_rate_vl_${count}" data-row="${count}">`;
+                                    cols += `<input type="hidden" class="tax-value" name="products[${count}][tax]" id="tax_value_vl_${count}" data-row="${count}">`;
+                                    cols += `<input type="hidden" class="subtotal-value" name="products[${count}][subtotal]" id="subtotal_value_vl_${count}" data-row="${count}">`;
 
-        newRow.append(cols);
-        $('#product_table tbody').append(newRow);
-        $('#product_table .selectpicker').selectpicker();
+                                    newRow.append(cols);
+                                    $('#product_table tbody').append(newRow);
+                                    $('#product_table .selectpicker').selectpicker();
+                                }
+                            });
+                        }else{
+                            notification('error','Please select customer!');
+                        }
+                    }else{
+                        notification('error','Please select area!');
+                    }
+                }else{
+                    notification('error','Please select route!');
+                }
+            }else{
+                notification('error','Please select order received by!');
+            }
+           
+        }else{
+            notification('error','Please select depo!');
+        }
+        
 
     } 
 });

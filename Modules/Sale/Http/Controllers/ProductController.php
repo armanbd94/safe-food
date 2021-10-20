@@ -194,4 +194,32 @@ class ProductController extends Controller
             }
             return $output;
     }
+
+
+    public function warehouse_products(Request $request)
+    {
+        if($request->ajax())
+        {
+
+            $output = '';
+            $output .= '<option value="">Select Please</option>';
+            $data =  DB::table('warehouse_product as wp')
+            ->join('products as p','wp.product_id','=','p.id')
+            ->leftjoin('taxes as t','p.tax_id','=','t.id')
+            ->leftjoin('units as u','p.base_unit_id','=','u.id')
+            ->selectRaw('wp.*,p.name,p.code,p.image,p.base_unit_id,p.base_unit_price as price,p.tax_method,t.name as tax_name,t.rate as tax_rate,u.unit_name,u.unit_code')
+            ->where([['wp.warehouse_id',$request->warehouse_id],['wp.qty','>',0]])
+            ->orderBy('p.name','asc')
+            ->get();
+            
+            if(!$data->isEmpty())
+            {
+                foreach ($data as $product) {
+                    $output .= '<option value="'.$product->product_id.'"  data-pro_code="'. $product->code.'" data-pro_avl_qty="'. $product->qty.'" data-pro_net_price="'. $product->price.'" data-pro_net_tax_rate="'. $product->tax_rate.'" data-pro_unit="'. $product->unit_name.'" >'. $product->name.' - '.$product->code.'</option>';
+                }
+            }
+
+            return $output;
+        }
+    }
 }
