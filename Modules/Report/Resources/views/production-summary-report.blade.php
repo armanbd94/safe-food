@@ -47,6 +47,7 @@
                                         <th class="text-center">Sl</th>
                                         <th>Name</th>
                                         <th>Code</th>
+                                        <th class="text-center">Unit</th>
                                         <th class="text-right">Cost</th>
                                         <th class="text-center">Quantity</th>
                                         <th class="text-right">Total</th>
@@ -60,6 +61,7 @@
                                                 <td class="text-center">{{ $key+1 }}</td>
                                                 <td>{{ $value->material_name }}</td>
                                                 <td>{{ $value->material_code }}</td>
+                                                <td class="text-center">{{ $value->unit_name }}</td>
                                                 <td class="text-right">{{ number_format($value->cost,2,'.','') }}</td>
                                                 <td class="text-center">{{ number_format($value->qty,2,'.','') }}</td>
                                                 <td class="text-right">{{ number_format(($value->qty * $value->cost),2,'.','') }}</td>
@@ -70,7 +72,7 @@
                                 </tbody>
                                 <tfoot>
                                     <tr class="bg-primary">
-                                        <th class="text-right" colspan="5">Total</th>
+                                        <th class="text-right" colspan="6">Total</th>
                                         <th class="text-right">{{ number_format($total_material_cost,2,'.','') }}</th>
                                     </tr>
                                 </tfoot>
@@ -88,6 +90,7 @@
                                         <th class="text-center">Sl</th>
                                         <th>Name</th>
                                         <th>Code</th>
+                                        <th class="text-center">Unit</th>
                                         <th class="text-right">Price</th>
                                         <th class="text-center">Quantity</th>
                                         <th class="text-right">Total</th>
@@ -101,6 +104,7 @@
                                                 <td class="text-center">{{ $key+1 }}</td>
                                                 <td>{{ $value->name }}</td>
                                                 <td>{{ $value->code }}</td>
+                                                <td class="text-center">{{ $value->unit_name }}</td>
                                                 <td class="text-right">{{ number_format($value->price,2,'.','') }}</td>
                                                 <td class="text-center">{{ number_format($value->qty,2,'.','') }}</td>
                                                 <td class="text-right">{{ number_format($value->total,2,'.','') }}</td>
@@ -111,7 +115,7 @@
                                 </tbody>
                                 <tfoot>
                                     <tr class="bg-primary">
-                                        <th class="text-right" colspan="5">Total</th>
+                                        <th class="text-right" colspan="6">Total</th>
                                         <th class="text-right">{{ number_format($total_product_cost,2,'.','') }}</th>
                                     </tr>
                                 </tfoot>
