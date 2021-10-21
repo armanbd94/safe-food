@@ -38,11 +38,12 @@ class StockOutReport extends BaseModel
     private function get_datatable_query()
     {
 
-        $this->column_order = ['som.material_id','so.date','m.material_name','m.material_code', 'som.qty','som.net_unit_cost',null];
+        $this->column_order = ['som.material_id','so.date','m.material_name','m.material_code','som.unit_id', 'som.qty','som.net_unit_cost',null];
  
         $query = DB::table('stock_out_materials as som')
-        ->selectRaw('m.material_name,m.material_code,SUM(som.qty) as qty,AVG(som.net_unit_cost) as cost,so.date')
+        ->selectRaw('m.material_name,m.material_code,SUM(som.qty) as qty,AVG(som.net_unit_cost) as cost,so.date,u.unit_name')
         ->join('stock_outs as so','som.stock_out_id','=','so.id')
+        ->join('units as u','som.unit_id','=','u.id')
         ->join('materials as m','som.material_id','=','m.id')
         ->groupBy('som.material_id','so.date');
 

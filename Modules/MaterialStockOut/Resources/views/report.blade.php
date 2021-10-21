@@ -68,6 +68,7 @@
                                         <th>Date</th>
                                         <th>Material Name</th>
                                         <th>Material Code</th>
+                                        <th>Unit</th>
                                         <th>Cost</th>
                                         <th>Quantity</th>
                                         <th>Total</th>
@@ -132,16 +133,16 @@
                 }
             },
             "columnDefs": [{
-                    "targets": [6],
+                    "targets": [7],
                     "orderable": false,
                     "className": "text-right"
                 },
                 {
-                    "targets": [0,1,2,3,5],
+                    "targets": [0,1,2,3,6],
                     "className": "text-center"
                 },
                 {
-                    "targets": [4],
+                    "targets": [5],
                     "className": "text-right"
                 },
             ],

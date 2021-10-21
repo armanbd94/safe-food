@@ -60,6 +60,7 @@ class MaterialStockOutReportController extends BaseController
                     $row[] = date(config('settings.date_format'),strtotime($value->date));
                     $row[] = $value->material_name;
                     $row[] = $value->material_code;
+                    $row[] = $value->unit_name;
                     $row[] = number_format($value->cost,2,'.','');
                     $row[] = number_format($value->qty,2,'.','');
                     $row[] = number_format(($value->qty * $value->cost),2,'.','');
