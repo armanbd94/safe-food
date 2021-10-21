@@ -4,7 +4,7 @@ namespace Modules\Product\Http\Requests;
 
 use App\Http\Requests\FormRequest;
 
-class AdjustmentFormRequest extends FormRequest
+class OpeningStockFormRequest extends FormRequest
 {
     protected $rules;
     protected $messages;
@@ -15,13 +15,13 @@ class AdjustmentFormRequest extends FormRequest
      */
     public function rules()
     {
-        $this->rules['adjustment_no'] = ['required','unique:adjustments,adjustment_no'];
+        $this->rules['opening_no'] = ['required','unique:opening_Stocks,opening_no'];
         $this->rules['date']  = ['required','date','date_format:Y-m-d'];
         $this->rules['warehouse_id']  = ['required'];
         $this->rules['note']          = ['nullable'];
         if(request()->update_id)
         {
-            $this->rules['adjustment_no'] = 'unique:adjustments,adjustment_no,'.request()->update_id;
+            $this->rules['opening_no'] = 'unique:opening_Stocks,opening_no,'.request()->update_id;
         }
 
         if(request()->has('products'))
@@ -31,10 +31,6 @@ class AdjustmentFormRequest extends FormRequest
                 $this->messages['products.'.$key.'.base_unit_qty.required'] = 'This field is required';
                 $this->messages['products.'.$key.'.base_unit_qty.numeric']  = 'The value must be numeric';
                 $this->messages['products.'.$key.'.base_unit_qty.gt']       = 'The value must be greater than 0';
-                $this->rules   ['products.'.$key.'.base_unit_cost']          = ['required','numeric','gt:0'];
-                $this->messages['products.'.$key.'.base_unit_cost.required'] = 'This field is required';
-                $this->messages['products.'.$key.'.base_unit_cost.numeric']  = 'The value must be numeric';
-                $this->messages['products.'.$key.'.base_unit_cost.gt']       = 'The value must be greater than 0';
             }
         }
         return $this->rules;

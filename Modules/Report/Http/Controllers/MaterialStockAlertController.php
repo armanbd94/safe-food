@@ -48,8 +48,8 @@ class MaterialStockAlertController extends BaseController
                     $row[] = $value->material_code;
                     $row[] = $value->category->name;
                     $row[] = $value->unit->unit_name;
-                    $row[] = number_format($value->qty,4,'.','') ?? 0;
-                    $row[] = number_format($value->alert_qty,4,'.','') ?? 0;
+                    $row[] = number_format($value->qty,2,'.','') ?? 0;
+                    $row[] = number_format($value->alert_qty,2,'.','') ?? 0;
                     $data[] = $row;
                 }
                 return $this->datatable_draw($request->input('draw'),$this->model->count_all(),

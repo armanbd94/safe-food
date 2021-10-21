@@ -34,7 +34,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('generate-barcode', 'BarcodeController@generateBarcode')->name('generate.barcode');
 
 
-    //Adjustment Routes
+    //After Production Product Stock Adjustment Routes
     Route::get('finish-goods-stock', 'AdjustmentController@index')->name('finish.goods.stock');
     Route::group(['prefix' => 'finish-goods-stock', 'as'=>'finish.goods.stock.'], function () {
         Route::get('add', 'AdjustmentController@create')->name('add');
@@ -45,7 +45,19 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('view/{id}', 'AdjustmentController@show')->name('view');
         Route::post('delete', 'AdjustmentController@delete')->name('delete');
         Route::post('bulk-delete', 'AdjustmentController@bulk_delete')->name('bulk.delete');
-        
+    });
+
+    //Opening Stock Routes
+    Route::get('opening-stock', 'OpeningStockController@index')->name('opening.stock');
+    Route::group(['prefix' => 'opening-stock', 'as'=>'opening.stock.'], function () {
+        Route::get('add', 'OpeningStockController@create')->name('add');
+        Route::post('datatable-data', 'OpeningStockController@get_datatable_data')->name('datatable.data');
+        Route::post('store', 'OpeningStockController@store')->name('store');
+        Route::post('update', 'OpeningStockController@update')->name('update');
+        Route::get('edit/{id}', 'OpeningStockController@edit')->name('edit');
+        Route::get('view/{id}', 'OpeningStockController@show')->name('view');
+        Route::post('delete', 'OpeningStockController@delete')->name('delete');
+        Route::post('bulk-delete', 'OpeningStockController@bulk_delete')->name('bulk.delete');
     });
 
 });
