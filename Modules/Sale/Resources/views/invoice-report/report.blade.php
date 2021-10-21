@@ -347,7 +347,7 @@
                                       <td class="text-center no">{{ $key+1 }}</td>
                                       <td class="text-left">{{ $item->name }}</td>
                                       <td class="text-center">{{$unit_name }}</td>
-                                      <td class="text-center qty">{{ $item->pivot->qty }}</td>
+                                      <td class="text-center qty">{{ $item->pivot->qty + $item->pivot->free_qty }}</td>
                                   </tr>
                               @endforeach
                           @endif

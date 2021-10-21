@@ -456,6 +456,7 @@ class PurchaseController extends BaseController
                     $purchaseData = $this->model->with('purchase_materials')->find($request->purchase_id);
                     $warehouse_id = 1;
                     $balance = $request->grand_total - $purchaseData->paid_amount;
+                    
                     if($balance == 0)
                     {
                         $payment_status = 1;//paid
@@ -463,8 +464,15 @@ class PurchaseController extends BaseController
                     {
                         $payment_status = 3;//due
                     }else{
-                        $payment_status = 2;//partial
+                        if($purchaseData->paid_amount > 0)
+                        {
+                            $payment_status = 2;//partial
+                        }else{
+                            $payment_status = 3;//due
+                        }
+                        
                     }
+                    // dd($payment_status);
                     $purchase_data = [
                         'item'             => $request->item,
                         'total_qty'        => $request->total_qty,
