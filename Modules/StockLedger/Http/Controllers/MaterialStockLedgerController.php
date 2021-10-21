@@ -50,7 +50,7 @@ class MaterialStockLedgerController extends BaseController
                     $purchase_data   = $this->purchase_data($request->material_id,$date->format('Y-m-d'));
                     $production_data = $this->stock_out($request->material_id,$date->format('Y-m-d'));
 
-                    $after_stock_out_current_qty = $previous_data['qty'] - ($production_data['qty']['production_material_qty'] + $production_data['qty']['returned_material_qty'] + $production_data['qty']['damage_material_qty']);
+                    $after_stock_out_current_qty = $previous_data['qty'] - ($production_data['qty']['production_material_qty'] + $production_data['qty']['returned_material_qty']);
                     $after_stock_out_current_cost = $previous_data['qty'] * $previous_data['cost'];
                     $current_qty = $after_stock_out_current_qty + $purchase_data['qty'];
                     
@@ -59,13 +59,15 @@ class MaterialStockLedgerController extends BaseController
                         if($purchase_data['datetime'] > $production_data['datetime'])
                         {
                             $current_cost = $purchase_data['new_unit_cost'];
+                            
                         }else{
                             $current_cost = $production_data['after_return_cost'];
                         }
                     }else{
-                        $current_cost = ($current_qty > 0) ? (($after_stock_out_current_cost + $purchase_data['value']) / ($previous_data['qty'] + $purchase_data['qty'])) : 0;
+                        $current_cost = $purchase_data['new_unit_cost'];
+                        
                     }
-
+                    
                     $current_value = $current_qty * $current_cost;
 
                     $total_purchase_qty += $purchase_data['qty'];
@@ -95,7 +97,7 @@ class MaterialStockLedgerController extends BaseController
                         'production_value'    => $production_data['value'],
                         'batch_numbers'       => $production_data['batch_numbers'],
                         'return_numbers'      => $production_data['return_numbers'],
-                        'damage_numbers'      => $production_data['damage_numbers'],
+                        // 'damage_numbers'      => $production_data['damage_numbers'],
                         'current_cost'        => $current_cost,
                         'current_qty'         => $current_qty,
                         'current_value'       => $current_value,
@@ -110,7 +112,7 @@ class MaterialStockLedgerController extends BaseController
                     'total_current_qty'      => $total_current_qty,
                     'total_current_value'    => $total_current_value,
                 ];
-
+                // dd($data);
                 return view('stockledger::material-ledger.data',$data)->render();
             }
         } else {
@@ -181,21 +183,19 @@ class MaterialStockLedgerController extends BaseController
        
 
         //Production calculation
-        $productionMaterial = DB::table('production_product_materials as pm')
-            ->selectRaw('pm.*,p.batch_no')
-            ->join('productions as p', 'pm.production_product_id', '=', 'p.id')
-            ->where('pm.material_id', $id)
-            ->where('p.status', 1)
-            ->whereDate('p.start_date', '<',$date)
+        $productionMaterial = DB::table('stock_out_materials as som')
+            ->selectRaw('som.*')
+            ->join('stock_outs as so', 'som.stock_out_id', '=', 'so.id')
+            ->where('som.material_id', $id)
+            ->whereDate('so.date', '<',$date)
             ->get();
         
         $total_production_material_cost = $total_production_material_qty = $total_production_material_value = $total_damage_material_qty =  0;
         if (!$productionMaterial->isEmpty()) {
             foreach ($productionMaterial as $material) {
-                $total_production_material_cost += $material->cost;
-                $total_production_material_qty += $material->used_qty;
-                $total_damage_material_qty = $material->damaged_qty;
-                $total_production_material_value += ($material->cost * $material->qty);
+                $total_production_material_cost += $material->net_unit_cost;
+                $total_production_material_qty += $material->qty;
+                $total_production_material_value += ($material->net_unit_cost * $material->qty);
             }
         }
 
@@ -230,7 +230,7 @@ class MaterialStockLedgerController extends BaseController
             $material_cost = $opening_cost;
             $total_qty     = $opening_stock_qty;
         }elseif ($date >= $opening_date) {
-            $total_qty = (($total_purchased_material_qty + $opening_stock_qty) - ($total_production_material_qty + $total_returned_material_qty + $total_damage_material_qty));
+            $total_qty = (($total_purchased_material_qty + $opening_stock_qty) - ($total_production_material_qty + $total_returned_material_qty));
             $material_cost = $total_purchased_net_cost;
             if($material_cost == 0)
             {
@@ -326,28 +326,36 @@ class MaterialStockLedgerController extends BaseController
         $batch_number_list = [];
         $return_number_list = [];
         $damage_number_list = [];
-        $productionMaterial = DB::table('production_product_materials as pm')
-            ->selectRaw('pm.*,p.batch_no,m.cost')
-            ->join('productions as p', 'pm.production_product_id', '=', 'p.id')
-            ->join('materials as m', 'pm.material_id', '=', 'm.id')
-            ->where('pm.material_id', $id)
-            ->where('p.status', 1)
-            ->whereDate('p.start_date',  $date)
-            ->get();
+        $productionMaterial = DB::table('stock_out_materials as som')
+        ->selectRaw('som.*')
+        ->join('stock_outs as so', 'som.stock_out_id', '=', 'so.id')
+        ->where('som.material_id', $id)
+        ->whereDate('so.date', $date)
+        ->get();
+        
+        
+        // DB::table('production_product_materials as pm')
+        //     ->selectRaw('pm.*,p.batch_no,m.cost')
+        //     ->join('productions as p', 'pm.production_product_id', '=', 'p.id')
+        //     ->join('materials as m', 'pm.material_id', '=', 'm.id')
+        //     ->where('pm.material_id', $id)
+        //     ->where('p.status', 1)
+        //     ->whereDate('p.start_date',  $date)
+        //     ->get();
         
         $total_production_material_cost = $total_production_material_qty = $total_production_material_value =  0;
-        $total_damage_material_qty = $total_damage_material_cost = $total_damage_material_value = 0;
+        // $total_damage_material_qty = $total_damage_material_cost = $total_damage_material_value = 0;
         if (!$productionMaterial->isEmpty()) {
             foreach ($productionMaterial as $material) {
-                $total_production_material_cost = $material->cost;
-                $total_production_material_qty += $material->used_qty;
-                $total_production_material_value += $material->cost * $material->used_qty;
+                $total_production_material_cost = $material->net_unit_cost;
+                $total_production_material_qty += $material->qty;
+                $total_production_material_value += $material->net_unit_cost * $material->qty;
                 $batch_number_list[] = $material->batch_no;
 
-                $total_damage_material_cost = $material->cost;
-                $total_damage_material_qty += $material->damaged_qty;
-                $total_damage_material_value += $material->cost * $material->damaged_qty;
-                $damage_number_list[] = $material->batch_no;
+                // $total_damage_material_cost = $material->cost;
+                // $total_damage_material_qty += $material->damaged_qty;
+                // $total_damage_material_value += $material->cost * $material->damaged_qty;
+                // $damage_number_list[] = $material->batch_no;
             }
         }
 
@@ -381,31 +389,31 @@ class MaterialStockLedgerController extends BaseController
 
         $batch_numbers = !empty($batch_number_list) ? array_unique($batch_number_list) : '';
         $return_numbers = !empty($return_number_list) ? array_unique($return_number_list) : '';
-        $damage_numbers = !empty($damage_number_list) ? array_unique($damage_number_list) : '';
+        // $damage_numbers = !empty($damage_number_list) ? array_unique($damage_number_list) : '';
         
 
         $material_data = [
             'cost' => [
                 'production_material_cost'     => $total_production_material_cost,
                 'returned_material_cost' => $total_returned_material_cost,
-                'damage_material_cost'         => $total_damage_material_cost,
+                // 'damage_material_cost'         => $total_damage_material_cost,
             ],
             
             'qty' => [
                 'production_material_qty'     => $total_production_material_qty,
                 'returned_material_qty'       => $total_returned_material_qty,
-                'damage_material_qty'         => $total_damage_material_qty,
+                // 'damage_material_qty'         => $total_damage_material_qty,
             ],
             'subtotal' => [
                 'production_material_cost'     => ($total_production_material_cost * $total_production_material_qty),
                 'returned_material_cost'       => ($total_returned_material_cost * $total_returned_material_qty),
-                'damage_material_cost'         => ($total_damage_material_cost * $total_damage_material_qty),
+                // 'damage_material_cost'         => ($total_damage_material_cost * $total_damage_material_qty),
             ],
-            'total_qty' => $total_production_material_qty + $total_returned_material_qty + $total_damage_material_qty,
-            'value' => ($total_production_material_value+$total_returned_material_value+$total_damage_material_value),
+            'total_qty' => $total_production_material_qty + $total_returned_material_qty,
+            'value' => ($total_production_material_value+$total_returned_material_value),
             'batch_numbers' => $batch_numbers,
             'return_numbers' => $return_numbers,
-            'damage_numbers' => $damage_numbers,
+            // 'damage_numbers' => $damage_numbers,
             'after_return_cost'=> $after_return_cost,
             'datetime'=>$datetime
         ];

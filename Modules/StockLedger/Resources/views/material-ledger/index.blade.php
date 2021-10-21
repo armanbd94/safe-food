@@ -5,9 +5,9 @@
 @push('styles')
 <link href="css/daterangepicker.min.css" rel="stylesheet" type="text/css" />
 <style>
-    table#dataTable{
+    /* table#dataTable{
         width:2200px !important;
-    }
+    } */
     #dataTable ul li{
         border-bottom: 1px solid #EBEDF3;
         margin-bottom: 5px;
@@ -17,9 +17,7 @@
         margin-bottom: 0;
     }
 
-    #dataTable tbody tr td:nth-child(14),
-    #dataTable tbody tr td:nth-child(15),
-    #dataTable tbody tr td:nth-child(16){
+    #dataTable tbody tr td:nth-child(9){
         padding-left: 0px !important;
         padding-right: 0px !important;
     }
@@ -87,30 +85,19 @@
                                         <th class="text-center">Unit</th>
                                         
                                         
-                                        <th class="text-right">Prev. Qty</th>
-                                        @if(permission('material-stock-ledger-cost-view'))
-                                        <th class="text-right">Prev. Rate</th>
-                                        <th class="text-right">Prev. Value</th>
-                                        @endif
+                                        <th class="text-center">Prev. Qty</th>
+
                                         
                                         <th class="text-center">Purchase No.</th>
-                                        <th class="text-right">Stock In Qty</th>
-                                        @if(permission('material-stock-ledger-cost-view'))
-                                        <th class="text-right">Stock In Rate</th>
-                                        <th class="text-right">Stock In Value</th>
-                                        @endif
+                                        <th class="text-center">Stock In Qty</th>
+
                                         
                                         <th class="text-center">Batch No.</th>
                                         <th class="text-center">Return No.</th>
-                                        <th class="text-center">Damage No.</th>
-                                        <th class="text-right">Stock Out Qty</th>
-                                        @if(permission('material-stock-ledger-cost-view'))
-                                        <th class="text-right">Stock Out Rate</th>
-                                        <th class="text-right">Stock Out Subtotal</th>
-                                        <th class="text-right">Stock Out Value</th>
-                                        @endif
+                                        <th class="text-center">Stock Out Qty</th>
+
                                        
-                                        <th class="text-right">Current Qty</th>
+                                        <th class="text-center">Current Qty</th>
                                         @if(permission('material-stock-ledger-cost-view'))
                                         <th class="text-right">Current Rate</th>
                                         <th class="text-right">Current Value</th>

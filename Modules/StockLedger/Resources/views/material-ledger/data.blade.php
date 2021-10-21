@@ -5,11 +5,11 @@
         <td>{{ $value['material_name'] }}</td>
         <td class="text-center">{{ $value['unit_name'] }}</td>
         
-        <td class="text-right font-weight-bolder" style="color:#002447 !important;">{{ $value['previous_qty'] }}</td>
-        @if(permission('material-stock-ledger-cost-view'))
+        <td class="text-center font-weight-bolder" style="color:#002447 !important;">{{ $value['previous_qty'] }}</td>
+        {{-- @if(permission('material-stock-ledger-cost-view'))
         <td class="text-right font-weight-bolder" style="color:#002447 !important;">{{ $value['previous_cost'] }}</td>
         <td class="text-right font-weight-bolder" style="color:#002447 !important;">{{ $value['previous_value'] }}</td>
-        @endif
+        @endif --}}
         <td class="text-center">
             <ul  style="list-style:none;margin:0;padding:0;">
                 @if (!empty($value['purchase_numbers']))
@@ -19,11 +19,11 @@
                 @endif
             </ul>
         </td>
-        <td class="text-right font-weight-bolder" style="color:#1F9F04 !important;">{{ $value['purchase_qty'] }}</td>
-        @if(permission('material-stock-ledger-cost-view'))
+        <td class="text-center font-weight-bolder" style="color:#1F9F04 !important;">{{ $value['purchase_qty'] }}</td>
+        {{-- @if(permission('material-stock-ledger-cost-view'))
         <td class="text-right font-weight-bolder" style="color:#1F9F04 !important;">{{ $value['purchase_cost'] }}</td>
         <td class="text-right font-weight-bolder" style="color:#1F9F04 !important;">{{ $value['purchase_value'] }}</td>
-        @endif
+        @endif --}}
         <td class="text-center">
             <ul  style="list-style:none;margin:0;padding:0;">
                 @if (!empty($value['batch_numbers']))
@@ -42,7 +42,7 @@
                 @endif
             </ul>
         </td>
-        <td class="text-center">
+        {{-- <td class="text-center">
             <ul style="list-style:none;margin:0;padding:0;">
                 @if (!empty($value['damage_numbers']))
                     @foreach ($value['damage_numbers'] as $item)
@@ -50,15 +50,15 @@
                     @endforeach
                 @endif
             </ul>
-        </td>
+        </td> --}}
         <td class="text-right">
             <ul style="list-style:none;margin:0;padding:0;">
                 <li class="text-center px-2 font-weight-bolder" style="color: darkred;">{{ $value['production_qty']['production_material_qty'] }}</li>
                 <li class="text-center px-2 font-weight-bolder" style="color: darkred;">{{ $value['production_qty']['returned_material_qty'] }}</li>
-                <li class="text-center px-2 font-weight-bolder" style="color: darkred;">{{ $value['production_qty']['damage_material_qty'] }}</li>
+                {{-- <li class="text-center px-2 font-weight-bolder" style="color: darkred;">{{ $value['production_qty']['damage_material_qty'] }}</li> --}}
             </ul>
         </td>
-        @if(permission('material-stock-ledger-cost-view'))
+        {{-- @if(permission('material-stock-ledger-cost-view'))
         <td class="text-right">
             <ul style="list-style:none;margin:0;padding:0;">
                 <li class="text-right px-2 font-weight-bolder" style="color: darkred;">{{ $value['production_cost']['production_material_cost'] }}</li>
@@ -75,8 +75,8 @@
         </td>
         
         <td class="text-right font-weight-bolder" style="color: darkred;">{{ $value['production_value'] }}</td>
-        @endif
-        <td class="text-right font-weight-bolder">{{ $value['current_qty'] }}</td>
+        @endif --}}
+        <td class="text-center font-weight-bolder">{{ $value['current_qty'] }}</td>
         @if(permission('material-stock-ledger-cost-view'))
         <td class="text-right font-weight-bolder">{{ $value['current_cost'] }}</td>
         <td class="text-right font-weight-bolder">{{ $value['current_value'] }}</td>
@@ -88,26 +88,26 @@
     <td></td>
     <td></td>
     <td></td>
-    @if(permission('material-stock-ledger-cost-view'))
+    {{-- @if(permission('material-stock-ledger-cost-view'))
     <td></td>
     <td></td>
-    @endif
+    @endif --}}
     <td class="text-right font-weight-bolder">Total</td>
-    <td class="text-right font-weight-bolder">{{ $total_purchase_qty }}</td>
-    @if(permission('material-stock-ledger-cost-view'))
+    <td class="text-center font-weight-bolder">{{ $total_purchase_qty }}</td>
+    {{-- @if(permission('material-stock-ledger-cost-view'))
     <td></td>
     <td class="text-right font-weight-bolder">{{ $total_purchase_value }}</td>
-    @endif
+    @endif --}}
     <td></td>
     <td></td>
-    <td></td>
-    <td class="text-right font-weight-bolder">{{ $total_production_qty }}</td>
-    @if(permission('material-stock-ledger-cost-view'))
+    {{-- <td></td> --}}
+    <td class="text-center font-weight-bolder">{{ $total_production_qty }}</td>
+    {{-- @if(permission('material-stock-ledger-cost-view'))
     <td></td>
     <td></td>
     <td class="text-right font-weight-bolder">{{ $total_production_value }}</td>
-    @endif
-    <td class="text-right font-weight-bolder">{{ $total_current_qty }}</td>
+    @endif --}}
+    <td class="text-center font-weight-bolder">{{ $total_current_qty }}</td>
     @if(permission('material-stock-ledger-cost-view'))
     <td></td>
     <td class="text-right font-weight-bolder">{{ $total_current_value }}</td>
