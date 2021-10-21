@@ -67,31 +67,31 @@
                                         <th class="text-center">Unit</th>
                                         
                                         <th class="text-right">Prev. Qty</th>
-                                        @if(permission('finish-goods-stock-price-view'))
+                                        {{-- @if(permission('finish-goods-stock-price-view'))
                                         <th class="text-right">Prev. Rate</th>
                                         <th class="text-right">Prev. Value</th>
-                                        @endif
+                                        @endif --}}
                                         
-                                        <th class="text-center">Batch No.</th>
+                                        {{-- <th class="text-center">Batch No.</th> --}}
                                         <th class="text-center">SRINV No.</th>
                                         <th class="text-right">Stock In Qty</th>
-                                        @if(permission('finish-goods-stock-price-view'))
+                                        {{-- @if(permission('finish-goods-stock-price-view'))
                                         <th class="text-right">Stock In Rate</th>
                                         <th class="text-right">Stock In Value</th>
-                                        @endif
+                                        @endif --}}
 
                                         <th class="text-center">Invoice No.</th>
                                         <th class="text-right">Stock Out Qty</th>
-                                        @if(permission('finish-goods-stock-price-view'))
+                                        {{-- @if(permission('finish-goods-stock-price-view'))
                                         <th class="text-right">Stock Out Rate</th>
                                         <th class="text-right">Stock Out Value</th>
-                                        @endif
+                                        @endif --}}
                                        
                                         <th class="text-right">Curr. Qty</th>
-                                        @if(permission('finish-goods-stock-price-view'))
+                                        {{-- @if(permission('finish-goods-stock-price-view')) --}}
                                         <th class="text-right">Curr. Rate</th>
                                         <th class="text-right">Curr. Value</th>
-                                        @endif
+                                        {{-- @endif --}}
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
