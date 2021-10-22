@@ -42,7 +42,7 @@ class FinishedGoodsStockLedgerController extends BaseController
                     $production = $this->production_data($request->product_id,$date->format('Y-m-d'));
 
                     
-                    $current_qty = (($previous_qty + $production['qty']) - $sold_data['value']);
+                    $current_qty = (($previous_qty + $production['qty']) - $sold_data['qty']);
                     // dd($previous_qty,$sold_data,$production,$current_qty);
 
                     $total_sold_qty += $sold_data['qty'];
@@ -59,18 +59,18 @@ class FinishedGoodsStockLedgerController extends BaseController
                         'category'         => $product->category->name,
                         'unit_name'        => $product->base_unit->unit_name,
 
-                        'previous_cost'    => ($previous_qty > 0) ? $product->price : 0,
+                        'previous_cost'    => ($previous_qty > 0) ? $product->base_unit_price : 0,
                         'previous_qty'     => $previous_qty,
-                        'previous_value'   => $product->price * $previous_qty,
+                        'previous_value'   => $product->base_unit_price * $previous_qty,
 
                         'sold_cost'        => $sold_data['cost'],
                         'sold_qty'         => $sold_data['qty'],
                         'sold_value'       => $sold_data['value'],
                         'sold_numbers'      => $sold_data['sold_numbers'],
 
-                        'production_cost'  => ($production['qty'] > 0) ? $product->price : 0,
+                        'production_cost'  => ($production['qty'] > 0) ? $product->base_unit_price : 0,
                         'production_qty'   => $production['qty'],
-                        'production_value' => $product->price * $production['qty'],
+                        'production_value' => $product->base_unit_price * $production['qty'],
                         // 'batch_numbers'      => $production['batch_numbers'],
                         'return_numbers'      => $production['return_numbers'],
 
@@ -105,15 +105,20 @@ class FinishedGoodsStockLedgerController extends BaseController
         $opening_stock_qty = 0;
         $opening_price = 0;
         $opening_date = '';
-        // $opening_stock = DB::table('adjustment_products')->where('product_id',$id)->orderBy('id','asc')->first();
-        // if($opening_stock){
-        //     $opening_stock_qty = $opening_stock->base_unit_qty ? $opening_stock->base_unit_qty : 0;
-        //     $opening_price = $opening_stock->base_unit_price ? $opening_stock->base_unit_price : 0;
-        //     if($opening_stock_qty){
-        //       $opening_date = date('Y-m-d',strtotime($opening_stock->created_at));  
-        //     }
+        $opening_stock = DB::table('opening_stock_products as osp')
+        ->select('osp.*','os.date')
+        ->join('opening_stocks as os','osp.opening_stock_id','=','os.id')
+        ->where([['osp.product_id',$id],['os.warehouse_id',1]])
+        ->orderBy('id','asc')
+        ->first();
+        if($opening_stock){
+            $opening_stock_qty = $opening_stock->base_unit_qty ? $opening_stock->base_unit_qty : 0;
+            $opening_price = $opening_stock->base_unit_price ? $opening_stock->base_unit_price : 0;
+            if($opening_stock_qty){
+              $opening_date = date('Y-m-d',strtotime($opening_stock->date));  
+            }
             
-        // }
+        }
         $productionProducts = DB::table('adjustment_products as ap')
             ->selectRaw('ap.*,u.operator,u.operation_value,p.base_unit_price')
             ->join('adjustments as a', 'ap.adjustment_id', '=', 'a.id')
