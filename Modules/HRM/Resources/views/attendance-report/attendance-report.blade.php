@@ -27,7 +27,7 @@
         <div class="card card-custom">
             <div class="card-header flex-wrap py-5">
              <form method="GET" action="{{ route('attendance.report.datatable.data') }}" id="form-filter" class="col-md-12 px-0">
-                    <div class="row justify-content-center">
+                    <div class="row">
                         
                         <div class="form-group col-md-3">
                             <label for="name">Choose Your Date</label>
@@ -46,7 +46,7 @@
                         </x-form.selectbox>
 
                         
-                        <div class="col-md-1">
+                        <div class="col-md-6">
                             <div style="margin-top:28px;">    
                                 <div style="margin-top:28px;">    
                                     <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"

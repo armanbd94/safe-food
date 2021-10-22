@@ -48,8 +48,8 @@
                                     <input type="text" class="form-control" name="product_code_name" id="product_code_name" placeholder="Please type product code and select...">
                                 </div>
                             </div>
-                            <x-form.textbox labelName="No of Barcode" name="barcode_qty" required="required" col="col-md-2" class="text-center" value="1" placeholder="Enter barcode print quantity"/>
-                            <x-form.textbox labelName="Qunatity Each Row " name="row_qty" required="required" col="col-md-2" class="text-center" value="1" placeholder="Enter barcode print quantity"/>
+                            <x-form.textbox labelName="No. of Barcode" name="barcode_qty" required="required" col="col-md-2" class="text-center" value="1" placeholder="Enter barcode print quantity"/>
+                            <x-form.textbox labelName="Qunatity Each Row" name="row_qty" required="required" col="col-md-2" class="text-center" value="1" placeholder="Enter barcode print quantity"/>
                             <div class="form-group col-md-2">
                                 <label for="">Print With</label>
                                 <div class="div">

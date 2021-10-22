@@ -91,7 +91,7 @@ class SalesMenController extends BaseController
                 $row[] = $no;
                 $row[] = $this->table_image(SALESMEN_AVATAR_PATH,$value->avatar,$value->name,1);
                 $row[] = $value->name;
-                $row[] = $value->username;
+                // $row[] = $value->username;
                 $row[] = number_format($value->monthly_target_value,2,'.','');
                 $row[] = number_format($value->cpr,2,'.','');
                 $row[] = $value->phone;
@@ -117,7 +117,8 @@ class SalesMenController extends BaseController
             if(permission('sr-add') || permission('sr-edit')){
                 DB::beginTransaction();
                 try {
-                    $collection   = collect($request->validated())->except('password','password_confirmation','district_name');
+                    // $collection   = collect($request->validated())->except('password','password_confirmation','district_name');
+                    $collection   = collect($request->validated())->except('district_name');
                     $collection   = $this->track_data($collection,$request->update_id);
                     $avatar = !empty($request->old_avatar) ? $request->old_avatar : null;
                     if($request->hasFile('avatar')){
@@ -268,7 +269,7 @@ class SalesMenController extends BaseController
                 {
                     if(!$salesman->routes->isEmpty())
                     {
-                        $salesman->routes->detach();
+                        $salesman->routes()->detach();
                     }
                     $result = $salesman->delete();
                     $output   = $this->delete_message($result);
@@ -288,6 +289,16 @@ class SalesMenController extends BaseController
     {
         if($request->ajax()){
             if(permission('sr-bulk-delete')){
+                foreach ($request->ids as $key => $id) {
+                    $salesman   = $this->model->with('routes')->find($id);
+                    if($salesman)
+                    {
+                        if(!$salesman->routes->isEmpty())
+                        {
+                            $salesman->routes()->detach();
+                        }
+                    }
+                }
                 $result   = $this->model->destroy($request->ids);
                 $output   = $this->bulk_delete_message($result);
             }else{

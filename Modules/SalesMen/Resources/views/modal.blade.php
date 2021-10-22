@@ -21,11 +21,11 @@
                         <div class="row">
                             <input type="hidden" name="update_id" id="update_id"/>
                             <x-form.textbox labelName="Name" name="name" required="required" col="col-md-6" placeholder="Enter name"/>
-                            <x-form.textbox labelName="Username" name="username" required="required" col="col-md-6" placeholder="Enter username"/>
+                            {{-- <x-form.textbox labelName="Username" name="username" required="required" col="col-md-6" placeholder="Enter username"/> --}}
                             <x-form.textbox labelName="Phone No." name="phone" required="required" col="col-md-6" placeholder="Enter phone number"/>
                             <x-form.textbox labelName="Email" name="email" col="col-md-6" placeholder="Enter email"/>
 
-                            <div class="col-md-6 form-group">
+                            {{-- <div class="col-md-6 form-group">
                                 <label for="site_title">Password</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control bg-brand" name="password" id="password">
@@ -40,9 +40,9 @@
                                         </span>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
                 
-                            <div class="col-md-6 form-group">
+                            {{-- <div class="col-md-6 form-group">
                                 <label for="site_title">Confirm Password</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control bg-brand" name="password_confirmation" id="password_confirmation">
@@ -52,7 +52,7 @@
                                         </span>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
                             <x-form.textbox labelName="NID No." name="nid_no" col="col-md-6" placeholder="Enter NID no."/>
                             <x-form.textbox labelName="Monthly Target Value" name="monthly_target_value" col="col-md-6" placeholder="Enter monthly target value"/>
                             <x-form.textbox labelName="Commission Percentage(%)" name="cpr" col="col-md-6" placeholder="Enter commission percentage"/>

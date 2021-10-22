@@ -4,7 +4,7 @@
             <table class="table table-borderless">
                 <tr>
                     <td><b>Name</b></td><td><b>:</b></td><td>{{ $salesmen->name }}</td>
-                    <td><b>Username</b></td><td><b>:</b></td><td>{{ $salesmen->username }}</td>
+                    {{-- <td><b>Username</b></td><td><b>:</b></td><td>{{ $salesmen->username }}</td> --}}
                 </tr>
                 <tr>
                     <td><b>Phone</b></td><td><b>:</b></td><td>{{ $salesmen->phone }}</td>

@@ -17,7 +17,7 @@ class TodaySalesReportController extends BaseController
     public function index()
     {
         if(permission('today-sales-report-access')){
-            $this->setPageData('Today Sales Report','Today Sales Report','fas fa-file',[['name' => 'Today Sales Report']]);
+            $this->setPageData('Today\'s Sales Report','Today\'s Sales Report','fas fa-file',[['name' => 'Today\'s Sales Report']]);
             $data = [
                 'districts'   => DB::table('locations')->where([['status', 1],['parent_id',0]])->pluck('name','id'),
                 'warehouses'  => DB::table('warehouses')->where('status',1)->pluck('name','id')

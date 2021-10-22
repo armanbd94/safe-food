@@ -55,20 +55,27 @@
                         <div class="col-md-12">
                             <div class="card card-custom card-shadowless rounded-top-0">
                                 <div class="card-body p-0">
-                                    <form class="form mt-0 mt-lg-10 fv-plugins-bootstrap fv-plugins-framework" id="store_or_update_form" method="POST">
+                                    <form class="form mt-0 mt-lg-10 fv-plugins-bootstrap fv-plugins-framework"
+                                        id="store_or_update_form" method="POST">
                                         @csrf
                                         <div class="row justify-content-center py-12 px-12 py-lg-15 px-lg-10">
                                             <div class="col-md-offset-4 col-xl-8 col-xxl-8">
-                                                <x-form.selectbox labelName="Employee" name="employee_id" onchange="getTotalBasicList(this.value)" required="required" col="col-md-12" class="selectpicker">
+                                                <x-form.selectbox labelName="Employee" name="employee_id"
+                                                    onchange="getTotalBasicList(this.value)" required="required"
+                                                    col="col-md-12" class="selectpicker">
                                                     @if (!$employees->isEmpty())
                                                     @foreach ($employees as $employee)
-                                                    <option value="{{ $employee->id }}" @if(isset($salarysetup)) {{ ($salarysetup->employee_id == $employee->id) ? 'selected' : '' }} @endif>
+                                                    <option value="{{ $employee->id }}" @if(isset($salarysetup))
+                                                        {{ ($salarysetup->employee_id == $employee->id) ? 'selected' : '' }}
+                                                        @endif>
                                                         {{ $employee->name }}
                                                     </option>
                                                     @endforeach
                                                     @endif
                                                 </x-form.selectbox>
-                                                <x-form.textbox type="text" labelName="Basic" name="basic_salary" value="{{ isset($salarysetup) ? $salarysetup->basic_salary : '' }}" required="required" col="col-md-12" property="readonly" />
+                                                <x-form.textbox type="text" labelName="Basic" name="basic_salary"
+                                                    value="{{ isset($salarysetup) ? $salarysetup->basic_salary : '' }}"
+                                                    required="required" col="col-md-12" property="readonly" />
 
                                             </div>
                                             <div class="col-md-offset-4 col-xl-8 col-xxl-8">
@@ -83,9 +90,20 @@
                                                                     @if (!$allowances->isEmpty())
                                                                     @foreach ($allowances as $key => $allowance)
                                                                     <tr>
-                                                                        <td><b>{{ $allowance->name }}({{ $allowance->short_name }})</b></td>
-                                                                        <input type="hidden" class="custom-control-input" name="allowance[{{$allowance->id}}][id]" value="{{ $allowance->id }}" id="allowance_{{$allowance->id}}_id">
-                                                                        <td><input type="text" autocomplete="off" class="form-control text-left allowance_percent" name="allowance[{{$allowance->id}}][percent]" onkeyup="calculate_total({{$allowance->type}})" id="allowance_{{$allowance->id}}_percent" placeholder="{{ $allowance->name }}"></td>
+                                                                        <td><b>{{ $allowance->name }}({{ $allowance->short_name }})</b>
+                                                                        </td>
+                                                                        <input type="hidden"
+                                                                            class="custom-control-input"
+                                                                            name="allowance[{{$allowance->id}}][id]"
+                                                                            value="{{ $allowance->id }}"
+                                                                            id="allowance_{{$allowance->id}}_id">
+                                                                        <td><input type="text" autocomplete="off"
+                                                                                class="form-control text-left allowance_percent"
+                                                                                name="allowance[{{$allowance->id}}][percent]"
+                                                                                onkeyup="calculate_total({{$allowance->type}})"
+                                                                                id="allowance_{{$allowance->id}}_percent"
+                                                                                placeholder="{{ $allowance->name }}">
+                                                                        </td>
                                                                         <td>%</td>
                                                                     </tr>
                                                                     @endforeach
@@ -101,9 +119,19 @@
                                                                     @if (!$deducts->isEmpty())
                                                                     @foreach ($deducts as $key => $deduct)
                                                                     <tr>
-                                                                        <td><b>{{ $deduct->name }}({{ $deduct->short_name }})</b></td>
-                                                                        <input type="hidden" class="custom-control-input" name="allowance[{{$deduct->id}}][id]" value="{{ $deduct->id }}" id="allowance_{{$deduct->id}}_id">
-                                                                        <td><input type="text" autocomplete="off" class="form-control text-left deduct_percent" name="allowance[{{$deduct->id}}][percent]" onkeyup="calculate_total({{$deduct->type}})" id="allowance_{{$deduct->id}}_percent" placeholder="{{ $deduct->name }}"></td>
+                                                                        <td><b>{{ $deduct->name }}({{ $deduct->short_name }})</b>
+                                                                        </td>
+                                                                        <input type="hidden"
+                                                                            class="custom-control-input"
+                                                                            name="allowance[{{$deduct->id}}][id]"
+                                                                            value="{{ $deduct->id }}"
+                                                                            id="allowance_{{$deduct->id}}_id">
+                                                                        <td><input type="text" autocomplete="off"
+                                                                                class="form-control text-left deduct_percent"
+                                                                                name="allowance[{{$deduct->id}}][percent]"
+                                                                                onkeyup="calculate_total({{$deduct->type}})"
+                                                                                id="allowance_{{$deduct->id}}_percent"
+                                                                                placeholder="{{ $deduct->name }}"></td>
                                                                         <td>%</td>
                                                                     </tr>
                                                                     @endforeach
@@ -114,14 +142,19 @@
                                                     </div>
 
                                                 </div>
-                                            </div>                                            
-
-                                            <div class="col-md-offset-4 col-xl-8 col-xxl-8">
-                                                        <x-form.textbox type="text" labelName="Gross" name="net_basic" value="{{ isset($salarysetup) ? $salarysetup->basic_salary : '' }}" required="required" col="col-md-12" property="readonly" />
                                             </div>
 
-                                            <div class="d-flex justify-content-between border-top mt-5 pt-10 col-md-offset-4 col-xl-8 col-xxl-8">
-                                                <button type="button" class="btn btn-primary btn-sm font-weight-bolder text-uppercase col-xl-12 col-xxl-12" id="save-btn" onclick="store_data()">Submit</button>
+                                            <div class="col-md-offset-4 col-xl-8 col-xxl-8">
+                                                <x-form.textbox type="text" labelName="Gross" name="net_basic"
+                                                    value="{{ isset($salarysetup) ? $salarysetup->basic_salary : '' }}"
+                                                    required="required" col="col-md-12" property="readonly" />
+                                            </div>
+
+                                            <div
+                                                class="d-flex justify-content-between border-top mt-5 pt-10 col-md-offset-4 col-xl-8 col-xxl-8">
+                                                <button type="button"
+                                                    class="btn btn-primary btn-sm font-weight-bolder text-uppercase col-xl-12 col-xxl-12"
+                                                    id="save-btn" onclick="store_data()">Submit</button>
                                             </div>
 
                                             <!--end: Wizard Form-->
@@ -140,7 +173,6 @@
         </div>
     </div>
     <!--end::Card-->
-</div>
 </div>
 @endsection
 

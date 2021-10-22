@@ -42,7 +42,7 @@
                             @endif
                         </x-form.selectbox>
 
-                        <x-form.selectbox labelName="Alowance" name="allowance_id" required="required" col="col-md-3" class="selectpicker">
+                        <x-form.selectbox labelName="Allowance" name="allowance_id" required="required" col="col-md-3" class="selectpicker">
                             @if (!$allowances->isEmpty())
                             @foreach ($allowances as $allowance)
                             <option value="{{ $allowance->id }}" >{{ $allowance->name }}</option>

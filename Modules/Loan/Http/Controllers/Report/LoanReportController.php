@@ -20,7 +20,7 @@ class LoanReportController extends BaseController
     public function index()
     {
         if(permission('loan-report-access')){
-            $this->setPageData('Loan Report List','Loan Report List','far fa-money-bill-alt',[['name'=>'Distributor'],['name'=>'Loan Report List']]);
+            $this->setPageData('Loan Report','Loan Report','far fa-money-bill-alt',[['name'=>'Distributor'],['name'=>'Loan Report']]);
             $data = [
                 'employee_list' => ChartOfAccount::where(['status'=>1,'transaction'=>1,'parent_name'=>'Employee Ledger'])->orderBy('id','asc')->get(),
                 'person_list' => ChartOfAccount::where('parent_name','Loan Payable Long Term')->where('status','1')->orwhere('parent_name','Loan Payable Short Term')->where('status','1')->orderBy('id','asc')->get()
