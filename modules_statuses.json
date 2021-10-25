@@ -23,5 +23,7 @@
     "Sale": true,
     "ProductDamage": true,
     "DamageProduct": true,
-    "MaterialStockOut": true
+    "MaterialStockOut": true,
+    "Depo": true,
+    "Dealer": true
 }

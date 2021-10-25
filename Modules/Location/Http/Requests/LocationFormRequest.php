@@ -22,16 +22,12 @@ class LocationFormRequest extends FormRequest
             $this->rules['parent_id'] = ['required'];
             $this->messages['parent_id.requierd'] = 'The field is requied';
         }
-        if(request()->type == 3 || request()->type == 4 )
+        if(request()->type == 3)
         {
             $this->rules['grand_parent_id'] = ['required'];
             $this->messages['grand_parent_id.requierd'] = 'The field is requied';
         }
-        if(request()->type == 4 )
-        {
-            $this->rules['grand_grand_parent_id'] = ['required'];
-            $this->messages['grand_grand_parent_id.requierd'] = 'The field is requied';
-        }
+
         return $this->rules;
     }
 

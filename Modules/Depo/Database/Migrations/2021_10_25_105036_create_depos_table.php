@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateLocationsTable extends Migration
+class CreateDeposTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,14 @@ class CreateLocationsTable extends Migration
      */
     public function up()
     {
-        Schema::create('locations', function (Blueprint $table) {
+        Schema::create('depos', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->unsignedInteger('parent_id')->nullable();
-            $table->unsignedInteger('grand_parent_id')->nullable();
-            $table->enum('type',['1','2','3'])->comment = "1=District, 2=Upazila, 3=Area";
+            $table->string('name',100);
+            $table->string('mobile_no',15)->unique();
+            $table->string('email')->nullable();
+            $table->unsignedBigInteger('district_id');
+            $table->foreign('district_id')->references('id')->on('locations');
+            $table->text('address')->nullable();
             $table->enum('status',['1','2'])->default('1')->comment = "1=Active, 2=Inactive";
             $table->string('created_by')->nullable();
             $table->string('modified_by')->nullable();
@@ -33,6 +35,6 @@ class CreateLocationsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('locations');
+        Schema::dropIfExists('depos');
     }
 }
