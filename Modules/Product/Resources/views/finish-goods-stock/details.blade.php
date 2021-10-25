@@ -29,14 +29,14 @@
                         <div class="col-md-12 text-center">
                             <h6>Adjustment No.: {{ $adjustment->adjustment_no }}</h6>
                             <h6>Depo: {{ $adjustment->warehouse->name }}</h6>
-                            <h6>Date: {{ date('d-M-Y',strtotime($adjustment->created_at)) }}</h6>
+                            <h6>Date: {{ date('d-M-Y',strtotime($adjustment->date)) }}</h6>
                         </div>
 
                         <div class="col-md-12 pt-5">
                             <table class="table table-bordered" id="product_table">
                                 <thead class="bg-primary">
                                     <th width="35%">Name</th>
-                                    <th width="10%" class="text-center">Base Unit</th>
+                                    <th width="10%" class="text-center">Unit</th>
                                     <th width="10%" class="text-center">Qty</th>
                                     <th width="20%" class="text-right">Net Unit Cost</th>
                                     <th width="15%" class="text-right">Sub Total</th>

@@ -70,7 +70,7 @@
                             <x-form.selectbox labelName="Customer" name="customer_id" col="col-md-3" class="fcs"/>
                             
                             <div class="form-group col-md-3">
-                                <label for="document">Attach Document</label>
+                                <label for="document">Attach Document <i class="fas fa-info-circle" data-toggle="tooltip" data-theme="dark" title="Maximum Allowed File Size 5MB and Format (png,jpg,jpeg,svg,webp,pdf,csv,xlxs)"></i></label>
                                 <input type="file" class="form-control fcs" name="document" id="document">
                             </div>
 

@@ -33,7 +33,7 @@
                 <form method="POST" id="form-filter" class="col-md-12 px-0">
                     <div class="row">
                         <x-form.textbox labelName="Name" name="name" col="col-md-4" placeholder="Enter name" />
-                        <x-form.textbox labelName="Username" name="username" col="col-md-4" placeholder="Enter username" />
+                        {{-- <x-form.textbox labelName="Username" name="username" col="col-md-4" placeholder="Enter username" /> --}}
                         <x-form.textbox labelName="Phone No." name="phone" col="col-md-4" placeholder="Enter phone number" />
                         <x-form.textbox labelName="Email" name="email" col="col-md-4" placeholder="Enter email" />
                         <x-form.selectbox labelName="Warehouse" name="warehouse_id" required="required" col="col-md-4" class="selectpicker" onchange="getUpazilaList(1)">
@@ -65,7 +65,7 @@
                             <option value="1">Active</option>
                             <option value="2">Inactive</option>
                         </x-form.selectbox>
-                        <div class="col-md-4">
+                        <div class="col-md-8">
                             <div style="margin-top:28px;">     
                                     <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
                                     data-toggle="tooltip" data-theme="dark" title="Reset">
@@ -98,7 +98,7 @@
                                         <th>Sl</th>
                                         <th>Avatar</th>
                                         <th>Name</th>
-                                        <th>Username</th>
+                                        {{-- <th>Username</th> --}}
                                         <th>Monthly Target Value</th>
                                         <th>Commission Rate(%)</th>
                                         <th>Phone</th>
@@ -167,9 +167,9 @@ $(document).ready(function(){
         },
         "columnDefs": [{
             @if (permission('sr-bulk-delete'))
-            "targets": [0,14],
+            "targets": [0,13],
             @else
-            "targets": [13],
+            "targets": [12],
             @endif
                 
                 "orderable": false,
@@ -177,17 +177,17 @@ $(document).ready(function(){
             },
             {
                 @if (permission('sr-bulk-delete'))
-                "targets": [1,2,4,7,8,9,10,11,12,13],
+                "targets": [1,2,6,7,8,9,10,11],
                 @else
-                "targets": [0,1,3,6,7,8,9,10,11,12],
+                "targets": [0,1,5,6,7,8,9,10],
                 @endif
                 "className": "text-center"
             },
             {
                 @if (permission('sr-bulk-delete'))
-                "targets": [5,6],
+                "targets": [4,5,12],
                 @else
-                "targets": [4,5],
+                "targets": [3,4,11],
                 @endif
                 "className": "text-right"
             }
@@ -359,7 +359,7 @@ $(document).ready(function(){
                     }else{
                         $('#store_or_update_form #update_id').val(data.id);
                         $('#store_or_update_form #name').val(data.name);
-                        $('#store_or_update_form #username').val(data.username);
+                        // $('#store_or_update_form #username').val(data.username);
                         $('#store_or_update_form #phone').val(data.phone);
                         $('#store_or_update_form #email').val(data.email);
                         $('#store_or_update_form #warehouse_id').val(data.warehouse_id);
@@ -373,7 +373,7 @@ $(document).ready(function(){
                         $('#store_or_update_form .pbalance').addClass('d-none');
                         $('#store_or_update_form .selectpicker').selectpicker('refresh');
 
-                        $('#password, #password_confirmation').parents('.form-group').removeClass('required');
+                        // $('#password, #password_confirmation').parents('.form-group').removeClass('required');
                         getUpazilaList(2,data.upazila_id);
                         upazilaRouteList(data.upazila_id,data.id);
                         if(data.avatar)
@@ -565,7 +565,7 @@ function showSalesmenFormModal(modal_title, btn_text) {
     $('#store_or_update_form #old_avatar').val('');
     $('#store_or_update_form').find('.is-invalid').removeClass('is-invalid');
     $('#store_or_update_form').find('.error').remove();
-    $('#password, #password_confirmation').parents('.form-group').addClass('required');
+    // $('#password, #password_confirmation').parents('.form-group').addClass('required');
     $('.route-section').addClass('d-none');
     $('#store_or_update_form .selectpicker').selectpicker('refresh');
     $('#avatar .spartan_image_placeholder').css('display','block');
@@ -574,9 +574,9 @@ function showSalesmenFormModal(modal_title, btn_text) {
     $('#avatar .img_').attr('src','');
     $('#store_or_update_form .pbalance').removeClass('d-none');
 
-    $('#password, #password_confirmation').removeClass('fa-eye-slash').addClass("fa-eye");
+    // $('#password, #password_confirmation').removeClass('fa-eye-slash').addClass("fa-eye");
         
-    $('#password, #password_confirmation').attr("type", "password");
+    // $('#password, #password_confirmation').attr("type", "password");
 
 
     $('#store_or_update_modal').modal({
@@ -591,55 +591,55 @@ function showSalesmenFormModal(modal_title, btn_text) {
 /***************************************************
  * * * Begin :: Random Password Genrate Code * * *
  **************************************************/
- const randomFunc = {
-    upper : getRandomUpperCase,
-    lower : getRandomLowerCase,
-    number : getRandomNumber,
-    symbol : getRandomSymbol
-};
+//  const randomFunc = {
+//     upper : getRandomUpperCase,
+//     lower : getRandomLowerCase,
+//     number : getRandomNumber,
+//     symbol : getRandomSymbol
+// };
 
 
-function getRandomUpperCase(){
-    return String.fromCharCode(Math.floor(Math.random()*26)+65);
-}
-function getRandomLowerCase(){
-   return String.fromCharCode(Math.floor(Math.random()*26)+97);
-}
-function getRandomNumber(){
-   return String.fromCharCode(Math.floor(Math.random()*10)+48);
-}
-function getRandomSymbol(){
-    var symbol = "!@#$%^&*=~?";
-    return symbol[Math.floor(Math.random()*symbol.length)];
-}
+// function getRandomUpperCase(){
+//     return String.fromCharCode(Math.floor(Math.random()*26)+65);
+// }
+// function getRandomLowerCase(){
+//    return String.fromCharCode(Math.floor(Math.random()*26)+97);
+// }
+// function getRandomNumber(){
+//    return String.fromCharCode(Math.floor(Math.random()*10)+48);
+// }
+// function getRandomSymbol(){
+//     var symbol = "!@#$%^&*=~?";
+//     return symbol[Math.floor(Math.random()*symbol.length)];
+// }
 //generate event
-document.getElementById("generate_password").addEventListener('click', () =>{
-    const length    = 10;
-    const hasUpper  = true;
-    const hasLower  = true;
-    const hasNumber = true;
-    const hasSymbol = true;
-    let   password  = generatePassword(hasUpper, hasLower, hasNumber, hasSymbol, length);
-    document.getElementById("password").value = password;
-    document.getElementById("password_confirmation").value = password;
-});
+// document.getElementById("generate_password").addEventListener('click', () =>{
+//     const length    = 10;
+//     const hasUpper  = true;
+//     const hasLower  = true;
+//     const hasNumber = true;
+//     const hasSymbol = true;
+//     let   password  = generatePassword(hasUpper, hasLower, hasNumber, hasSymbol, length);
+//     document.getElementById("password").value = password;
+//     document.getElementById("password_confirmation").value = password;
+// });
 //Generate Password Function
-function generatePassword(upper, lower, number, symbol, length){
-    let generatedPassword = "";
-    const typesCount = upper + lower + number + symbol;
-    const typesArr = [{upper}, {lower}, {number}, {symbol}].filter(item => Object.values(item)[0]);
-    if(typesCount === 0) {
-        return '';
-    }
-    for(let i=0; i<length; i+=typesCount) {
-        typesArr.forEach(type => {
-            const funcName = Object.keys(type)[0];
-            generatedPassword += randomFunc[funcName]();
-        });
-    }
-    const finalPassword = generatedPassword.slice(0, length);
-    return finalPassword;
-}
+// function generatePassword(upper, lower, number, symbol, length){
+//     let generatedPassword = "";
+//     const typesCount = upper + lower + number + symbol;
+//     const typesArr = [{upper}, {lower}, {number}, {symbol}].filter(item => Object.values(item)[0]);
+//     if(typesCount === 0) {
+//         return '';
+//     }
+//     for(let i=0; i<length; i+=typesCount) {
+//         typesArr.forEach(type => {
+//             const funcName = Object.keys(type)[0];
+//             generatedPassword += randomFunc[funcName]();
+//         });
+//     }
+//     const finalPassword = generatedPassword.slice(0, length);
+//     return finalPassword;
+// }
 /***************************************************
  * * * End :: Random Password Genrate Code * * *
  **************************************************/

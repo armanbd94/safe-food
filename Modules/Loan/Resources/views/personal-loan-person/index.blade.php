@@ -34,7 +34,7 @@
                     <div class="row">
                         <x-form.textbox labelName="Name" name="name" col="col-md-4" />
                         <x-form.textbox labelName="Phone" name="phone" col="col-md-4" />
-                        <div class="col-md-8">
+                        <div class="col-md-4">
                             <div style="margin-top:28px;">    
                                 <div style="margin-top:28px;">    
                                     <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"

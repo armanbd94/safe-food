@@ -20,7 +20,7 @@ class PersonalLoanPeopleController extends BaseController
     public function index()
     {
         if(permission('personal-loan-person-access')){
-            $this->setPageData('Person Add','Person Add','fas fa-warehouse',[['name'=>'Loan','link'=>'javascript::void();'],['name' => 'Person Add']]);
+            $this->setPageData('Manage Person','Manage Person','far fa-money-bill-alt',[['name'=>'Loan','link'=>'javascript::void();'],['name' => 'Manage Person']]);
             $deletable = self::DELETABLE;
             return view('loan::personal-loan-person.index',compact('deletable'));
         }else{

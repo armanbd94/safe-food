@@ -126,6 +126,7 @@ class HomeController extends BaseController
         ->join('units as u','p.base_unit_id','=','u.id')
         ->selectRaw('wp.*,p.name,c.name as category_name,u.unit_name')
         ->groupBy('wp.product_id')
+        ->where('wp.warehouse_id',1)
         ->whereColumn('p.alert_quantity','>','wp.qty')->get()->count();
         return response()->json(['materials' => $materials,'products'=>$products]);
     }

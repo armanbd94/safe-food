@@ -44,6 +44,7 @@ class ProductStockAlert extends BaseModel
         ->join('units as u','p.base_unit_id','=','u.id')
         ->selectRaw('wp.*,p.name,p.code,p.alert_quantity,c.name as category_name,u.unit_name')
         ->groupBy('wp.product_id')
+        ->where('wp.warehouse_id',1)
         ->whereColumn('p.alert_quantity','>','wp.qty');
 
         //search query

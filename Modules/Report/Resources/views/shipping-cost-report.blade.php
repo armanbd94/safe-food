@@ -23,7 +23,7 @@
         <div class="card card-custom">
             <div class="card-header flex-wrap py-5">
                 <form method="POST" id="form-filter" class="col-md-12 px-0">
-                    <div class="row justify-content-center">
+                    <div class="row">
                         <div class="form-group col-md-4">
                             <label for="name">Choose Your Date</label>
                             <div class="input-group">
