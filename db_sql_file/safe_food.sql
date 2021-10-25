@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Oct 25, 2021 at 12:25 PM
+-- Generation Time: Oct 25, 2021 at 12:28 PM
 -- Server version: 5.7.24
 -- PHP Version: 8.0.9
 
@@ -478,6 +478,7 @@ CREATE TABLE `depos` (
   `email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `district_id` bigint(20) UNSIGNED NOT NULL,
   `address` text COLLATE utf8mb4_unicode_ci,
+  `commission_rate` float DEFAULT NULL,
   `status` enum('1','2') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '1' COMMENT '1=Active, 2=Inactive',
   `created_by` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `modified_by` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,

@@ -21,6 +21,7 @@ class CreateDeposTable extends Migration
             $table->unsignedBigInteger('district_id');
             $table->foreign('district_id')->references('id')->on('locations');
             $table->text('address')->nullable();
+            $table->float('commission_rate')->nullable();
             $table->enum('status',['1','2'])->default('1')->comment = "1=Active, 2=Inactive";
             $table->string('created_by')->nullable();
             $table->string('modified_by')->nullable();

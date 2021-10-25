@@ -6,22 +6,37 @@ use App\Models\BaseModel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Modules\Location\Entities\District;
+use Modules\Account\Entities\Transaction;
 
 
 class Depo extends BaseModel
 {
-    protected $fillable = ['name', 'mobile_no', 'email', 'district_id', 'address', 'status', 'created_by', 'modified_by'];
+    protected $fillable = ['name', 'mobile_no', 'email', 'district_id', 'address', 'commission_rate','status', 'created_by', 'modified_by'];
     
     public function district()
     {
         return $this->belongsTo(District::class,'district_id','id');
     }
 
+    public function balance(int $id)
+    {
+        $data = DB::table('depos as d')
+            ->selectRaw('d.id,b.id as coaid,b.code,((select ifnull(sum(debit),0) from transactions where chart_of_account_id= b.id AND approve = 1)-(select ifnull(sum(credit),0) from transactions where chart_of_account_id= b.id AND approve = 1)) as balance')
+            ->leftjoin('chart_of_accounts as b', 'd.id', '=', 'b.depo_id')
+            ->where('d.id',$id)->first();
+        $balance = 0;
+        if($data)
+        {
+            $balance = $data->balance ? $data->balance : 0;
+        }
+        return $balance;
+    }
+
     /******************************************
      * * * Begin :: Custom Datatable Code * * *
     *******************************************/
     //custom search column property
-    protected $order = ['w.id' => 'desc'];
+    protected $order = ['d.id' => 'desc'];
     protected $name; 
 
     //methods to set custom search property value
@@ -35,9 +50,9 @@ class Depo extends BaseModel
     {
         //set column sorting index table column name wise (should match with frontend table header)
         if (permission('depo-bulk-delete')){
-            $this->column_order = [null,'d.id','d.name','d.district_id', 'd.mobile_no','d.email','d.address','d.status',null];
+            $this->column_order = [null,'d.id','d.name','d.district_id', 'd.mobile_no','d.email','d.address','d.commission_rate',null,'d.status',null];
         }else{
-            $this->column_order = ['d.id','d.name','d.district_id', 'd.mobile_no','d.email','d.address','d.status',null];
+            $this->column_order = ['d.id','d.name','d.district_id', 'd.mobile_no','d.email','d.address','d.commission_rate',null,'d.status',null];
         }
         
         $query = DB::table('depos as d')
@@ -117,4 +132,50 @@ class Depo extends BaseModel
     /***********************************
     * * *  Begin :: Cache Data * * *
     ************************************/
+
+    public function coa(string $code,string $head_name,int $salesmen_id) : array
+    {
+        return [
+            'code'              => $code,
+            'name'              => $head_name,
+            'parent_name'       => 'Account Payable',
+            'level'             => 3,
+            'type'              => 'L',
+            'transaction'       => 1,
+            'general_ledger'    => 2,
+            'customer_id'       => null,
+            'supplier_id'       => null,
+            'salesmen_id'       => $salesmen_id,
+            'budget'            => 2,
+            'depreciation'      => 2,
+            'depreciation_rate' => '0',
+            'status'            => 1,
+            'created_by'        => auth()->user()->name
+        ];
+    }
+
+    public function previous_balance_add($balance, int $coa_id, string $depo_name) {
+        $cosdr = array(
+            'warehouse_id'        => 1,
+            'chart_of_account_id' => $coa_id,
+            'voucher_no'          => generator(10),
+            'voucher_type'        => 'PR Balance',
+            'voucher_date'        => date("Y-m-d"),
+            'description'         => 'Previous Credit Balance of Depo '.$depo_name,
+            'debit'               => 0,
+            'credit'              => $balance,
+            'posted'              => 1,
+            'approve'             => 1,
+            'created_by'          => auth()->user()->name,
+            'created_at'          => date('Y-m-d H:i:s')
+        );
+        try {
+            $result = Transaction::create($cosdr);
+            $output = $result ? true : false;
+        } catch (\Throwable $th) {
+            $output = $th->getMessage();
+        }
+        return $output;
+        
+    }
 }
