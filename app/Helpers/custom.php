@@ -6,7 +6,7 @@ define('MATERIAL_IMAGE_PATH','material/');
 define('PRODUCT_IMAGE_PATH','product/');
 define('EMPLOYEE_NID_PHOTO','employee/');
 define('EMPLOYEE_IMAGE_PATH','employee/');
-define('SALESMEN_AVATAR_PATH','salesmen/');
+define('DEALER_AVATAR_PATH','dealer/');
 define('ASM_AVATAR_PATH','asm/');
 define('CUSTOMER_AVATAR_PATH','customer/');
 define('PURCHASE_DOCUMENT_PATH','purchase-document/');

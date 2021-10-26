@@ -14,7 +14,7 @@ use Modules\Account\Entities\ChartOfAccount;
 class Dealer extends BaseModel
 {
 
-    protected $fillable = [  'name', 'mobile_no', 'email', 'type', 'depo_id', 'district_id', 'upazila_id',
+    protected $fillable = [  'name', 'mobile_no', 'email','avatar', 'type', 'depo_id', 'district_id', 'upazila_id',
      'address', 'commission_rate', 'status', 'created_by', 'modified_by'];
 
     protected $hidden = [
@@ -27,7 +27,7 @@ class Dealer extends BaseModel
 
     public function depo()
     {
-        return $this->belongsTo(Depo::class,'depo_id','id')->default(['name'=>'']);
+        return $this->belongsTo(Depo::class,'depo_id','id')->withDefault(['name'=>'']);
     }
     public function district()
     {
@@ -115,9 +115,9 @@ class Dealer extends BaseModel
     private function get_datatable_query()
     { 
         if (permission('dealer-bulk-delete')){
-            $this->column_order = ['d.id','d.id', 'd.name', 'd.mobile_no', 'd.email', 'd.type', 'd.depo_id', 'd.district_id', 'd.upazila_id','d.commission_rate',null, 'd.status',null];
+            $this->column_order = ['d.id','d.id', 'd.avatar','d.name', 'd.mobile_no', 'd.email', 'd.type', 'd.depo_id', 'd.district_id', 'd.upazila_id','d.commission_rate',null, 'd.status',null];
         }else{
-            $this->column_order = ['d.id', 'd.name', 'd.mobile_no', 'd.email', 'd.type', 'd.depo_id', 'd.district_id', 'd.upazila_id','d.commission_rate',null, 'd.status',null];
+            $this->column_order = ['d.id', 'd.avatar','d.name', 'd.mobile_no', 'd.email', 'd.type', 'd.depo_id', 'd.district_id', 'd.upazila_id','d.commission_rate',null, 'd.status',null];
         }
 
         $query = DB::table('dealers as d')
@@ -183,4 +183,41 @@ class Dealer extends BaseModel
     /******************************************
      * * * End :: Custom Datatable Code * * *
     *******************************************/
+
+    public function coa_data(string $code,string $head_name,int $dealer_id) : array
+    {
+        return [
+            'code'              => $code,
+            'name'              => $head_name,
+            'parent_name'       => 'Account Payable',
+            'level'             => 3,
+            'type'              => 'L',
+            'transaction'       => 1,
+            'general_ledger'    => 2,
+            'dealer_id'         => $dealer_id,
+            'budget'            => 2,
+            'depreciation'      => 2,
+            'depreciation_rate' => '0',
+            'status'            => 1,
+            'created_by'        => auth()->user()->name
+        ];
+    }
+
+    public function previous_balance_data($balance, int $coa_id, string $dealer_name) : array
+    {
+        return [
+            'warehouse_id'        => 1,
+            'chart_of_account_id' => $coa_id,
+            'voucher_no'          => generator(10),
+            'voucher_type'        => 'PR Balance',
+            'voucher_date'        => date("Y-m-d"),
+            'description'         => 'Previous Credit Balance of Dealer '.$dealer_name,
+            'debit'               => 0,
+            'credit'              => $balance,
+            'posted'              => 1,
+            'approve'             => 1,
+            'created_by'          => auth()->user()->name,
+        ];
+        
+    }
 }

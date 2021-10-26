@@ -19,6 +19,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('datatable-data', 'DealerController@get_datatable_data')->name('datatable.data');
         Route::post('store-or-update', 'DealerController@store_or_update_data')->name('store.or.update');
         Route::post('edit', 'DealerController@edit')->name('edit');
+        Route::post('view', 'DealerController@view')->name('view');
         Route::post('delete', 'DealerController@delete')->name('delete');
         Route::post('bulk-delete', 'DealerController@bulk_delete')->name('bulk.delete');
         Route::post('change-status', 'DealerController@change_status')->name('change.status');

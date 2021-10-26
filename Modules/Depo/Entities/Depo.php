@@ -147,8 +147,6 @@ class Depo extends BaseModel
             'type'              => 'L',
             'transaction'       => 1,
             'general_ledger'    => 2,
-            'customer_id'       => null,
-            'supplier_id'       => null,
             'depo_id'           => $depo_id,
             'budget'            => 2,
             'depreciation'      => 2,
