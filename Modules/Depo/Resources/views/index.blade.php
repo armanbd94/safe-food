@@ -282,6 +282,7 @@ $(document).ready(function(){
                     if(data.status == 'error'){
                         notification(data.status,data.message)
                     }else{
+                        $('#store_or_update_form .pbalance').addClass('d-none');
                         $('#store_or_update_form #update_id').val(data.id);
                         $('#store_or_update_form #name').val(data.name);
                         $('#store_or_update_form #mobile_no').val(data.mobile_no);
@@ -344,7 +345,9 @@ $(document).ready(function(){
         change_status(id, url, table, row, name, status);
     });
 
-
+    $(document).on('click', '.add-btn', function () {
+        $('#store_or_update_form .pbalance').removeClass('d-none');
+    });
 });
 
 </script>

@@ -56,8 +56,7 @@ class Depo extends BaseModel
         }
         
         $query = DB::table('depos as d')
-                ->select('d.id','d.name', 'd.mobile_no', 'd.email', 'd.address','d.district_id',
-                'd.status', 'l.name as district_name')
+                ->select('d.*', 'l.name as district_name')
                 ->leftjoin('locations as l','d.district_id','=','l.id');
 
         //search query
@@ -133,7 +132,7 @@ class Depo extends BaseModel
     * * *  Begin :: Cache Data * * *
     ************************************/
 
-    public function coa(string $code,string $head_name,int $salesmen_id) : array
+    public function coa(string $code,string $head_name,int $depo_id) : array
     {
         return [
             'code'              => $code,
@@ -145,7 +144,7 @@ class Depo extends BaseModel
             'general_ledger'    => 2,
             'customer_id'       => null,
             'supplier_id'       => null,
-            'salesmen_id'       => $salesmen_id,
+            'depo_id'           => $depo_id,
             'budget'            => 2,
             'depreciation'      => 2,
             'depreciation_rate' => '0',
@@ -154,8 +153,9 @@ class Depo extends BaseModel
         ];
     }
 
-    public function previous_balance_add($balance, int $coa_id, string $depo_name) {
-        $cosdr = array(
+    public function previous_balance_add($balance, int $coa_id, string $depo_name) : array
+    {
+        return [
             'warehouse_id'        => 1,
             'chart_of_account_id' => $coa_id,
             'voucher_no'          => generator(10),
@@ -167,15 +167,7 @@ class Depo extends BaseModel
             'posted'              => 1,
             'approve'             => 1,
             'created_by'          => auth()->user()->name,
-            'created_at'          => date('Y-m-d H:i:s')
-        );
-        try {
-            $result = Transaction::create($cosdr);
-            $output = $result ? true : false;
-        } catch (\Throwable $th) {
-            $output = $th->getMessage();
-        }
-        return $output;
+        ];
         
     }
 }

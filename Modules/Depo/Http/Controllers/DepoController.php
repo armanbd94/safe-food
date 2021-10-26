@@ -7,6 +7,7 @@ use Modules\Depo\Entities\Depo;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\BaseController;
 use Modules\Account\Entities\ChartOfAccount;
+use Modules\Account\Entities\Transaction;
 use Modules\Depo\Http\Requests\DepoFormRequest;
 
 class DepoController extends BaseController
@@ -47,14 +48,12 @@ class DepoController extends BaseController
                         $action .= ' <a class="dropdown-item edit_data" data-id="' . $value->id . '">'.self::ACTION_BUTTON['Edit'].'</a>';
                     }
                     if(permission('depo-delete')){
-                        if($value->deletable == 2){
                         $action .= ' <a class="dropdown-item delete_data"  data-id="' . $value->id . '" data-name="' . $value->name . '">'.self::ACTION_BUTTON['Delete'].'</a>';
-                        }
                     }
 
                     $row = [];
                     if(permission('depo-bulk-delete')){
-                        $row[] = ($value->deletable == 2) ? row_checkbox($value->id) : '';//custom helper function to show the table each row checkbox
+                        $row[] = row_checkbox($value->id);//custom helper function to show the table each row checkbox
                     }
                     $row[] = $no;
                     $row[] = $value->name;
@@ -80,33 +79,40 @@ class DepoController extends BaseController
     {
         if($request->ajax()){
             if(permission('depo-add')){
-                $collection   = collect($request->validated());
-                $collection   = $this->track_data($collection,$request->update_id);
-                $depo       = $this->model->updateOrCreate(['id'=>$request->update_id],$collection->all());
-                
-                if(empty($request->update_id))
-                {
-                    $coa_max_code  = ChartOfAccount::where('level',3)->where('code','like','50201%')->max('code');
-                    $code          = $coa_max_code ? ($coa_max_code + 1) : '5020101';
-                    $head_name     = $depo->id.'-'.$depo->name;
-                    $depo_coa_data = $this->model->coa($code,$head_name,$depo->id);
-                    $depo_coa      = ChartOfAccount::create($depo_coa_data);
-                    if(!empty($request->previous_balance))
+                DB::beginTransaction();
+                try {
+                    $collection   = collect($request->validated());
+                    $collection   = $this->track_data($collection,$request->update_id);
+                    $depo         = $this->model->updateOrCreate(['id'=>$request->update_id],$collection->all());
+                    
+                    if(empty($request->update_id))
                     {
-                        if($depo_coa){
-                            $this->previous_balance_add($request->previous_balance,$depo_coa->id,$depo->name);
+                        $coa_max_code  = ChartOfAccount::where('level',3)->where('code','like','50201%')->max('code');
+                        $code          = $coa_max_code ? ($coa_max_code + 1) : '5020101';
+                        $head_name     = $depo->id.'-'.$depo->name;
+                        $depo_coa_data = $this->model->coa($code,$head_name,$depo->id);
+                        $depo_coa      = ChartOfAccount::create($depo_coa_data);
+                        if(!empty($request->previous_balance))
+                        {
+                            if($depo_coa){
+                                Transaction::create($this->model->previous_balance_add($request->previous_balance,$depo_coa->id,$depo->name));
+                            }
+                        }
+                    }else{
+                        $new_head_name = $request->update_id.'-'.$request->name;
+                        $depo_coa = ChartOfAccount::where('depo_id',$request->update_id)->first();
+                        if($depo_coa)
+                        {
+                            $depo_coa->update(['name'=>$new_head_name]);
                         }
                     }
-                }else{
-                    $new_head_name = $request->update_id.'-'.$request->name;
-                    $depo_coa = ChartOfAccount::where('depo_id',$request->update_id)->first();
-                    if($depo_coa)
-                    {
-                        $depo_coa->update(['name'=>$new_head_name]);
-                    }
+                    $output = $this->store_message($depo, $request->update_id);
+                    $this->model->flushCache();
+                    DB::commit();
+                } catch (\Throwable $th) {
+                    DB::rollback();
+                    $output = ['status'=>'error','message'=>$th->getMessage()];
                 }
-                $output = $this->store_message($depo, $request->update_id);
-                $this->model->flushCache();
             }else{
                 $output = $this->unauthorized();
             }
@@ -123,7 +129,7 @@ class DepoController extends BaseController
                 $data   = $this->model->findOrFail($request->id);
                 $output = $this->data_message($data); //if data found then it will return data otherwise return error message
             }else{
-                $output       = $this->unauthorized();
+                $output = $this->unauthorized();
             }
             return response()->json($output);
         }else{
