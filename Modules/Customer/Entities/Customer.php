@@ -30,10 +30,10 @@ class Customer extends BaseModel
     {
         return $this->belongsTo(Upazila::class,'upazila_id','id');
     }
-    public function route()
-    {
-        return $this->belongsTo(Route::class,'route_id','id');
-    }
+    // public function route()
+    // {
+    //     return $this->belongsTo(Route::class,'route_id','id');
+    // }
     public function area()
     {
         return $this->belongsTo(Area::class,'area_id','id');
@@ -122,11 +122,13 @@ class Customer extends BaseModel
     private function get_datatable_query()
     {
         //set column sorting index table column name wise (should match with frontend table header)
-
-        $this->column_order = ['id','id','name', 'shop_name', 'mobile', 'customer_group_id','district_id','upazila_id','route_id', 'area_id','status',null,null];
+        if (permission('dealer-bulk-delete')){
+            $this->column_order = ['id','id','name', 'shop_name', 'mobile', 'customer_group_id','district_id','upazila_id', 'area_id','status',null,null];
+        }else{
+            $this->column_order = ['id','name', 'shop_name', 'mobile', 'customer_group_id','district_id','upazila_id', 'area_id','status',null,null];
+        }
         
-        
-        $query = self::with('customer_group','district','upazila','route','area');
+        $query = self::with('customer_group','district','upazila','area');
 
         //search query
         if (!empty($this->_name)) {
@@ -153,9 +155,9 @@ class Customer extends BaseModel
         if (!empty($this->_upazila_id)) {
             $query->where('upazila_id',  $this->_upazila_id);
         }
-        if (!empty($this->_route_id)) {
-            $query->where('route_id',  $this->_route_id);
-        }
+        // if (!empty($this->_route_id)) {
+        //     $query->where('route_id',  $this->_route_id);
+        // }
         if (!empty($this->_status)) {
             $query->where('status', $this->_status);
         }

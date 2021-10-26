@@ -108,7 +108,7 @@ class CustomerController extends BaseController
                     $row[] = $value->customer_group->group_name;
                     $row[] = $value->district->name;
                     $row[] = $value->upazila->name;
-                    $row[] = $value->route->name;
+                    // $row[] = $value->route->name;
                     $row[] = $value->area->name;
                     $row[] = permission('customer-edit') ? change_status($value->id,$value->status, $value->name) : STATUS_LABEL[$value->status];
                     $row[] = $this->model->customer_balance($value->id);
@@ -259,7 +259,7 @@ class CustomerController extends BaseController
     {
         if($request->ajax()){
             if(permission('customer-view')){
-                $customer   = $this->model->with(['customer_group','district','upazila','route','area'])->findOrFail($request->id);
+                $customer   = $this->model->with(['customer_group','district','upazila','area'])->findOrFail($request->id);
                 return view('customer::view-data',compact('customer'))->render();
             }
         }
@@ -295,21 +295,21 @@ class CustomerController extends BaseController
         }
     }
 
-    // public function change_status(Request $request)
-    // {
-    //     if($request->ajax()){
-    //         if(permission('customer-edit')){
-    //             $result   = $this->model->find($request->id)->update(['status' => $request->status]);
-    //             $output   = $result ? ['status' => 'success','message' => 'Status Has Been Changed Successfully']
-    //             : ['status' => 'error','message' => 'Failed To Change Status'];
-    //         }else{
-    //             $output   = $this->unauthorized();
-    //         }
-    //         return response()->json($output);
-    //     }else{
-    //         return response()->json($this->unauthorized());
-    //     }
-    // }
+    public function change_status(Request $request)
+    {
+        if($request->ajax()){
+            if(permission('customer-edit')){
+                $result   = $this->model->find($request->id)->update(['status' => $request->status]);
+                $output   = $result ? ['status' => 'success','message' => 'Status Has Been Changed Successfully']
+                : ['status' => 'error','message' => 'Failed To Change Status'];
+            }else{
+                $output   = $this->unauthorized();
+            }
+            return response()->json($output);
+        }else{
+            return response()->json($this->unauthorized());
+        }
+    }
 
 
     public function customer_list(Request $request)
