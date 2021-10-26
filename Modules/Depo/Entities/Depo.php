@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Modules\Location\Entities\District;
 use Modules\Account\Entities\Transaction;
+use Modules\Account\Entities\ChartOfAccount;
 
 
 class Depo extends BaseModel
@@ -30,6 +31,10 @@ class Depo extends BaseModel
             $balance = $data->balance ? $data->balance : 0;
         }
         return $balance;
+    }
+
+    public function coa(){
+        return $this->hasOne(ChartOfAccount::class,'depo_id','id');
     }
 
     /******************************************
@@ -132,7 +137,7 @@ class Depo extends BaseModel
     * * *  Begin :: Cache Data * * *
     ************************************/
 
-    public function coa(string $code,string $head_name,int $depo_id) : array
+    public function coa_data(string $code,string $head_name,int $depo_id) : array
     {
         return [
             'code'              => $code,
@@ -153,7 +158,7 @@ class Depo extends BaseModel
         ];
     }
 
-    public function previous_balance_add($balance, int $coa_id, string $depo_name) : array
+    public function previous_balance_data($balance, int $coa_id, string $depo_name) : array
     {
         return [
             'warehouse_id'        => 1,

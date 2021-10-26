@@ -90,12 +90,11 @@ class DepoController extends BaseController
                         $coa_max_code  = ChartOfAccount::where('level',3)->where('code','like','50201%')->max('code');
                         $code          = $coa_max_code ? ($coa_max_code + 1) : '5020101';
                         $head_name     = $depo->id.'-'.$depo->name;
-                        $depo_coa_data = $this->model->coa($code,$head_name,$depo->id);
-                        $depo_coa      = ChartOfAccount::create($depo_coa_data);
+                        $depo_coa      = ChartOfAccount::create($this->model->coa_data($code,$head_name,$depo->id));
                         if(!empty($request->previous_balance))
                         {
                             if($depo_coa){
-                                Transaction::create($this->model->previous_balance_add($request->previous_balance,$depo_coa->id,$depo->name));
+                                Transaction::create($this->model->previous_balance_data($request->previous_balance,$depo_coa->id,$depo->name));
                             }
                         }
                     }else{
