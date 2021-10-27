@@ -32,7 +32,7 @@
             <div class="card-header flex-wrap py-5">
                 <form method="POST" id="form-filter" class="col-md-12 px-0">
                     <div class="row">
-                        <div class="form-group col-md-4">
+                        <div class="form-group col-md-3">
                             <label for="name">Choose Your Date</label>
                             <div class="input-group">
                                 <input type="text" class="form-control daterangepicker-filed">
@@ -41,7 +41,7 @@
                             </div>
                         </div>
 
-                        <x-form.selectbox labelName="District" name="district_id" col="col-md-4" class="selectpicker" onchange="getUpazilaList(this.value,1)" >
+                        <x-form.selectbox labelName="District" name="district_id" col="col-md-3" class="selectpicker" onchange="getUpazilaList(this.value,1)" >
                             @if (!$districts->isEmpty())
                             @foreach ($districts as $id => $name)
                             <option value="{{ $id }}">{{ $name }}</option>
@@ -49,30 +49,28 @@
                             @endif
                         </x-form.selectbox>
 
-                        <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-4" class="selectpicker" onchange="getRouteList(this.value,1)" />
+                        <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-3" class="selectpicker" onchange="getAreaList(this.value,1)" />
 
-                        <x-form.selectbox labelName="Route" name="route_id" col="col-md-4" class="selectpicker" onchange="getAreaList(this.value,1)"/>
+                        {{-- <x-form.selectbox labelName="Route" name="route_id" col="col-md-4" class="selectpicker" onchange="getAreaList(this.value,1)"/> --}}
 
-                        <x-form.selectbox labelName="Area" name="area_id" col="col-md-4" class="selectpicker" onchange="customer_list(this.value,1)"/>
+                        <x-form.selectbox labelName="Area" name="area_id" col="col-md-3" class="selectpicker" onchange="customer_list(this.value,1)"/>
 
-                        <x-form.selectbox labelName="Customer" name="customer_id" col="col-md-4" class="selectpicker"/>
+                        <x-form.selectbox labelName="Customer" name="customer_id" col="col-md-3" class="selectpicker"/>
                         
 
-                        <x-form.selectbox labelName="Advance Type" name="type" col="col-md-4" class="selectpicker">
+                        <x-form.selectbox labelName="Advance Type" name="type" col="col-md-3" class="selectpicker">
                             <option value="debit">Payment</option>
                             <option value="credit">Receive</option>
                         </x-form.selectbox>
-                        <div class="col-md-12">
-                            <div>    
-                                <div>    
-                                    <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
-                                    data-toggle="tooltip" data-theme="dark" title="Reset">
-                                    <i class="fas fa-undo-alt"></i></button>
-    
-                                    <button id="btn-filter" class="btn btn-primary btn-sm btn-elevate btn-icon mr-2 float-right" type="button"
-                                    data-toggle="tooltip" data-theme="dark" title="Search">
-                                    <i class="fas fa-search"></i></button>
-                                </div>
+                        <div class="col-md-6">
+                            <div style="margin-top:28px;">    
+                                <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
+                                data-toggle="tooltip" data-theme="dark" title="Reset">
+                                <i class="fas fa-undo-alt"></i></button>
+
+                                <button id="btn-filter" class="btn btn-primary btn-sm btn-elevate btn-icon mr-2 float-right" type="button"
+                                data-toggle="tooltip" data-theme="dark" title="Search">
+                                <i class="fas fa-search"></i></button>
                             </div>
                         </div>
                     </div>
@@ -82,7 +80,7 @@
                 <!--begin: Datatable-->
                 <div id="kt_datatable_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
                     <div class="row">
-                        <div class="col-sm-12">
+                        <div class="col-sm-12 table-responsive">
                             <table id="dataTable" class="table table-bordered table-hover">
                                 <thead class="bg-primary">
                                     <tr>
@@ -92,7 +90,7 @@
                                         <th>Mobile No.</th>
                                         <th>District</th>
                                         <th>Upazila</th>
-                                        <th>Route</th>
+                                        {{-- <th>Route</th> --}}
                                         <th>Area</th>
                                         <th>Advance Type</th>
                                         <th>Amount</th>
@@ -157,8 +155,9 @@ $(document).ready(function(){
             "url": "{{route('customer.advance.datatable.data')}}",
             "type": "POST",
             "data": function (data) {
+                data.district_id  = $("#form-filter #district_id").val();
                 data.upazila_id  = $("#form-filter #upazila_id").val();
-                data.route_id    = $("#form-filter #route_id").val();
+                // data.route_id    = $("#form-filter #route_id").val();
                 data.area_id     = $("#form-filter #area_id").val();
                 data.customer_id = $("#form-filter #customer_id").val();
                 data.type        = $("#form-filter #type").val();
@@ -169,16 +168,16 @@ $(document).ready(function(){
         },
         "columnDefs": [
             {
-                "targets": [13],
+                "targets": [12],
                 "className": "text-center",
                 "orderable":false
             },
             {
-                "targets": [0,3,4,5,6,7,8,10,11,12],
+                "targets": [0,3,4,5,6,7,9,10,11],
                 "className": "text-center"
             },
             {
-                "targets": [9],
+                "targets": [8],
                 "className": "text-right"
             },
         ],
@@ -199,9 +198,7 @@ $(document).ready(function(){
                 "orientation": "portrait", //portrait
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
-                    columns: function (index, data, node) {
-                        return table.column(index).visible();
-                    }
+                    columns: ':visible:not(:eq(12))' 
                 },
                 customize: function (win) {
                     $(win.document.body).addClass('bg-white');
@@ -219,9 +216,7 @@ $(document).ready(function(){
                 "title": "{{ $page_title }} List",
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
-                    columns: function (index, data, node) {
-                        return table.column(index).visible();
-                    }
+                    columns: ':visible:not(:eq(12))' 
                 }
             },
             {
@@ -231,9 +226,7 @@ $(document).ready(function(){
                 "title": "{{ $page_title }} List",
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
-                    columns: function (index, data, node) {
-                        return table.column(index).visible();
-                    }
+                    columns: ':visible:not(:eq(12))' 
                 }
             },
             {
@@ -245,9 +238,7 @@ $(document).ready(function(){
                 "orientation": "portrait", //portrait
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
-                    columns: function (index, data, node) {
-                        return table.column(index).visible();
-                    }
+                    columns: ':visible:not(:eq(12))' 
                 },
                 customize: function(doc) {
                 doc.defaultStyle.fontSize = 7; //<-- set fontsize to 16 instead of 10 
@@ -279,10 +270,10 @@ $(document).ready(function(){
         var amount         = $('#store_or_update_form #amount').val();
         var payment_method = $('#store_or_update_form #payment_method option:selected').val();
         var account_id    = $('#store_or_update_form #account_id option:selected').val();
-        var warehouse_id    = $('#store_or_update_form #warehouse_id option:selected').val();
+        var warehouse_id    = $('#store_or_update_form #warehouse_id').val();
         var district_id    = $('#store_or_update_form #district_id option:selected').val();
         var upazila_id    = $('#store_or_update_form #upazila_id option:selected').val();
-        var route_id    = $('#store_or_update_form #route_id option:selected').val();
+        // var route_id    = $('#store_or_update_form #route_id option:selected').val();
         var area_id    = $('#store_or_update_form #area_id option:selected').val();
         var cheque_number = '';
         if(payment_method == 2){
@@ -302,7 +293,7 @@ $(document).ready(function(){
             type: "POST",
             data: {id:id,customer:customer,customer_coaid:customer_coaid,customer_name:customer_name,type:type,amount:amount,
                 payment_method:payment_method,account_id:account_id,cheque_number:cheque_number,warehouse_id:warehouse_id,
-                district_id:district_id,upazila_id:upazila_id,route_id:route_id,area_id:area_id,_token:_token},
+                district_id:district_id,upazila_id:upazila_id,area_id:area_id,_token:_token},
             dataType: "JSON",
             beforeSend: function(){
                 $('#save-btn').addClass('spinner spinner-white spinner-right');
@@ -371,8 +362,8 @@ $(document).ready(function(){
                         $('#store_or_update_form #warehouse_id').val(data.warehouse_id);
                         $('#store_or_update_form #district_id').val(data.district_id);
                         getUpazilaList(data.district_id,2,data.upazila_id);
-                        getRouteList(data.upazila_id,2,data.route_id);
-                        getAreaList(data.route_id,2,data.area_id);
+                        // getRouteList(data.upazila_id,2,data.route_id);
+                        getAreaList(data.upazila_id,2,data.area_id);
                         customer_list(data.area_id,2,data.customer_id);
                         account_list(data.payment_method,data.account_id);
                         $('#store_or_update_form select#customer').each(function(){
@@ -489,37 +480,37 @@ function getUpazilaList(district_id,selector,upazila_id=''){
         },
     });
 }
-function getRouteList(upazila_id,selector,route_id=''){
-    $.ajax({
-        url:"{{ url('upazila-id-wise-route-list') }}/"+upazila_id,
-        type:"GET",
-        dataType:"JSON",
-        success:function(data){
-            html = `<option value="">Select Please</option>`;
-            $.each(data, function(key, value) {
-                html += '<option value="'+ key +'">'+ value +'</option>';
-            });
-            if(selector == 1)
-            {
-                $('#form-filter #route_id').empty();
-                $('#form-filter #route_id').append(html);
-            }else{
-                $('#store_or_update_form #route_id').empty();
-                $('#store_or_update_form #route_id').append(html);
-            }
-            $('.selectpicker').selectpicker('refresh');
-            if(route_id){
-                $('#store_or_update_form #route_id').val(route_id);
-                $('#store_or_update_form #route_id.selectpicker').selectpicker('refresh');
-            }
+// function getRouteList(upazila_id,selector,route_id=''){
+//     $.ajax({
+//         url:"{{ url('upazila-id-wise-route-list') }}/"+upazila_id,
+//         type:"GET",
+//         dataType:"JSON",
+//         success:function(data){
+//             html = `<option value="">Select Please</option>`;
+//             $.each(data, function(key, value) {
+//                 html += '<option value="'+ key +'">'+ value +'</option>';
+//             });
+//             if(selector == 1)
+//             {
+//                 $('#form-filter #route_id').empty();
+//                 $('#form-filter #route_id').append(html);
+//             }else{
+//                 $('#store_or_update_form #route_id').empty();
+//                 $('#store_or_update_form #route_id').append(html);
+//             }
+//             $('.selectpicker').selectpicker('refresh');
+//             if(route_id){
+//                 $('#store_or_update_form #route_id').val(route_id);
+//                 $('#store_or_update_form #route_id.selectpicker').selectpicker('refresh');
+//             }
       
-        },
-    });
-}
+//         },
+//     });
+// }
 
-function getAreaList(route_id,selector,area_id=''){
+function getAreaList(upazila_id,selector,area_id=''){
     $.ajax({
-        url:"{{ url('route-id-wise-area-list') }}/"+route_id,
+        url:"{{ url('upazila-id-wise-area-list') }}/"+upazila_id,
         type:"GET",
         dataType:"JSON",
         success:function(data){

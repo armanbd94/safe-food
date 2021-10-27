@@ -19,13 +19,8 @@
                 <div class="modal-body">
                     <div class="row">
                         <input type="hidden" name="update_id" id="update_id" />
-                        <x-form.selectbox labelName="Warehouse" name="warehouse_id" col="col-md-4" required="required" class="selectpicker">
-                            @if (!$warehouses->isEmpty())
-                            @foreach ($warehouses as $id => $name)
-                                <option value="{{ $id }}" data-name="{{ $name }}">{{ $name }}</option>
-                            @endforeach
-                            @endif
-                        </x-form.selectbox>
+                        <input type="hidden" name="warehouse_id" id="warehouse_id" value="1" />
+
                         <x-form.selectbox labelName="District" name="district_id" col="col-md-4" class="selectpicker"
                             onchange="getUpazilaList(this.value,2)">
                             @if (!$districts->isEmpty())
@@ -35,10 +30,10 @@
                             @endif
                         </x-form.selectbox>
                         <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-4" class="selectpicker"
-                            onchange="getRouteList(this.value,2)"/>
-
-                        <x-form.selectbox labelName="Route" name="route_id" col="col-md-4" class="selectpicker"
                             onchange="getAreaList(this.value,2)"/>
+
+                        {{-- <x-form.selectbox labelName="Route" name="route_id" col="col-md-4" class="selectpicker"
+                            onchange="getAreaList(this.value,2)"/> --}}
 
                         <x-form.selectbox labelName="Area" name="area_id" col="col-md-4" class="selectpicker"
                             onchange="customer_list(this.value,2)"/>

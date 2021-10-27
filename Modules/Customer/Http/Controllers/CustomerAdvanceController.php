@@ -22,8 +22,8 @@ class CustomerAdvanceController extends BaseController
         if(permission('customer-advance-access')){
             $this->setPageData('Customer Advance','Customer Advance','fas fa-hand-holding-usd',[['name'=>'Customer','link'=>route('customer')],['name'=>'Customer Advance']]);
             $districts = DB::table('locations')->where([['status', 1],['parent_id',0]])->pluck('name','id');
-            $warehouses = DB::table('warehouses')->where('status',1)->pluck('name','id');
-            return view('customer::advance.index',compact('districts','warehouses'));
+            // $warehouses = DB::table('warehouses')->where('status',1)->pluck('name','id');
+            return view('customer::advance.index',compact('districts'));
         }else{
             return $this->access_blocked();
         }
@@ -38,9 +38,9 @@ class CustomerAdvanceController extends BaseController
             if (!empty($request->upazila_id)) {
                 $this->model->setUpazilaID($request->upazila_id);
             }
-            if (!empty($request->route_id)) {
-                $this->model->setRouteID($request->route_id);
-            }
+            // if (!empty($request->route_id)) {
+            //     $this->model->setRouteID($request->route_id);
+            // }
             if (!empty($request->area_id)) {
                 $this->model->setAreaID($request->area_id);
             }
@@ -87,7 +87,7 @@ class CustomerAdvanceController extends BaseController
                 $row[] = $value->mobile;
                 $row[] = $value->district_name;
                 $row[] = $value->upazila_name;
-                $row[] = $value->route_name;
+                // $row[] = $value->route_name;
                 $row[] = $value->area_name;
                 $row[] = ($value->debit != 0) ? 'Payment' : 'Receive' ;
                 $row[] = ($value->debit != 0) ? number_format($value->debit,2,'.',',') : number_format($value->credit,2,'.',',');

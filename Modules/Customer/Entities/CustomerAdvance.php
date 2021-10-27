@@ -32,7 +32,7 @@ class CustomerAdvance extends BaseModel
     protected $customer_id; 
     protected $_district_id; 
     protected $_upazila_id; 
-    protected $_route_id; 
+    // protected $_route_id; 
     protected $_area_id; 
     protected $_type; 
     protected $_start_date; 
@@ -51,10 +51,10 @@ class CustomerAdvance extends BaseModel
     {
         $this->_upazila_id = $upazila_id;
     }
-    public function seRouteID($route_id)
-    {
-        $this->_route_id = $route_id;
-    }
+    // public function seRouteID($route_id)
+    // {
+    //     $this->_route_id = $route_id;
+    // }
     public function setAreaID($area_id)
     {
         $this->_area_id = $area_id;
@@ -76,16 +76,16 @@ class CustomerAdvance extends BaseModel
     {
         //set column sorting index table column name wise (should match with frontend table header)
 
-        $this->column_order = ['transactions.id','c.name', 'c.shop_name','c.mobile','c.district_id','c.upazila_id','c.route_id','c.area_id',null,null,'transactions.created_at',null,null,null];
+        $this->column_order = ['transactions.id','c.name', 'c.shop_name','c.mobile','c.district_id','c.upazila_id','c.area_id',null,null,'transactions.created_at',null,null,null];
         
         
         $query = self::select('transactions.*','coa.id as coa_id','coa.code','c.id as customer_id','c.name as customer_name',
-        'c.shop_name','c.mobile','d.name as district_name','u.name as upazila_name','r.name as route_name','a.name as area_name')
+        'c.shop_name','c.mobile','d.name as district_name','u.name as upazila_name','a.name as area_name')
         ->join('chart_of_accounts as coa','transactions.chart_of_account_id','=','coa.id')
         ->join('customers as c','coa.customer_id','c.id')
         ->join('locations as d', 'c.district_id', '=', 'd.id')
         ->join('locations as u', 'c.upazila_id', '=', 'u.id')
-        ->join('locations as r', 'c.route_id', '=', 'r.id')
+        // ->join('locations as r', 'c.route_id', '=', 'r.id')
         ->join('locations as a', 'c.area_id', '=', 'a.id')
         ->where([
             'transactions.voucher_type'=>self::TYPE,
@@ -102,9 +102,9 @@ class CustomerAdvance extends BaseModel
         if (!empty($this->_upazila_id)) {
             $query->where('c.upazila_id', $this->_upazila_id);
         }
-        if (!empty($this->_route_id)) {
-            $query->where('c.route_id', $this->_route_id);
-        }
+        // if (!empty($this->_route_id)) {
+        //     $query->where('c.route_id', $this->_route_id);
+        // }
         if (!empty($this->_area_id)) {
             $query->where('c.area_id', $this->_area_id);
         }
