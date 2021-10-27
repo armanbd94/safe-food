@@ -34,9 +34,9 @@ class PaidCustomerController extends BaseController
             if (!empty($request->upazila_id)) {
                 $this->model->setUpazilaID($request->upazila_id);
             }
-            if (!empty($request->route_id)) {
-                $this->model->setRouteID($request->route_id);
-            }
+            // if (!empty($request->route_id)) {
+            //     $this->model->setRouteID($request->route_id);
+            // }
             if (!empty($request->area_id)) {
                 $this->model->setAreaID($request->area_id);
             }
@@ -56,7 +56,7 @@ class PaidCustomerController extends BaseController
                 $row[] = $value->mobile;
                 $row[] = $value->district_name;
                 $row[] = $value->upazila_name;
-                $row[] = $value->route_name;
+                // $row[] = $value->route_name;
                 $row[] = $value->area_name;
                 $row[] = $value->group_name;
                 $row[] = number_format(($value->balance),2, '.', ',');
@@ -74,7 +74,7 @@ class PaidCustomerController extends BaseController
     {
         if ($request->ajax()) {
             $upazila_id = $request->upazila_id;
-            $route_id   = $request->route_id;
+            // $route_id   = $request->route_id;
             $area_id    = $request->area_id;
             $data       =  DB::table('customers as c')
                             ->selectRaw('c.*, ((select ifnull(sum(debit),0) from transactions where chart_of_account_id= b.id)-(select ifnull(sum(credit),0) from transactions where chart_of_account_id= b.id)) as balance')
@@ -86,9 +86,9 @@ class PaidCustomerController extends BaseController
                             ->when($upazila_id, function($q) use ($upazila_id){
                                 $q->where('c.upazila_id',$upazila_id);
                             })
-                            ->when($route_id, function($q) use ($route_id){
-                                $q->where('c.route_id',$route_id);
-                            })
+                            // ->when($route_id, function($q) use ($route_id){
+                            //     $q->where('c.route_id',$route_id);
+                            // })
                             ->when($area_id, function($q) use ($area_id){
                                 $q->where('c.area_id',$area_id);
                             })

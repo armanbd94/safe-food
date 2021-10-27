@@ -105,7 +105,7 @@
                                         <th>Mobile</th>
                                         <th>District</th>
                                         <th>Upazila</th>
-                                        <th>Route</th>
+                                        {{-- <th>Route</th> --}}
                                         <th>Area</th>
                                         <th>Group</th>
                                         <th>Balance</th>
@@ -118,7 +118,7 @@
                                         <th></th>
                                         <th></th>
                                         <th></th>
-                                        <th></th>
+                                        {{-- <th></th> --}}
                                         <th></th>
                                         <th></th>
                                         <th></th>
@@ -168,7 +168,7 @@ $(document).ready(function(){
             "data": function (data) {
                 data.district_id  = $("#form-filter #district_id").val();
                 data.upazila_id  = $("#form-filter #upazila_id").val();
-                data.route_id    = $("#form-filter #route_id").val();
+                // data.route_id    = $("#form-filter #route_id").val();
                 data.area_id     = $("#form-filter #area_id").val();
                 data.customer_id = $("#form-filter #customer_id").val();
                 data._token       = _token;
@@ -176,12 +176,12 @@ $(document).ready(function(){
         },
         "columnDefs": [
             {
-                "targets": [9],
+                "targets": [8],
                 "orderable": false,
                 "className": "text-right"
             },
             {
-                "targets": [0,3,4,5,6,7,8],
+                "targets": [0,3,4,5,6,7],
                 "className": "text-center"
             },
         ],
@@ -275,17 +275,17 @@ $(document).ready(function(){
                         i : 0;
             };
 
-            total = api.column(9).data().reduce( function (a, b) {
+            total = api.column(8).data().reduce( function (a, b) {
                     return intVal(a) + intVal(b);
                 }, 0 );
 
             // Total over this page
-            pageTotal = api.column(9, { page: 'current'}).data().reduce( function (a, b) {
+            pageTotal = api.column(8, { page: 'current'}).data().reduce( function (a, b) {
                     return intVal(a) + intVal(b);
                 }, 0 );
 
             // Update footer
-            $( api.column( 9 ).footer() ).html('= '+number_format(total) +' Tk');
+            $( api.column( 8 ).footer() ).html('= '+number_format(total) +' Tk');
         }
     });
 
