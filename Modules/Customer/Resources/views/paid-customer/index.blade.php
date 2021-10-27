@@ -36,27 +36,27 @@
             <div class="card-header flex-wrap py-5">
                 <form method="POST" id="form-filter" class="col-md-12 px-0">
                     <div class="row">
-                        <x-form.selectbox labelName="District" name="district_id" col="col-md-4" class="selectpicker" onchange="getUpazilaList(this.value,1);customer_list();" >
+                        <x-form.selectbox labelName="District" name="district_id" col="col-md-3" class="selectpicker" onchange="getUpazilaList(this.value,1);customer_list();" >
                             @if (!$locations->isEmpty())
                                 @foreach ($locations as $location)
-                                    @if ($location->type == 1 && $location->parent_id == null)
+                                    @if ($location->type == 1)
                                     <option value="{{ $location->id }}">{{ $location->name }}</option>
                                     @endif
                                 @endforeach
                             @endif
                         </x-form.selectbox>
 
-                        <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-4" class="selectpicker" onchange="getRouteList(this.value,1);customer_list();" >
+                        <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-3" class="selectpicker" onchange="getAreaList(this.value,1);customer_list();" >
                             @if (!$locations->isEmpty())
                                 @foreach ($locations as $location)
-                                    @if ($location->type == 2 && $location->parent_id == auth()->user()->district_id)
+                                    @if ($location->type == 2)
                                     <option value="{{ $location->id }}">{{ $location->name }}</option>
                                     @endif
                                 @endforeach
                             @endif
                         </x-form.selectbox>
 
-                        <x-form.selectbox labelName="Route" name="route_id" col="col-md-4" class="selectpicker" onchange="getAreaList(this.value,1);customer_list();">
+                        {{-- <x-form.selectbox labelName="Route" name="route_id" col="col-md-4" class="selectpicker" onchange="getAreaList(this.value,1);customer_list();">
                             @if (!$locations->isEmpty())
                                 @foreach ($locations as $location)
                                     @if ($location->type == 3 && $location->grand_parent_id == auth()->user()->district_id)
@@ -64,22 +64,21 @@
                                     @endif
                                 @endforeach
                             @endif
-                        </x-form.selectbox>
+                        </x-form.selectbox> --}}
 
-                        <x-form.selectbox labelName="Area" name="area_id" col="col-md-4" class="selectpicker" onchange="customer_list()">
+                        <x-form.selectbox labelName="Area" name="area_id" col="col-md-3" class="selectpicker" onchange="customer_list()">
                             @if (!$locations->isEmpty())
                                 @foreach ($locations as $location)
-                                    @if ($location->type == 4 && $location->grand_grand_parent_id == auth()->user()->district_id)
+                                    @if ($location->type == 4)
                                     <option value="{{ $location->id }}">{{ $location->name }}</option>
                                     @endif
                                 @endforeach
                             @endif
                         </x-form.selectbox>
-                        <x-form.selectbox labelName="Customer" name="customer_id" col="col-md-4" class="selectpicker"/>
+                        <x-form.selectbox labelName="Customer" name="customer_id" col="col-md-3" class="selectpicker"/>
                         
-                        <div class="col-md-8">
-                            <div style="margin-top:28px;">    
-                                <div style="margin-top:28px;">    
+                        <div class="col-md-12">
+                            <div style="margin-top:28px;">      
                                     <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
                                     data-toggle="tooltip" data-theme="dark" title="Reset">
                                     <i class="fas fa-undo-alt"></i></button>
@@ -87,7 +86,6 @@
                                     <button id="btn-filter" class="btn btn-primary btn-sm btn-elevate btn-icon mr-2 float-right" type="button"
                                     data-toggle="tooltip" data-theme="dark" title="Search">
                                     <i class="fas fa-search"></i></button>
-                                </div>
                             </div>
                         </div>
                     </div>
