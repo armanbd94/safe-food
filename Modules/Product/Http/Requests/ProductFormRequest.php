@@ -30,14 +30,14 @@ class ProductFormRequest extends FormRequest
             
         }
         $this->rules['base_unit_id']    = ['required'];
-        // $this->rules['unit_id']         = ['required'];
+        $this->rules['unit_id']         = ['required'];
         $this->rules['alert_quantity']  = ['nullable','numeric','gte:0'];
         $this->rules['base_unit_price'] = ['required','numeric','gt:0'];
-        // $this->rules['unit_price']      = ['required','numeric','gt:0'];
+        $this->rules['unit_price']      = ['required','numeric','gt:0'];
         
-        // $this->messages['unit_id.required']      = 'The unit field is required';
-        $this->messages['base_unit_id.required'] = 'The unit field is required';
-        $this->messages['base_unit_price.required'] = 'The price field is required';
+        $this->messages['unit_id.required']      = 'The unit field is required';
+        $this->messages['base_unit_id.required'] = 'The base unit field is required';
+
        
         // $collection = collect(request());
         // if($collection->has('materials')){

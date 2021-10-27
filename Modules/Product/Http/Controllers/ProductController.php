@@ -50,12 +50,12 @@ class ProductController extends BaseController
                 if (!empty($request->status)) {
                     $this->model->setStatus($request->status);
                 }
-                if (!empty($request->product_type)) {
-                    $this->model->setProductType($request->product_type);
-                }
-                if (!empty($request->type)) {
-                    $this->model->setType($request->type);
-                }
+                // if (!empty($request->product_type)) {
+                //     $this->model->setProductType($request->product_type);
+                // }
+                // if (!empty($request->type)) {
+                //     $this->model->setType($request->type);
+                // }
 
                 $this->set_datatable_default_properties($request);//set datatable default properties
                 $list = $this->model->getDatatableList();//get table data
@@ -80,17 +80,28 @@ class ProductController extends BaseController
                         $row[] = row_checkbox($value->id);//custom helper function to show the table each row checkbox
                     }
 
+                    $base_unit_stock_qty = $unit_stock_qty = 0;
+                    if(!$value->warehouse_product->isEmpty()) {
+                        $base_unit_stock_qty = number_format($value->warehouse_product[0]->qty,2,'.','');
+                        if($value->unit->operator == '*')
+                        {
+                            $unit_stock_qty = $base_unit_stock_qty / $value->unit->operation_value;
+                        }else{
+                            $unit_stock_qty = $base_unit_stock_qty * $value->unit->operation_value;
+                        }
+                    } 
+
                     $row[] = $no;
                     $row[] = $this->table_image(PRODUCT_IMAGE_PATH,$value->image,$value->name);
                     $row[] = $value->name;
                     $row[] = $value->category->name;
                     $row[] = number_format($value->cost,2,'.','');
                     $row[] = $value->base_unit->unit_name.' ('.$value->base_unit->unit_code.')';
-                    // $row[] = $value->unit->unit_name.' ('.$value->unit->unit_code.')';
-                    // $row[] = number_format($value->unit_price,2,'.','');
+                    $row[] = $value->unit->unit_name.' ('.$value->unit->unit_code.')';
                     $row[] = number_format($value->base_unit_price,2,'.','');
-                    // $row[] = $value->unit_qty ?? 0;
-                    $row[] = (!$value->warehouse_product->isEmpty()) ? number_format($value->warehouse_product[0]->qty,2,'.','') : 0;
+                    $row[] = number_format($value->unit_price,2,'.','');
+                    $row[] = $base_unit_stock_qty;
+                    $row[] = number_format($unit_stock_qty,2,'.','');
                     $row[] = $value->alert_quantity ?? 0;
                     $row[] = permission('product-edit') ? change_status($value->id,$value->status, $value->name) : STATUS_LABEL[$value->status];
                     $row[] = action_button($action);//custom helper function for action button

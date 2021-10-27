@@ -123,6 +123,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('base-unit', 'UnitController@base_unit')->name('base.unit');
     });
     Route::get('populate-unit/{id}','UnitController@populate_unit');
+    Route::get('unit-data/{id}','UnitController@unit_data');
 
 
     //Tax Routes

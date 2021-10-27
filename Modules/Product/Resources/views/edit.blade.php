@@ -40,9 +40,24 @@
                             <div class="row">
                                 <input type="hidden" name="update_id" id="update_id" value="{{ $product->id }}">
         
-                                <x-form.textbox labelName="Product Name" name="name" required="required" value="{{ $product->name }}" col="col-md-4" placeholder="Enter product name"/>
+                                <x-form.textbox labelName="Product Name" name="name" required="required" value="{{ $product->name }}" col="col-md-6" placeholder="Enter product name"/>
+                                <x-form.selectbox labelName="Category" name="category_id" required="required" col="col-md-6" class="selectpicker">
+                                    @if (!$categories->isEmpty())
+                                        @foreach ($categories as $category)
+                                        <option value="{{ $category->id }}"  {{ $product->category_id == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                        @endforeach
+                                    @endif
+                                </x-form.selectbox>
                                 
-                                <div class="col-md-4 form-group required">
+
+                                <x-form.selectbox labelName="Barcode Symbol" name="barcode_symbology" required="required" col="col-md-6" class="selectpicker">
+                                    @foreach (BARCODE_SYMBOL as $key => $value)
+                                        <option value="{{ $key }}" {{ ($key == $product->barcode_symbology) ? 'selected' : '' }}>{{ $value }}</option>
+                                    @endforeach
+                                </x-form.selectbox> 
+
+
+                                <div class="col-md-6 form-group required">
                                     <label for="code">Code</label>
                                     <div class="input-group" id="code_section">
                                         <input type="text" class="form-control" name="code" id="code" value="{{ $product->code }}">
@@ -54,25 +69,10 @@
                                         </div>
                                     </div>
                                 </div>
-
-                                <x-form.selectbox labelName="Barcode Symbol" name="barcode_symbology" required="required" col="col-md-4" class="selectpicker">
-                                    @foreach (BARCODE_SYMBOL as $key => $value)
-                                        <option value="{{ $key }}" {{ ($key == $product->barcode_symbology) ? 'selected' : '' }}>{{ $value }}</option>
-                                    @endforeach
-                                </x-form.selectbox> 
-
-
-                                <x-form.selectbox labelName="Category" name="category_id" required="required" col="col-md-4" class="selectpicker">
-                                    @if (!$categories->isEmpty())
-                                        @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}"  {{ $product->category_id == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
-                                        @endforeach
-                                    @endif
-                                </x-form.selectbox>
                                 
-                                <div class="form-group col-md-4 required">
-                                    <label for="base_unit_id">Unit</label>
-                                    <select name="base_unit_id" id="base_unit_id"  class="form-control selectpicker" data-live-search="true"  data-live-search-placeholder="Search">
+                                <div class="form-group col-md-6 required">
+                                    <label for="base_unit_id">Base Unit</label>
+                                    <select name="base_unit_id" id="base_unit_id" onchange="populate_unit(this.value)"  class="form-control selectpicker" data-live-search="true"  data-live-search-placeholder="Search">
                                         <option value="">Select Please</option>
                                         @if (!$units->isEmpty())
                                             @foreach ($units as $unit)
@@ -84,13 +84,13 @@
                                     </select>
                                 </div>
         
-                                {{-- <div class="form-group col-md-4 required">
+                                <div class="form-group col-md-6 required">
                                     <label for="unit_id">Unit</label>
-                                    <select name="unit_id" id="unit_id"  class="form-control selectpicker" data-live-search="true"  data-live-search-placeholder="Search">
+                                    <select name="unit_id" id="unit_id" onchange="unitPriceCalculation()"  class="form-control selectpicker" data-live-search="true"  data-live-search-placeholder="Search">
                                         <option value="">Select Please</option>
                                     @php
-                                        $sale_units = \DB::table('units')->where('base_unit',$product->unit_id)
-                                        ->orWhere('id',$product->unit_id)->get();
+                                        $sale_units = \DB::table('units')->where('base_unit',$product->base_unit_id)
+                                        ->orWhere('id',$product->base_unit_id)->get();
                                         
                                     @endphp
                                     @if (!$sale_units->isEmpty())
@@ -99,14 +99,14 @@
                                         @endforeach
                                     @endif
                                     </select>
-                                </div> --}}
+                                </div>
+                                <x-form.textbox labelName="Base Unit Price" onkeyup="unitPriceCalculation()" name="base_unit_price" value="{{ $product->base_unit_price }}" required="required" col="col-md-6 price" placeholder="Enter product price"/>
+                                <x-form.textbox labelName="Unit Price" name="unit_price" value="{{ $product->unit_price }}" required="required" property="readonly" col="col-md-6 price" placeholder="Enter product price"/>
                                 
-                                {{-- <x-form.textbox labelName="Unit Price" name="unit_price" value="{{ $product->unit_price }}" required="required" col="col-md-4 price" placeholder="Enter product price"/> --}}
-                                <x-form.textbox labelName="Price" name="base_unit_price" value="{{ $product->base_unit_price }}" required="required" col="col-md-4 price" placeholder="Enter product price"/>
-                                <x-form.textbox labelName="Alert Quantity" name="alert_quantity" value="{{ $product->alert_quantity }}"  col="col-md-4 alert-qty" placeholder="Enter product alert qty"/>
+                                <x-form.textbox labelName="Alert Quantity" name="alert_quantity" value="{{ $product->alert_quantity }}"  col="col-md-6 alert-qty" placeholder="Enter product alert qty"/>
                                 
 
-                                <div class="col-md-4 form-group">
+                                <div class="col-md-6 form-group">
                                     <label for="tax_id">Product Tax</label>
                                     <select name="tax_id" id="tax_id" required="required" class="form-control selectpicker">
                                         <option value="0" selected>No Tax</option>
@@ -118,7 +118,7 @@
                                     </select>
                                 </div>
         
-                                <div class="col-md-4 form-group">
+                                <div class="col-md-6 form-group">
                                     <label for="tax_method">Tax Method<span class="text-danger">*</span> <i class="fas fa-info-circle" data-toggle="tooltip" data-placement="top"
                                         data-theme="dark" title="Exclusive: Poduct price = Actual product price + Tax. Inclusive: Actual product price = Product price - Tax"></i></label>
                                     <select name="tax_method" id="tax_method" class="form-control selectpicker">
@@ -131,14 +131,14 @@
                         </div>
                         <div class="col-md-2">
                             <div class="row">
-                                <div class="form-group col-md-12 mb-0">
+                                <div class="form-group col-md-12 mb-0 text-center">
                                     <label for="logo" class="form-control-label">Product Image</label>
                                     <div class="col=md-12 px-0  text-center">
                                         <div id="image">
                         
                                         </div>
                                     </div>
-                                    <div class="text-center"><span class="text-muted">Maximum Allowed File Size 2MB and Format (png,jpg,jpeg,svg,webp)</span></div>
+                                    <div class="text-center"><span class="text-muted" style="font-size: 10px;">Maximum Allowed File Size 2MB and Format (png,jpg,jpeg,svg,webp)</span></div>
                                     <input type="hidden" name="old_image" id="old_image" value="{{ $product->image }}">
                                 </div>
                             </div>
@@ -360,13 +360,41 @@ function populate_unit(unit_id)
         type:"GET",
         dataType:"JSON",
         success:function(data){
-            $('#purchase_unit_id,#sale_unit_id').empty();
+            var units = '';
             $.each(data, function(key, value) {
-                $('#purchase_unit_id,#sale_unit_id').append('<option value="'+ key +'">'+ value +'</option>');
+                units += '<option value="'+ key +'">'+ value +'</option>';
             });
-            $('#purchase_unit_id.selectpicker,#sale_unit_id.selectpicker').selectpicker('refresh');
+            $('#unit_id').empty().append(units);
+            $('#unit_id.selectpicker').selectpicker('refresh');
+
         },
     });
+}
+function unitPriceCalculation()
+{
+    let unit_id = document.getElementById('unit_id').value;
+    let base_unit_price = document.getElementById('base_unit_price').value;
+    let unit_price = 0;
+    if(unit_id)
+    {
+        $.ajax({
+            url:"{{ url('unit-data') }}/"+unit_id,
+            type:"GET",
+            dataType:"JSON",
+            success:function(data){
+                if(data)
+                {
+                    if(data.operator == '*'){
+                        unit_price =  (base_unit_price ? parseFloat(base_unit_price) : 0) * parseFloat(data.operation_value);
+                    }else{
+                        unit_price =  (base_unit_price ? parseFloat(base_unit_price) : 0) / parseFloat(data.operation_value);
+                    }
+                   
+                }
+                document.getElementById('unit_price').value = parseFloat(unit_price).toFixed(2);
+            },
+        });
+    }
 }
 </script>
 @endpush

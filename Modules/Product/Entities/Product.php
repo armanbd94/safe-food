@@ -25,7 +25,7 @@ class Product extends BaseModel
 
     public function unit()
     {
-        return $this->belongsTo(Unit::class,'unit_id','id')->default(['unit_name'=>'','unit_code'=>'']);
+        return $this->belongsTo(Unit::class,'unit_id','id');
     }
 
     public function base_unit()
@@ -57,7 +57,7 @@ class Product extends BaseModel
     protected $_name; 
     protected $_category_id; 
     protected $_status; 
-    protected $_product_type; 
+    // protected $_product_type; 
 
     //methods to set custom search property value
     public function setName($name)
@@ -75,19 +75,19 @@ class Product extends BaseModel
         $this->_status = $status;
     }
 
-    public function setProductType($product_type)
-    {
-        $this->_product_type = $product_type;
-    }
+    // public function setProductType($product_type)
+    // {
+    //     $this->_product_type = $product_type;
+    // }
 
 
     private function get_datatable_query()
     {
         //set column sorting index table column name wise (should match with frontend table header)
         if (permission('product-bulk-delete')){
-            $this->column_order = [null,'id', 'id', 'name', 'category_id', 'cost', 'base_unit_price',  'base_unit_qty','alert_quantity', 'status', null];
+            $this->column_order = [null,'id', 'id', 'name', 'category_id', 'cost', 'base_unit_price', 'unit_price', null, null, 'alert_quantity', 'status', null];
         }else{
-            $this->column_order = ['id', 'id', 'name', 'category_id', 'cost', 'base_unit_price', 'base_unit_qty','alert_quantity', 'status', null];
+            $this->column_order = ['id', 'id', 'name', 'category_id', 'cost', 'base_unit_price', 'unit_price', null, null, 'alert_quantity', 'status', null];
         }
         
         $query = self::with('category:id,name','warehouse_product');
@@ -102,9 +102,9 @@ class Product extends BaseModel
         if (!empty($this->_status)) {
             $query->where('status', $this->_status);
         }
-        if (!empty($this->_product_type)) {
-            $query->where('product_type', $this->_product_type);
-        }
+        // if (!empty($this->_product_type)) {
+        //     $query->where('product_type', $this->_product_type);
+        // }
 
 
         //order by data fetching code

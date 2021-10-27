@@ -174,5 +174,11 @@ class UnitController extends BaseController
         return json_encode($units);
     }
 
+    public function unit_data(int $id)
+    {
+        $unit = $this->model->findOrFail($id);
+        return json_encode($unit);
+    }
+
 
 }

@@ -37,22 +37,22 @@
                                 @endforeach
                             @endif
                         </x-form.selectbox>
-                        <x-form.selectbox labelName="Product Type" name="type" col="col-md-3" class="selectpicker">
+                        {{-- <x-form.selectbox labelName="Product Type" name="type" col="col-md-3" class="selectpicker">
                             @foreach (PRODUCT_TYPE as $key => $value)
                                 <option value="{{ $key }}">{{ $value }}</option>
                             @endforeach
-                        </x-form.selectbox>
-                        <x-form.selectbox labelName="Type" name="type" col="col-md-3" class="selectpicker">
+                        </x-form.selectbox> --}}
+                        {{-- <x-form.selectbox labelName="Type" name="type" col="col-md-3" class="selectpicker">
                             @foreach (TYPE as $key => $value)
                                 <option value="{{ $key }}">{{ $value }}</option>
                             @endforeach
-                        </x-form.selectbox>
+                        </x-form.selectbox> --}}
                         <x-form.selectbox labelName="Status" name="status" col="col-md-3" class="selectpicker">
                             @foreach (STATUS as $key => $value)
                                 <option value="{{ $key }}">{{ $value }}</option>
                             @endforeach
                         </x-form.selectbox>
-                        <div class="col-md-9">   
+                        <div class="col-md-3">   
                             <div style="margin-top:28px;">    
                                 <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
                                 data-toggle="tooltip" data-theme="dark" title="Reset">
@@ -70,7 +70,7 @@
                 <!--begin: Datatable-->
                 <div id="kt_datatable_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
                     <div class="row">
-                        <div class="col-sm-12">
+                        <div class="col-sm-12 table-responsive">
                             <table id="dataTable" class="table table-bordered table-hover">
                                 <thead class="bg-primary">
                                     <tr>
@@ -87,9 +87,12 @@
                                         <th>Name</th>
                                         <th>Category</th>
                                         <th>Cost</th>
+                                        <th>Base Unit</th>
                                         <th>Unit</th>
-                                        <th>Price</th>
-                                        <th>Stock Qty</th>
+                                        <th>Base Unit Price</th>
+                                        <th>Unit Price</th>
+                                        <th>Base Unit Stock Qty</th>
+                                        <th>Unit Stock Qty</th>
                                         <th>Alert Qty</th>
                                         <th>Status</th>
                                         <th>Action</th>
@@ -118,7 +121,7 @@
             "processing": true, //Feature control the processing indicator
             "serverSide": true, //Feature control DataTable server side processing mode
             "order": [], //Initial no order
-            "responsive": true, //Make table responsive in mobile device
+            "responsive": false, //Make table responsive in mobile device
             "bInfo": true, //TO show the total number of data
             "bFilter": false, //For datatable default search box show/hide
             "lengthMenu": [
@@ -139,33 +142,33 @@
                     data.name = $("#form-filter #name").val();
                     data.category_id  = $("#form-filter #category_id option:selected").val();
                     data.status       = $("#form-filter #status option:selected").val();
-                    data.product_type       = $("#form-filter #product_type option:selected").val();
-                    data.type       = $("#form-filter #type option:selected").val();
+                    // data.product_type       = $("#form-filter #product_type option:selected").val();
+                    // data.type       = $("#form-filter #type option:selected").val();
                     data._token       = _token;
                 }
             },
             "columnDefs": [{
                     @if (permission('product-bulk-delete'))
-                    "targets": [0,11],
+                    "targets": [0,14],
                     @else 
-                    "targets": [10],
+                    "targets": [13],
                     @endif
                     "orderable": false,
                     "className": "text-center"
                 },
                 {
                     @if (permission('product-bulk-delete'))
-                    "targets": [1,2,4,6,8,9,10],
+                    "targets": [1,2,4,6,7,10,11,12,13],
                     @else 
-                    "targets": [0,1,3,5,7,8,9],
+                    "targets": [0,1,3,5,6,9,10,11,12],
                     @endif
                     "className": "text-center"
                 },
                 {
                     @if (permission('product-bulk-delete'))
-                    "targets": [5,7],
+                    "targets": [5,8,9],
                     @else 
-                    "targets": [4,6],
+                    "targets": [4,7,8],
                     @endif
                     "className": "text-right"
                 }
@@ -176,7 +179,6 @@
                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'<'float-right'p>>>",
     
             "buttons": [
-                @if (permission('product-report'))
                 {
                     'extend':'colvis','className':'btn btn-secondary btn-sm text-white','text':'Column','columns': ':gt(0)'
                 },
@@ -189,9 +191,9 @@
                     "pageSize": "A4", //A3,A5,A6,legal,letter
                     "exportOptions": {
                         @if (permission('product-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(11))' 
+                        columns: ':visible:not(:eq(0),:eq(14))' 
                         @else 
-                        columns: ':visible:not(:eq(10))' 
+                        columns: ':visible:not(:eq(13))' 
                         @endif
                     },
                     customize: function (win) {
@@ -210,10 +212,10 @@
                     "title": "{{ $page_title }} List",
                     "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                     "exportOptions": {
-                       @if (permission('product-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(11))' 
+                        @if (permission('product-bulk-delete'))
+                        columns: ':visible:not(:eq(0),:eq(14))' 
                         @else 
-                        columns: ':visible:not(:eq(10))' 
+                        columns: ':visible:not(:eq(13))' 
                         @endif
                     }
                 },
@@ -224,10 +226,10 @@
                     "title": "{{ $page_title }} List",
                     "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                     "exportOptions": {
-                       @if (permission('product-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(11))' 
+                        @if (permission('product-bulk-delete'))
+                        columns: ':visible:not(:eq(0),:eq(14))' 
                         @else 
-                        columns: ':visible:not(:eq(10))' 
+                        columns: ':visible:not(:eq(13))' 
                         @endif
                     },
                 },
@@ -240,10 +242,10 @@
                     "orientation": "landscape", //portrait
                     "pageSize": "A4", //A3,A5,A6,legal,letter
                     "exportOptions": {
-                       @if (permission('product-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(11))' 
+                        @if (permission('product-bulk-delete'))
+                        columns: ':visible:not(:eq(0),:eq(14))' 
                         @else 
-                        columns: ':visible:not(:eq(10))' 
+                        columns: ':visible:not(:eq(13))' 
                         @endif
                     },
                     customize: function(doc) {
@@ -252,7 +254,6 @@
                         doc.pageMargins = [5,5,5,5];
                     } 
                 },
-                @endif 
                 @if (permission('product-bulk-delete'))
                 {
                     'className':'btn btn-danger btn-sm delete_btn d-none text-white',
