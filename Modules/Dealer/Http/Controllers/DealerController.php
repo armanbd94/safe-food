@@ -271,4 +271,19 @@ class DealerController extends BaseController
             return response()->json($this->unauthorized());
         }
     }
+
+    public function depo_dealer_list(int $depo_id)
+    {
+        $dealers = DB::table('dealers')->where('depo_id',$depo_id)->select('id','name','shop_name')->get();
+        return response()->json($dealers);
+    }
+
+    public function area_list(int $id)
+    {
+        $areas = DB::table('dealer_areas')
+        ->join('locations','dealer_areas.area_id','=','locations.id')
+        ->where('dealer_areas.dealer_id',$id)
+        ->pluck('locations.name','locations.id');
+        return response()->json($areas);
+    }
 }

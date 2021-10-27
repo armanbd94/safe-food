@@ -34,9 +34,9 @@ class SaleController extends BaseController
         if(permission('sale-access')){
             $this->setPageData('Sale Manage','Sale Manage','fab fa-opencart',[['name' => 'Sale Manage']]);
             $data = [
-                'salesmen'    => DB::table('salesmen')->where([['status',1]])->select('name','id','phone')->get(),
                 'locations'   => DB::table('locations')->where('status', 1)->get(),
-                
+                'depos' => DB::table('depos')->get(),
+                'dealers' => DB::table('dealers')->where('type',2)->get()
             ];
             return view('sale::index',$data);
         }else{
@@ -150,21 +150,20 @@ class SaleController extends BaseController
             $this->setPageData('Add Sale','Add Sale','fas fa-shopping-cart',[['name' => 'Add Sale']]);
 
             $products = DB::table('warehouse_product as wp')
-                ->join('products as p','wp.product_id','=','p.id')
-                ->leftjoin('taxes as t','p.tax_id','=','t.id')
-                ->leftjoin('units as u','p.base_unit_id','=','u.id')
-                ->selectRaw('wp.*,p.name,p.code,p.image,p.base_unit_id,p.base_unit_price as price,p.tax_method,t.name as tax_name,t.rate as tax_rate,u.unit_name,u.unit_code')
-                ->where([['wp.warehouse_id',1],['wp.qty','>',0]])
-                ->orderBy('p.name','asc')
-                ->get();
+            ->join('products as p','wp.product_id','=','p.id')
+            ->leftjoin('taxes as t','p.tax_id','=','t.id')
+            ->leftjoin('units as u','p.base_unit_id','=','u.id')
+            ->selectRaw('wp.*,p.name,p.code,p.image,p.base_unit_id,p.base_unit_price as price,p.tax_method,t.name as tax_name,t.rate as tax_rate,u.unit_name,u.unit_code')
+            ->where([['wp.warehouse_id',1],['wp.qty','>',0]])
+            ->orderBy('p.name','asc')
+            ->get();
 
             $data = [
                 'products'       => $products,
                 'taxes'       => Tax::activeTaxes(),
-                'salesmen'    => DB::table('salesmen')->where([['status',1]])->select('name','id','phone','cpr')->get(),
-                'locations'   => DB::table('locations')->where('status', 1)->get(),
+                'depos' => DB::table('depos')->get(),
+                'dealers' => DB::table('dealers')->where('type',2)->get(),
                 'memo_no'     => 'SINV-'.date('ymd').rand(1,999),
-                'warehouses'   => DB::table('warehouses')->where('status', 1)->pluck('name','id'),
             ];
             return view('sale::create',$data);
         }else{

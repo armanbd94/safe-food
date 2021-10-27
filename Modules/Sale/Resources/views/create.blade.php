@@ -41,6 +41,7 @@
                         @csrf
                         <div class="row">
                             <input type="hidden" name="sale_id" id="sale_id" >
+                            <input type="hidden" name="warehouse_id" id="warehouse_id" value="1">
                             <div class="form-group col-md-3 required">
                                 <label for="memo_no">Memo No.</label>
                                 <input type="text" class="fcs form-control" name="memo_no" id="memo_no" value="{{  $memo_no }}"/>
@@ -49,25 +50,33 @@
                                 <label for="sale_date">Sale Date</label>
                                 <input type="text" class="fcs form-control date" name="sale_date" id="sale_date" value="{{ date('Y-m-d') }}" readonly />
                             </div>
-                            <x-form.selectbox labelName="Depo" name="warehouse_id" col="col-md-3" required="required" class="fcs">
-                                @if (!$warehouses->isEmpty())
-                                @foreach ($warehouses as $id => $name)
-                                    <option value="{{ $id }}">{{ $name }}</option>
+                            <div class="form-group col-md-3 required">
+                                <label for="">Ordered By</label>
+                                <select name="order_from" id="order_from" onchange="orderFrom(this.value)" class="form-control selectpicker">
+                                    <option value="">Select Please</option>
+                                    <option value="1">Depo</option>
+                                    <option value="2">Direct Dealer</option>
+                                </select>
+                            </div>
+                            <x-form.selectbox labelName="Depo" name="depo_id" col="col-md-3 depo d-none" required="required" class="fcs selectpicker">
+                                @if (!$depos->isEmpty())
+                                @foreach ($depos as $value)
+                                <option value="{{ $value->id }}" data-commission="{{ $value->commission_rate }}">{{ $value->name.' - '.$value->mobile_no }}</option>
                                 @endforeach
                                 @endif
                             </x-form.selectbox>
-                            <x-form.selectbox labelName="Order Received By" name="salesmen_id" col="col-md-3" class="fcs" onchange="getRouteList(this.value)">
-                                @if (!$salesmen->isEmpty())
-                                @foreach ($salesmen as $value)
-                                <option value="{{ $value->id }}" data-cpr="{{ $value->cpr }}">{{ $value->name.' - '.$value->phone }}</option>
-                            @endforeach
+                            <x-form.selectbox labelName="Dealer" name="dealer_id" col="col-md-3 depo_dealer d-none" class="fcs selectpicker" onchange="getAreaList(this.value)"/>
+
+                            <x-form.selectbox labelName="Dealer" name="dealer_id" col="col-md-3 direct_dealer d-none" class="fcs selectpicker" onchange="getAreaList(this.value)">
+                                @if (!$dealers->isEmpty())
+                                @foreach ($dealers as $value)
+                                <option value="{{ $value->id }}" data-commission="{{ $value->commission_rate }}">{{ $value->name.' ('.$value->mobile_no.') ' }}</option>
+                                @endforeach
                                 @endif
                             </x-form.selectbox>
-    
-                            <x-form.selectbox labelName="Route" name="route_id" col="col-md-3" class="fcs" onchange="getAreaList(this.value);"/>
-    
-                            <x-form.selectbox labelName="Area" name="area_id" col="col-md-3" class="fcs" onchange="customer_list(this.value)"/>
-                            <x-form.selectbox labelName="Customer" name="customer_id" col="col-md-3" class="fcs"/>
+
+                            <x-form.selectbox labelName="Area" name="area_id" col="col-md-3" class="fcs selectpicker" onchange="customer_list(this.value)"/>
+                            <x-form.selectbox labelName="Customer" name="customer_id" col="col-md-3" class="fcs selectpicker"/>
                             
                             <div class="form-group col-md-3">
                                 <label for="document">Attach Document <i class="fas fa-info-circle" data-toggle="tooltip" data-theme="dark" title="Maximum Allowed File Size 5MB and Format (png,jpg,jpeg,svg,webp,pdf,csv,xlxs)"></i></label>
@@ -757,26 +766,14 @@ function loadProduct(warehouse_id=null,rowcount){
         }
     });
 }
-function getRouteList(salesmen_id){
+
+function getAreaList(dealer_id){
     $.ajax({
-        url:"{{route('sales.representative.daily.route.list')}}",
-        type: 'post',
-        data: { _token: _token,id:salesmen_id},
-        success: function( data ) {
-            $('#route_id').empty().html(data);
-            $('#route_id.selectpicker').selectpicker('refresh');
-        },
-        error: function (xhr, ajaxOption, thrownError) {
-            console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
-        }
-    });
-}
-function getAreaList(route_id){
-    $.ajax({
-        url:"{{ url('route-id-wise-area-list') }}/"+route_id,
+        url:"{{ url('dealer-area-list') }}/"+dealer_id,
         type:"GET",
         dataType:"JSON",
         success:function(data){
+            console.log(data);
             html = `<option value="">Select Please</option>`;
             $.each(data, function(key, value) {
                 html += '<option value="'+ key +'">'+ value +'</option>';
@@ -821,7 +818,16 @@ function account_list(payment_method)
         }
     });
 }
-
+function orderFrom(value)
+{
+    if(value == 1){
+        $('.depo,.depo_dealer').removeClass('d-none');
+        $('.direct_dealer').addClass('d-none');
+    }else{
+        $('.depo,.depo_dealer').addClass('d-none');
+        $('.direct_dealer').removeClass('d-none');
+    }
+}
 function store_data(){
     var rownumber = $('table#product_table tbody tr:last').index();
     if (rownumber < 0) {

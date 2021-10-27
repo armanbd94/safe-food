@@ -472,7 +472,7 @@ class PurchaseController extends BaseController
                         }
                         
                     }
-                    // dd($payment_status);
+                    // dd($balance);
                     $purchase_data = [
                         'item'             => $request->item,
                         'total_qty'        => $request->total_qty,
