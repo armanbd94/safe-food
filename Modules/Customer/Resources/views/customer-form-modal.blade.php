@@ -42,22 +42,22 @@
                           @endforeach
                       @endif
                     </x-form.selectbox>
-                    <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-6" required="required" class="selectpicker" onchange="getRouteList(this.value,2)"/>
-                    <x-form.selectbox labelName="Route" name="route_id" col="col-md-6" required="required" class="selectpicker" onchange="getAreaList(this.value,2)"/>
+                    <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-6" required="required" class="selectpicker" onchange="getAreaList(this.value,2)"/>
                     <x-form.selectbox labelName="Area" name="area_id" col="col-md-6" required="required" class="selectpicker"/>
                     <x-form.textbox labelName="Previous Balance" name="previous_balance" col="col-md-6 pbalance" placeholder="Previous credit balalnce"/>
-                    <x-form.textarea labelName="Customer Address" name="address" col="col-md-6" required="required" placeholder="Enter customer address"/>
+                    <x-form.textarea labelName="Customer Address" name="address" col="col-md-6"  placeholder="Enter customer address"/>
                     
                   </div>
                 </div>
                 <div class="col-md-3">
-                  <div class="form-group col-md-12 mb-0">
-                      <label for="logo" class="form-control-label">Person Image</label>
+                  <div class="form-group col-md-12 mb-0 text-center">
+                      <label for="logo" class="form-control-label">Customer Photo</label>
                       <div class="col=md-12 px-0  text-center">
                           <div id="avatar">
           
                           </div>
                       </div>
+                      <div class="text-center"><span class="text-muted">Maximum Allowed File Size 2MB and Format (png,jpg,jpeg,svg,webp)</span></div>
                       <input type="hidden" name="old_avatar" id="old_avatar">
                   </div>
                 </div>

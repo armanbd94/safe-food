@@ -352,36 +352,36 @@ function getUpazilaList(district_id,selector,upazila_id=''){
         },
     });
 }
-function getRouteList(upazila_id,selector,route_id=''){
-    $.ajax({
-        url:"{{ url('upazila-id-wise-route-list') }}/"+upazila_id,
-        type:"GET",
-        dataType:"JSON",
-        success:function(data){
-            html = `<option value="">Select Please</option>`;
-            $.each(data, function(key, value) {
-                html += '<option value="'+ key +'">'+ value +'</option>';
-            });
-            if(selector == 1)
-            {
-                $('#form-filter #route_id').empty();
-                $('#form-filter #route_id').append(html);
-            }else{
-                $('#store_or_update_form #route_id').empty();
-                $('#store_or_update_form #route_id').append(html);
-            }
-            $('.selectpicker').selectpicker('refresh');
-            if(route_id){
-                $('#store_or_update_form #route_id').val(route_id);
-                $('#store_or_update_form #route_id.selectpicker').selectpicker('refresh');
-            }
+// function getRouteList(upazila_id,selector,route_id=''){
+//     $.ajax({
+//         url:"{{ url('upazila-id-wise-route-list') }}/"+upazila_id,
+//         type:"GET",
+//         dataType:"JSON",
+//         success:function(data){
+//             html = `<option value="">Select Please</option>`;
+//             $.each(data, function(key, value) {
+//                 html += '<option value="'+ key +'">'+ value +'</option>';
+//             });
+//             if(selector == 1)
+//             {
+//                 $('#form-filter #route_id').empty();
+//                 $('#form-filter #route_id').append(html);
+//             }else{
+//                 $('#store_or_update_form #route_id').empty();
+//                 $('#store_or_update_form #route_id').append(html);
+//             }
+//             $('.selectpicker').selectpicker('refresh');
+//             if(route_id){
+//                 $('#store_or_update_form #route_id').val(route_id);
+//                 $('#store_or_update_form #route_id.selectpicker').selectpicker('refresh');
+//             }
       
-        },
-    });
-}
-function getAreaList(route_id,selector,area_id=''){
+//         },
+//     });
+// }
+function getAreaList(upazila_id,selector,area_id=''){
     $.ajax({
-        url:"{{ url('route-id-wise-area-list') }}/"+route_id,
+        url:"{{ url('upazila-id-wise-area-list') }}/"+upazila_id,
         type:"GET",
         dataType:"JSON",
         success:function(data){

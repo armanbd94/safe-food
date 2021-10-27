@@ -5,8 +5,6 @@ namespace Modules\Customer\Entities;
 use App\Models\BaseModel;
 use Illuminate\Support\Facades\DB;
 use Modules\Location\Entities\Area;
-use Modules\Location\Entities\Route;
-use Illuminate\Support\Facades\Cache;
 use Modules\Location\Entities\Upazila;
 use Modules\Location\Entities\District;
 use Modules\Account\Entities\Transaction;
@@ -210,47 +208,62 @@ class Customer extends BaseModel
      * * * Begin :: Model Local Scope * * *
     ****************************************/
 
-    /*************************************
-    * * *  Begin :: Cache Data * * *
-    **************************************/
-    protected const ALL_CUSTOMERS    = '_customers';
-    protected const ACTIVE_CUSTOMERS = '_active_customers';
 
-    public static function allCustomers(){
-        return Cache::rememberForever(self::ALL_CUSTOMERS, function () {
-            return self::toBase()->orderBy('name','asc')->get();
-        });
+    public function coa_data(string $code,string $head_name,int $customer_id)
+    {
+        return [
+            'code'              => $code,
+            'name'              => $head_name,
+            'parent_name'       => 'Customer Receivable',
+            'level'             => 4,
+            'type'              => 'A',
+            'transaction'       => 1,
+            'general_ledger'    => 2,
+            'customer_id'       => $customer_id,
+            'supplier_id'       => null,
+            'budget'            => 2,
+            'depreciation'      => 2,
+            'depreciation_rate' => '0',
+            'status'            => 1,
+            'created_by'        => auth()->user()->name
+        ];
     }
 
-    public static function activeCustomers(){
-        return Cache::rememberForever(self::ACTIVE_CUSTOMERS, function () {
-            return self::active()->orderBy('name','asc')->get();
-        });
+    public function previous_balance_data($balance, int $customer_coa_id, string $customer_name) {
+
+        $transaction_id = generator(10);
+        $warehouse_id = 1;
+        // customer debit for previous balance
+        $cosdr = array(
+            'chart_of_account_id' => $customer_coa_id,
+            'warehouse_id'        => $warehouse_id,
+            'voucher_no'          => $transaction_id,
+            'voucher_type'        => 'PR Balance',
+            'voucher_date'        => date("Y-m-d"),
+            'description'         => 'Debit Amount '.$balance.'Tk From Customer '.$customer_name,
+            'debit'               => $balance,
+            'credit'              => 0,
+            'posted'              => 1,
+            'approve'             => 1,
+            'created_by'          => auth()->user()->name,
+            'created_at'          => date('Y-m-d H:i:s')
+        );
+        $inventory = array(
+            'chart_of_account_id' => DB::table('chart_of_accounts')->where('code', $this->coa_head_code('inventory'))->value('id'),
+            'warehouse_id'        => $warehouse_id,
+            'voucher_no'          => $transaction_id,
+            'voucher_type'        => 'PR Balance',
+            'voucher_date'        => date("Y-m-d"),
+            'description'         => 'Inventory Credit Amount '.$balance.'Tk For Old Sale From '.$customer_name,
+            'debit'               => 0,
+            'credit'              => $balance,
+            'posted'              => 1,
+            'approve'             => 1,
+            'created_by'          => auth()->user()->name,
+            'created_at'          => date('Y-m-d H:i:s')
+        ); 
+
+        return [$cosdr,$inventory];
+        
     }
-
-
-    public static function flushCache(){
-        Cache::forget(self::ALL_CUSTOMERS);
-        Cache::forget(self::ACTIVE_CUSTOMERS);
-    }
-
-
-    public static function boot(){
-        parent::boot();
-
-        static::updated(function () {
-            self::flushCache();
-        });
-
-        static::created(function() {
-            self::flushCache();
-        });
-
-        static::deleted(function() {
-            self::flushCache();
-        });
-    }
-    /***********************************
-    * * *  Begin :: Cache Data * * *
-    ************************************/
 }

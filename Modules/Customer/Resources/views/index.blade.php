@@ -46,27 +46,17 @@
                         <x-form.selectbox labelName="District" name="district_id" col="col-md-3" class="selectpicker" onchange="getUpazilaList(this.value,1)" >
                             @if (!$locations->isEmpty())
                                 @foreach ($locations as $location)
-                                    @if ($location->type == 1 && $location->parent_id == null)
+                                    @if ($location->type == 1)
                                     <option value="{{ $location->id }}">{{ $location->name }}</option>
                                     @endif
                                 @endforeach
                             @endif
                         </x-form.selectbox>
 
-                        <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-3" class="selectpicker" onchange="getRouteList(this.value,1)" >
+                        <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-3" class="selectpicker" onchange="getAreaList(this.value,1)" >
                             @if (!$locations->isEmpty())
                                 @foreach ($locations as $location)
-                                    @if ($location->type == 2 && $location->parent_id == auth()->user()->district_id)
-                                    <option value="{{ $location->id }}">{{ $location->name }}</option>
-                                    @endif
-                                @endforeach
-                            @endif
-                        </x-form.selectbox>
-
-                        <x-form.selectbox labelName="Route" name="route_id" col="col-md-3" class="selectpicker" onchange="getAreaList(this.value,1)">
-                            @if (!$locations->isEmpty())
-                                @foreach ($locations as $location)
-                                    @if ($location->type == 3 && $location->grand_parent_id == auth()->user()->district_id)
+                                    @if ($location->type == 2)
                                     <option value="{{ $location->id }}">{{ $location->name }}</option>
                                     @endif
                                 @endforeach
@@ -76,7 +66,7 @@
                         <x-form.selectbox labelName="Area" name="area_id" col="col-md-3" class="selectpicker">
                             @if (!$locations->isEmpty())
                                 @foreach ($locations as $location)
-                                    @if ($location->type == 4 && $location->grand_grand_parent_id == auth()->user()->district_id)
+                                    @if ($location->type == 3)
                                     <option value="{{ $location->id }}">{{ $location->name }}</option>
                                     @endif
                                 @endforeach
@@ -88,7 +78,7 @@
                                 <option value="{{ $key }}">{{ $value }}</option>
                             @endforeach
                         </x-form.selectbox>
-                        <div class="col-md-9">     
+                        <div class="col-md-12">     
                             <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
                             data-toggle="tooltip" data-theme="dark" title="Reset">
                             <i class="fas fa-undo-alt"></i></button>
@@ -116,7 +106,6 @@
                                         <th>Group Name</th>
                                         <th>District</th>
                                         <th>Upazila</th>
-                                        <th>Route</th>
                                         <th>Area</th>
                                         <th>Status</th>
                                         <th>Balance</th>
@@ -192,23 +181,23 @@ $(document).ready(function(){
                 data.customer_group_id = $("#form-filter #customer_group_id").val();
                 data.district_id        = $("#form-filter #district_id").val();
                 data.upazila_id        = $("#form-filter #upazila_id").val();
-                data.route_id          = $("#form-filter #route_id").val();
+                // data.route_id          = $("#form-filter #route_id").val();
                 data.area_id          = $("#form-filter #area_id").val();
                 data.status            = $("#form-filter #status").val();
                 data._token            = _token;
             }
         },
         "columnDefs": [{
-                "targets": [12],
+                "targets": [11],
                 "orderable": false,
                 "className": "text-center"
             },
             {
-                "targets": [0,1,4,5,6,7,8,9,10],
+                "targets": [0,1,4,5,6,7,8,9],
                 "className": "text-center"
             },
             {
-                "targets": [11],
+                "targets": [10],
                 "className": "text-right"
             },
         ],
@@ -229,7 +218,7 @@ $(document).ready(function(){
                 "orientation": "landscape", //portrait
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
-                    columns: ':visible:not(:eq(12))' 
+                    columns: ':visible:not(:eq(11))' 
                 },
                 customize: function (win) {
                     $(win.document.body).addClass('bg-white');
@@ -247,7 +236,7 @@ $(document).ready(function(){
                 "title": "{{ $page_title }} List",
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
-                    columns: ':visible:not(:eq(12))' 
+                    columns: ':visible:not(:eq(11))' 
                 }
             },
             {
@@ -257,7 +246,7 @@ $(document).ready(function(){
                 "title": "{{ $page_title }} List",
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
-                    columns: ':visible:not(:eq(12))' 
+                    columns: ':visible:not(:eq(11))' 
                 }
             },
             {
@@ -269,7 +258,7 @@ $(document).ready(function(){
                 "orientation": "landscape", //portrait
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
-                    columns: ':visible:not(:eq(10))'
+                    columns: ':visible:not(:eq(11))' 
                 },
                 customize: function(doc) {
                     doc.defaultStyle.fontSize = 7; //<-- set fontsize to 16 instead of 10 
@@ -333,8 +322,8 @@ $(document).ready(function(){
                         $('#store_or_update_form .selectpicker').selectpicker('refresh');
                         
                         getUpazilaList(data.district_id,2,data.upazila_id);
-                        getRouteList(data.upazila_id,2,data.route_id);
-                        getAreaList(data.route_id,2,data.area_id);
+                        // getRouteList(data.upazila_id,2,data.route_id);
+                        getAreaList(data.upazila_id,2,data.area_id);
                         if(data.avatar)
                         {
                             $('#avatar img').css('display','none');
@@ -352,7 +341,7 @@ $(document).ready(function(){
                             backdrop: 'static',
                         });
                         $('#store_or_update_modal .modal-title').html(
-                            '<i class="fas fa-edit text-white"></i> <span>Edit ' + data.name + '</span>');
+                            '<i class="fas fa-edit text-white"></i> <span>Edit ' + data.name + ' Data</span>');
                         $('#store_or_update_modal #save-btn').text('Update');
                     }
                     
@@ -366,6 +355,7 @@ $(document).ready(function(){
 
     $(document).on('click', '.view_data', function () {
         let id = $(this).data('id');
+        let name = $(this).data('name');
         if (id) {
             $.ajax({
                 url: "{{route('customer.view')}}",
@@ -378,6 +368,7 @@ $(document).ready(function(){
                         keyboard: false,
                         backdrop: 'static',
                     });
+                    $('#view_modal .modal-title').html('<i class="fas fa-eye text-white"></i> <span>View '+name+' Details</span>');
                 },
                 error: function (xhr, ajaxOption, thrownError) {
                     console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
@@ -433,37 +424,10 @@ function getUpazilaList(district_id,selector,upazila_id=''){
         },
     });
 }
-function getRouteList(upazila_id,selector,route_id=''){
+
+function getAreaList(upazila_id,selector,area_id=''){
     $.ajax({
-        url:"{{ url('upazila-id-wise-route-list') }}/"+upazila_id,
-        type:"GET",
-        dataType:"JSON",
-        success:function(data){
-            html = `<option value="">Select Please</option>`;
-            $.each(data, function(key, value) {
-                html += '<option value="'+ key +'">'+ value +'</option>';
-            });
-            if(selector == 1)
-            {
-                $('#form-filter #route_id').empty();
-                $('#form-filter #route_id').append(html);
-            }else{
-                $('#store_or_update_form #route_id').empty();
-                $('#store_or_update_form #route_id').append(html);
-            }
-            $('.selectpicker').selectpicker('refresh');
-            if(route_id){
-                $('#store_or_update_form #route_id').val(route_id);
-                $('#store_or_update_form #route_id.selectpicker').selectpicker('refresh');
-            }
-      
-        },
-    });
-}
-function getAreaList(route_id,selector,area_id=''){
-    $.ajax({
-        url:"{{ url('route-id-wise-area-list') }}/"+route_id,
-        type:"GET",
+        url:"{{ url('upazila-id-wise-area-list') }}/"+upazila_id,
         dataType:"JSON",
         success:function(data){
             html = `<option value="">Select Please</option>`;
@@ -493,7 +457,7 @@ function showNewFormModal(modal_title, btn_text) {
     $('#store_or_update_form').find('.is-invalid').removeClass('is-invalid');
     $('#store_or_update_form').find('.error').remove();
     $('#store_or_update_form .selectpicker').selectpicker('refresh');
-    $('#store_or_update_form #route_id,#store_or_update_form #area_id').empty();
+    $('#store_or_update_form #upazila_id,#store_or_update_form #area_id').empty();
     $('#store_or_update_form .pbalance').removeClass('d-none');
 
     $('#store_or_update_modal').modal({

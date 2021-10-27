@@ -85,7 +85,7 @@ class CustomerController extends BaseController
                     $action .= ' <a class="dropdown-item edit_data" data-id="' . $value->id . '">'.self::ACTION_BUTTON['Edit'].'</a>';
                     }
                     if(permission('customer-view')){
-                    $action .= ' <a class="dropdown-item view_data" data-id="' . $value->id . '">'.self::ACTION_BUTTON['View'].'</a>';
+                    $action .= ' <a class="dropdown-item view_data" data-id="' . $value->id . '" data-name="' . $value->name . '">'.self::ACTION_BUTTON['View'].'</a>';
                     }
                     if(permission('customer-delete')){
                         $action .= ' <a class="dropdown-item delete_data"  data-id="' . $value->id . '" data-name="' . $value->name . '">'.self::ACTION_BUTTON['Delete'].'</a>';
@@ -146,19 +146,17 @@ class CustomerController extends BaseController
                         $coa_max_code      = ChartOfAccount::where('level',4)->where('code','like','1020201%')->max('code');
                         $code              = $coa_max_code ? ($coa_max_code + 1) : $this->coa_head_code('customer_receivable');
                         $head_name         = $customer->id.'-'.$customer->name;
-                        $customer_coa_data = $this->customer_coa($code,$head_name,$customer->id);
-                        
-                        $customer_coa      = ChartOfAccount::create($customer_coa_data);
+                        $customer_coa      = ChartOfAccount::create($this->model->coa_data($code,$head_name,$customer->id));
                         if(!empty($request->previous_balance))
                         {
                             if($customer_coa){
-                                $this->previous_balance_add($request->previous_balance,$customer_coa->id,$customer->name);
+                                Transaction::insert($this->model->previous_balance_data($request->previous_balance,$customer_coa->id,$customer->name));
                             }
                         }
                     }else{
                         $old_head_name = $request->update_id.'-'.$request->old_name;
                         $new_head_name = $request->update_id.'-'.$request->name;
-                        $customer_coa = ChartOfAccount::where(['name'=>$old_head_name,'customer_id'=>$request->update_id])->first();
+                        $customer_coa  = ChartOfAccount::where(['name'=>$old_head_name,'customer_id'=>$request->update_id])->first();
                         if($customer_coa)
                         {
                             $customer_coa->update(['name'=>$new_head_name]);
@@ -178,73 +176,12 @@ class CustomerController extends BaseController
         }
     }
 
-    private function customer_coa(string $code,string $head_name,int $customer_id)
-    {
-        return [
-            'code'              => $code,
-            'name'              => $head_name,
-            'parent_name'       => 'Customer Receivable',
-            'level'             => 4,
-            'type'              => 'A',
-            'transaction'       => 1,
-            'general_ledger'    => 2,
-            'customer_id'       => $customer_id,
-            'supplier_id'       => null,
-            'budget'            => 2,
-            'depreciation'      => 2,
-            'depreciation_rate' => '0',
-            'status'            => 1,
-            'created_by'        => auth()->user()->name
-        ];
-    }
-
-    private function previous_balance_add($balance, int $customer_coa_id, string $customer_name) {
-        if(!empty($balance) && !empty($customer_coa_id) && !empty($customer_name)){
-            $transaction_id = generator(10);
-            $warehouse_id = 1;
-            // customer debit for previous balance
-            $cosdr = array(
-                'chart_of_account_id' => $customer_coa_id,
-                'warehouse_id'        => $warehouse_id,
-                'voucher_no'          => $transaction_id,
-                'voucher_type'        => 'PR Balance',
-                'voucher_date'        => date("Y-m-d"),
-                'description'         => 'Customer debit For '.$customer_name,
-                'debit'               => $balance,
-                'credit'              => 0,
-                'posted'              => 1,
-                'approve'             => 1,
-                'created_by'          => auth()->user()->name,
-                'created_at'          => date('Y-m-d H:i:s')
-            );
-            $inventory = array(
-                'chart_of_account_id' => DB::table('chart_of_accounts')->where('code', $this->coa_head_code('inventory'))->value('id'),
-                'warehouse_id'        => $warehouse_id,
-                'voucher_no'          => $transaction_id,
-                'voucher_type'        => 'PR Balance',
-                'voucher_date'        => date("Y-m-d"),
-                'description'         => 'Inventory credit For Old sale For '.$customer_name,
-                'debit'               => 0,
-                'credit'              => $balance,
-                'posted'              => 1,
-                'approve'             => 1,
-                'created_by'          => auth()->user()->name,
-                'created_at'          => date('Y-m-d H:i:s')
-            ); 
-
-            Transaction::insert([
-                $cosdr,$inventory
-            ]);
-        }
-    }
-
-
     public function edit(Request $request)
     {
         if($request->ajax()){
             if(permission('customer-edit')){
                 $data   = $this->model->findOrFail($request->id);
-                $output = $this->data_message($data); //if data found then it will return data otherwise return error message
+                $output = $this->data_message($data);
                 return response()->json($output);
             }else{
                 $output = $this->unauthorized();

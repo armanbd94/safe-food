@@ -17,21 +17,19 @@
                 </tr>
                 <tr>
                     <td><b>Upazila</b></td><td><b>:</b></td><td>{{  $customer->upazila->name  }}</td>
-                    <td><b>Route</b></td><td><b>:</b></td><td>{{  $customer->route->name  }}</td>
-                </tr>
-                <tr>
                     <td><b>Area</b></td><td><b>:</b></td><td>{{  $customer->area->name  }}</td>
+                </tr>
+                <tr>
                     <td><b>Address</b></td><td><b>:</b></td><td>{{  $customer->address  }}</td>
-                </tr>
-                <tr>
                     <td><b>Status</b></td><td><b>:</b></td><td>{!! STATUS_LABEL[$customer->status] !!}</td>
+                </tr>
+                <tr>
                     <td><b>Created By</b></td><td><b>:</b></td><td>{{  $customer->created_by  }}</td>
-                </tr>
-                <tr>
                     <td><b>Modified By</b></td><td><b>:</b></td><td>{{  $customer->modified_by  }}</td>
-                    <td><b>Create Date</b></td><td><b>:</b></td><td>{{  $customer->created_at ? date(config('settings.date_format'),strtotime($customer->created_at)) : ''  }}</td>
                 </tr>
                 <tr>
+                    
+                    <td><b>Create Date</b></td><td><b>:</b></td><td>{{  $customer->created_at ? date(config('settings.date_format'),strtotime($customer->created_at)) : ''  }}</td>
                     <td><b>Modified Date</b></td><td><b>:</b></td>
                     <td>
                         @if ($customer->modified_by)
