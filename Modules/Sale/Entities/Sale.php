@@ -16,46 +16,41 @@ use Modules\Setting\Entities\Warehouse;
 
 class Sale extends BaseModel
 {
-    protected $fillable = ['memo_no', 'warehouse_id', 'district_id', 'upazila_id', 'route_id', 'area_id', 'salesmen_id', 
-    'customer_id', 'item', 'total_qty', 'total_free_qty', 'total_discount', 'total_tax', 'total_price', 'order_tax_rate', 'order_tax', 
-    'order_discount', 'shipping_cost', 'labor_cost', 'grand_total', 'previous_due', 'net_total', 'paid_amount', 
-    'due_amount','sr_commission_rate','total_commission', 'payment_status', 'payment_method', 'account_id', 'reference_no', 'document', 'note', 'sale_date', 
-    'delivery_status', 'delivery_date', 'created_by', 'modified_by' ];
+    protected $fillable = ['memo_no', 'order_from', 'depo_id', 'dealer_id', 'district_id', 'upazila_id', 'area_id', 'item',
+    'total_qty', 'total_price', 'grand_total', 'previous_due', 'net_total', 'paid_amount', 'due_amount', 'depo_cr',
+    'depo_total_cr', 'dealer_cr', 'dealer_total_cr', 'payment_status', 'payment_method', 'account_id', 'reference_no',
+    'document', 'note', 'sale_date', 'delivery_status', 'delivery_date', 'created_by', 'modified_by' ];
 
-
-    public function warehouse()
+    public function depo()
     {
-        return $this->belongsTo(Warehouse::class,'warehouse_id','id');
+        return $this->belongsTo(Depo::class,'depo_id','id')->withDefault(['name'=>'','mobile_no'=>'']);
     }
+
+    public function dealer()
+    {
+        return $this->belongsTo(Dealer::class,'dealer_id','id');
+    }
+
     public function district()
     {
         return $this->belongsTo(District::class,'district_id','id');
     }
+
     public function upazila()
     {
         return $this->belongsTo(Upazila::class,'upazila_id','id');
     }
-    public function route()
-    {
-        return $this->belongsTo(Route::class,'route_id','id');
-    }
+
     public function area()
     {
         return $this->belongsTo(Area::class,'area_id','id');
     }
-    public function salesmen()
-    {
-        return $this->belongsTo(Salesmen::class,'salesmen_id','id');
-    }
-    public function customer()
-    {
-        return $this->belongsTo(Customer::class,'customer_id','id');
-    }
+
 
     public function sale_products()
     {
         return $this->belongsToMany(Product::class,'sale_products','sale_id','product_id','id','id')
-        ->withPivot('id', 'qty','free_qty', 'sale_unit_id', 'net_unit_price', 'discount', 'tax_rate', 'tax', 'total')
+        ->withPivot('id', 'qty','free_qty', 'sale_unit_id', 'net_unit_price', 'total')
         ->withTimestamps(); 
     }
 
@@ -68,14 +63,13 @@ class Sale extends BaseModel
     protected $_memo_no; 
     protected $_from_date; 
     protected $_to_date; 
-    protected $_warehouse_id; 
+    protected $_depo_id; 
+    protected $_dealer_id; 
     protected $_district_id; 
     protected $_upazila_id; 
-    protected $_route_id; 
     protected $_area_id; 
-    protected $_salesmen_id; 
-    protected $_customer_id; 
     protected $_payment_status; 
+    protected $_delivery_status; 
 
     //methods to set custom search property value
     public function setInvoiceNo($memo_no)
@@ -93,9 +87,14 @@ class Sale extends BaseModel
         $this->_to_date = $to_date;
     }
 
-    public function setWarehouseID($warehouse_id)
+    public function setDepoID($depo_id)
     {
-        $this->_warehouse_id = $warehouse_id;
+        $this->_depo_id = $depo_id;
+    }
+
+    public function setDealerID($dealer_id)
+    {
+        $this->_dealer_id = $dealer_id;
     }
 
     public function setDistrictID($district_id)
@@ -107,22 +106,10 @@ class Sale extends BaseModel
     {
         $this->_upazila_id = $upazila_id;
     }
-    public function setRouteID($route_id)
-    {
-        $this->_route_id = $route_id;
-    }
+
     public function setAreaID($area_id)
     {
         $this->_area_id = $area_id;
-    }
-
-    public function setSalesmenID($salesmen_id)
-    {
-        $this->_salesmen_id = $salesmen_id;
-    }
-    public function setCustomerID($customer_id)
-    {
-        $this->_customer_id = $customer_id;
     }
 
     public function setPaymentStatus($payment_status)
@@ -130,24 +117,26 @@ class Sale extends BaseModel
         $this->_payment_status = $payment_status;
     }
 
-
+    public function setDeliveryStatus($delivery_status)
+    {
+        $this->_delivery_status = $delivery_status;
+    }
 
     private function get_datatable_query()
     {
-        $this->column_order = ['s.id','s.memo_no', 's.salesmen_id','s.custoemr_id', 's.item','s.total_price','s.order_tax_rate','s.order_tax', 
-        's.order_discount','s.labor_cost','s.shipping_cost','s.grand_total','s.previous_due','s.net_total', 's.paid_amount', 's.due_amount','s.sr_commission_rate','s.total_commission', 's.sale_date', 
+        $this->column_order = ['s.id','s.memo_no', 's.order_from','s.depo_id','s.dealer_id', 's.item','s.total_price',
+        's.grand_total','s.previous_due','s.net_total', 's.paid_amount', 's.due_amount','s.depo_cr',
+        's.depo_total_cr', 's.dealer_cr', 's.dealer_total_cr','s.sale_date', 
         's.payment_status','s.payment_method','s,delivery_status','s.delivery_date', null];
 
         $query = DB::table('sales as s')
-        ->selectRaw('s.*,sm.name as salesmen_name,sm.phone,c.name,c.shop_name,w.name as warehouse_name,
-        d.name as district_name,u.name as upazila_name,r.name as route_name,a.name as area_name')
-        ->join('salesmen as sm','s.salesmen_id','=','sm.id')
-        ->join('customers as c','s.customer_id','=','c.id')
-        ->join('warehouses as w','s.warehouse_id','=','w.id')
-        ->join('locations as d', 'c.district_id', '=', 'd.id')
-        ->join('locations as u', 'c.upazila_id', '=', 'u.id')
-        ->join('locations as r', 'c.route_id', '=', 'r.id')
-        ->join('locations as a', 'c.area_id', '=', 'a.id');
+        ->selectRaw('s.*,dp.name as depo_name,dp.mobile_no as depo_mobile_no,dl.name as dealer_name,dl.mobile_no as dealer_mobile_no,
+        d.name as district_name,u.name as upazila_name,a.name as area_name')
+        ->leftJoin('depos as dp','s.depo_id','=','dp.id')
+        ->join('dealers as dl','s.dealer_id','=','dl.id')
+        ->join('locations as d', 's.district_id', '=', 'd.id')
+        ->join('locations as u', 's.upazila_id', '=', 'u.id')
+        ->join('locations as a', 's.area_id', '=', 'a.id');
 
         //search query
         if (!empty($this->_memo_no)) {
@@ -159,31 +148,30 @@ class Sale extends BaseModel
                 ->whereDate('s.sale_date', '<=',$this->_to_date);
         }
 
-        if (!empty($this->_salesmen_id)) {
-            $query->where('s.salesmen_id', $this->_salesmen_id);
+        if (!empty($this->_depo_id)) {
+            $query->where('s.depo_id', $this->_depo_id);
         }
        
-        if (!empty($this->_customer_id)) {
-            $query->where('s.customer_id', $this->_customer_id);
+        if (!empty($this->_dealer_id)) {
+            $query->where('s.dealer_id', $this->_dealer_id);
         }
         
         if (!empty($this->_district_id)) {
-            $query->where('c.district_id', $this->_district_id);
+            $query->where('s.district_id', $this->_district_id);
         }
         if (!empty($this->_upazila_id)) {
-            $query->where('c.upazila_id', $this->_upazila_id);
+            $query->where('s.upazila_id', $this->_upazila_id);
         }
-        if (!empty($this->_route_id)) {
-            $query->where('c.route_id', $this->_route_id);
-        }
+
         if (!empty($this->_area_id)) {
-            $query->where('c.area_id', $this->_area_id);
+            $query->where('s.area_id', $this->_area_id);
         }
         if (!empty($this->_payment_status)) {
             $query->where('s.payment_status', $this->_payment_status);
         }
-
-
+        if (!empty($this->_delivery_status)) {
+            $query->where('s.delivery_status', $this->_delivery_status);
+        }
 
         //order by data fetching code
         if (isset($this->orderValue) && isset($this->dirValue)) { //orderValue is the index number of table header and dirValue is asc or desc

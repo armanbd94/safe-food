@@ -18,18 +18,20 @@
             <div class="modal-body">
                 <div class="row">
                     <input type="hidden" name="update_id" id="update_id"/>
-                    <x-form.textbox labelName="Depo Name" name="name" required="required" col="col-md-6" placeholder="Enter warehouse name"/>
+                    <x-form.textbox labelName="Depo Name" name="name" required="required" col="col-md-6" placeholder="Enter name"/>
                     <x-form.textbox labelName="Mobile No." name="mobile_no" required="required" col="col-md-6" placeholder="Enter mobile number"/>
-                    <x-form.textbox labelName="Email" type="email" name="email" col="col-md-6" placeholder="Enter email address"/>
-                    <x-form.selectbox labelName="District" name="district_id" required="required" col="col-md-6" class="selectpicker">
-                      @if (!$districts->isEmpty())
-                          @foreach ($districts as $id => $name)
-                              <option value="{{ $id }}">{{ $name }}</option>
-                          @endforeach
-                      @endif
-                    </x-form.selectbox>
-                    <x-form.textbox labelName="Commission Rate (%)" type="text" name="commission_rate" col="col-md-6" placeholder="Enter commission rate"/>
+                    <x-form.textbox labelName="Email" name="email" col="col-md-6" placeholder="Enter email"/>
+                    <x-form.textbox labelName="Commission Rate(%)" name="commission_rate" col="col-md-6" placeholder="Enter commission rate"/>
                     <x-form.textbox labelName="Previous Balance" name="previous_balance" col="col-md-6 pbalance d-none" class="text-right" placeholder="Previous balalnce"/>
+                    <x-form.selectbox labelName="District" required="required" name="district_id" col="col-md-6" class="selectpicker" onchange="getUpazilaList(this.value,2)">
+                        @if (!$districts->isEmpty())
+                            @foreach ($districts as $id => $name)
+                                <option value="{{ $id }}">{{ $name }}</option>
+                            @endforeach
+                        @endif
+                    </x-form.selectbox>
+                    <x-form.selectbox labelName="Upazila" required="required" name="upazila_id" col="col-md-6" class="selectpicker" onchange="getAreaList(this.value,2)"/>
+                    <x-form.selectbox labelName="Area" required="required" name="area_id" col="col-md-6" class="selectpicker"/>
                     <x-form.textarea labelName="Address" name="address" col="col-md-6" placeholder="Enter address"/>
                 </div>
             </div>

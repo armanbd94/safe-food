@@ -3,7 +3,6 @@
 namespace Modules\Dealer\Entities;
 
 use App\Models\BaseModel;
-use Modules\Depo\Entities\Depo;
 use Illuminate\Support\Facades\DB;
 use Modules\Location\Entities\Area;
 use Modules\Location\Entities\Upazila;
@@ -14,34 +13,30 @@ use Modules\Account\Entities\ChartOfAccount;
 class Dealer extends BaseModel
 {
 
-    protected $fillable = [  'name', 'mobile_no', 'email','avatar', 'type', 'depo_id', 'district_id', 'upazila_id',
-     'address', 'commission_rate', 'status', 'created_by', 'modified_by'];
+    protected $fillable = ['name', 'mobile_no', 'email', 'district_id', 'upazila_id', 'area_id', 'address', 'commission_rate', 'status', 'created_by', 'modified_by'];
 
     protected $hidden = [
         'password',
         'remember_token',  
     ];
+
     public function coa(){
         return $this->hasOne(ChartOfAccount::class,'dealer_id','id');
     }
 
-    public function depo()
-    {
-        return $this->belongsTo(Depo::class,'depo_id','id')->withDefault(['name'=>'']);
-    }
     public function district()
     {
         return $this->belongsTo(District::class,'district_id','id');
     }
+
     public function upazila()
     {
         return $this->belongsTo(Upazila::class,'upazila_id','id');
     }
-    public function areas()
+
+    public function area()
     {
-        return $this->belongsToMany(Area::class,'dealer_areas','dealer_id','area_id','id','id')
-        ->withPivot('id')            
-        ->withTimestamps();
+        return $this->belongsTo(Area::class,'area_id','id');
     }
 
     public function balance(int $id)
@@ -63,20 +58,14 @@ class Dealer extends BaseModel
     *******************************************/
     protected $order = ['d.id' => 'desc'];
 
-
-    protected $_type;
     protected $_name;
     protected $_mobile_no;
     protected $_email;
-    protected $_depo_id;
     protected $_district_id;
     protected $_upazila_id;
+    protected $_area_id;
     protected $_status;
 
-    public function setType($type)
-    {
-        $this->_type = $type;
-    }
     public function setName($name)
     {
         $this->_name = $name;
@@ -92,11 +81,6 @@ class Dealer extends BaseModel
         $this->_email = $email;
     }
 
-    public function setDepoID($depo_id)
-    {
-        $this->_depo_id = $depo_id;
-    }
-
     public function setDistrictID($district_id)
     {
         $this->_district_id = $district_id;
@@ -107,6 +91,11 @@ class Dealer extends BaseModel
         $this->_upazila_id = $upazila_id;
     }
 
+    public function setAreaID($area_id)
+    {
+        $this->_area_id = $area_id;
+    }
+
     public function setStatus($status)
     {
         $this->_status = $status;
@@ -115,17 +104,17 @@ class Dealer extends BaseModel
     private function get_datatable_query()
     { 
         if (permission('dealer-bulk-delete')){
-            $this->column_order = ['d.id','d.id', 'd.avatar','d.name', 'd.mobile_no', 'd.email', 'd.type', 'd.depo_id', 'd.district_id', 'd.upazila_id','d.commission_rate',null, 'd.status',null];
+            $this->column_order = ['d.id','d.id', 'd.name', 'd.mobile_no', 'd.email', 'd.district_id', 'd.upazila_id','d.area_id','d.commission_rate',null, 'd.status',null];
         }else{
-            $this->column_order = ['d.id', 'd.avatar','d.name', 'd.mobile_no', 'd.email', 'd.type', 'd.depo_id', 'd.district_id', 'd.upazila_id','d.commission_rate',null, 'd.status',null];
+            $this->column_order = ['d.id', 'd.name', 'd.mobile_no', 'd.email', 'd.district_id', 'd.upazila_id','d.area_id','d.commission_rate',null, 'd.status',null];
         }
 
         $query = DB::table('dealers as d')
-        ->leftJoin('depos','d.depo_id','=','depos.id')
         ->join('locations as di','d.district_id','=','di.id')
         ->join('locations as u','d.upazila_id','=','u.id')
+        ->join('locations as a','d.area_id','=','a.id')
         ->leftjoin('chart_of_accounts as b', 'd.id', '=', 'b.dealer_id')
-        ->selectRaw('d.*,depos.name as depo_name,di.name as district_name,u.name as upazila_name,
+        ->selectRaw('d.*,a.name as area_name,di.name as district_name,u.name as upazila_name,
         ((select ifnull(sum(debit),0) from transactions where chart_of_account_id= b.id AND approve = 1)-(select ifnull(sum(credit),0) from transactions where chart_of_account_id= b.id AND approve = 1)) as balance');
 
         if (!empty($this->_name)) {
@@ -137,20 +126,18 @@ class Dealer extends BaseModel
         if (!empty($this->_email)) {
             $query->where('d.email', 'like', '%' . $this->_email . '%');
         }
-        if (!empty($this->_depo_id)) {
-            $query->where('d.depo_id', $this->_depo_id );
-        }
+
         if (!empty($this->_district_id)) {
             $query->where('d.district_id', $this->_district_id );
         }
         if (!empty($this->_upazila_id)) {
             $query->where('d.upazila_id', $this->_upazila_id );
         }
+        if (!empty($this->_area_id)) {
+            $query->where('d.area_id', $this->_area_id );
+        }
         if (!empty($this->_status)) {
             $query->where('d.status', $this->_status );
-        }
-        if (!empty($this->_type)) {
-            $query->where('d.type', $this->_type );
         }
 
         if (isset($this->orderValue) && isset($this->dirValue)) {
@@ -189,9 +176,9 @@ class Dealer extends BaseModel
         return [
             'code'              => $code,
             'name'              => $head_name,
-            'parent_name'       => 'Account Payable',
-            'level'             => 3,
-            'type'              => 'L',
+            'parent_name'       => 'Dealer Receivable',
+            'level'             => 4,
+            'type'              => 'A',
             'transaction'       => 1,
             'general_ledger'    => 2,
             'dealer_id'         => $dealer_id,
@@ -203,21 +190,41 @@ class Dealer extends BaseModel
         ];
     }
 
-    public function previous_balance_data($balance, int $coa_id, string $dealer_name) : array
+    public function previous_balance_data($balance, int $coa_id, string $name) : array
     {
-        return [
-            'warehouse_id'        => 1,
+        $transaction_id = generator(10);
+        $warehouse_id = 1;
+
+        $cosdr = array(
             'chart_of_account_id' => $coa_id,
-            'voucher_no'          => generator(10),
+            'warehouse_id'        => $warehouse_id,
+            'voucher_no'          => $transaction_id,
             'voucher_type'        => 'PR Balance',
             'voucher_date'        => date("Y-m-d"),
-            'description'         => 'Previous Credit Balance of Dealer '.$dealer_name,
+            'description'         => 'Debit Amount '.$balance.'Tk From Dealer '.$name,
+            'debit'               => $balance,
+            'credit'              => 0,
+            'posted'              => 1,
+            'approve'             => 1,
+            'created_by'          => auth()->user()->name,
+            'created_at'          => date('Y-m-d H:i:s')
+        );
+        $inventory = array(
+            'chart_of_account_id' => DB::table('chart_of_accounts')->where('code', '10101')->value('id'),
+            'warehouse_id'        => $warehouse_id,
+            'voucher_no'          => $transaction_id,
+            'voucher_type'        => 'PR Balance',
+            'voucher_date'        => date("Y-m-d"),
+            'description'         => 'Inventory Credit Amount '.$balance.'Tk For Old Sale From '.$name,
             'debit'               => 0,
             'credit'              => $balance,
             'posted'              => 1,
             'approve'             => 1,
             'created_by'          => auth()->user()->name,
-        ];
+            'created_at'          => date('Y-m-d H:i:s')
+        ); 
+
+        return [$cosdr,$inventory];
         
     }
 }

@@ -20,6 +20,10 @@ class CreateDeposTable extends Migration
             $table->string('email')->nullable();
             $table->unsignedBigInteger('district_id');
             $table->foreign('district_id')->references('id')->on('locations');
+            $table->unsignedBigInteger('upazila_id');
+            $table->foreign('upazila_id')->references('id')->on('locations');
+            $table->unsignedBigInteger('area_id');
+            $table->foreign('area_id')->references('id')->on('locations');
             $table->text('address')->nullable();
             $table->float('commission_rate')->nullable();
             $table->enum('status',['1','2'])->default('1')->comment = "1=Active, 2=Inactive";

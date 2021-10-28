@@ -58,11 +58,11 @@ class SaleController extends BaseController
                 if (!empty($request->end_date)) {
                     $this->model->setToDate($request->end_date);
                 }
-                if (!empty($request->salesmen_id)) {
-                    $this->model->setSalesmenID($request->salesmen_id);
+                if (!empty($request->depo_id)) {
+                    $this->model->setDepoID($request->depo_id);
                 }
-                if (!empty($request->customer_id)) {
-                    $this->model->setCustomerID($request->customer_id);
+                if (!empty($request->dealer_id)) {
+                    $this->model->setDealerID($request->dealer_id);
                 }
                 if (!empty($request->area_id)) {
                     $this->model->setAreaID($request->area_id);
@@ -73,11 +73,12 @@ class SaleController extends BaseController
                 if (!empty($request->upazila_id)) {
                     $this->model->setUpazilaID($request->upazila_id);
                 }
-                if (!empty($request->route_id)) {
-                    $this->model->setRouteID($request->route_id);
-                }
+
                 if (!empty($request->payment_status)) {
                     $this->model->setPaymentStatus($request->payment_status);
+                }
+                if (!empty($request->delivery_status)) {
+                    $this->model->setDeliveryStatus($request->delivery_status);
                 }
 
 
@@ -110,24 +111,37 @@ class SaleController extends BaseController
                     if(permission('sale-bulk-delete')){
                         $row[] = row_checkbox($value->id);//custom helper function to show the table each row checkbox
                     }
+
+                    if($value->order_from == 1)
+                    {
+                        $name = $value->depo_name;
+                        $commission_rate = number_format($value->depo_cr,2,'.','');
+                        $total_commission = number_format($value->depo_total_cr,2,'.','');
+                    }else{
+                        $name = $value->dealer_name;
+                        $commission_rate = number_format($value->dealer_cr,2,'.','');
+                        $total_commission = number_format($value->dealer_total_cr,2,'.','');
+                    }
+
+
                     $row[] = $no;
                     $row[] = $value->memo_no;
-                    $row[] = $value->salesmen_name;
-                    $row[] = $value->shop_name.' ( '.$value->name.')';
+                    $row[] = ORDER_FROM_STATUS_LABEL[$value->order_from];
+                    $row[] = $name;
+                    $row[] = $value->area_name;
+                    $row[] = $value->upazila_name;
+                    $row[] = $value->district_name;
                     $row[] = $value->item.'('.$value->total_qty.')';
                     $row[] = number_format($value->total_price,2,'.','');
-                    $row[] = number_format($value->order_tax_rate,2,'.','');
-                    $row[] = number_format($value->order_tax,2,'.','');
-                    $row[] = number_format($value->order_discount,2,'.','');
-                    $row[] = number_format($value->labor_cost,2,'.','');
-                    $row[] = number_format($value->shipping_cost,2,'.','');
                     $row[] = number_format($value->grand_total,2,'.','');
                     $row[] = number_format($value->previous_due,2,'.','');
                     $row[] = number_format($value->net_total,2,'.','');
                     $row[] = number_format($value->paid_amount,2,'.','');
                     $row[] = number_format($value->due_amount,2,'.','');
-                    $row[] = number_format($value->sr_commission_rate,2,'.','');
-                    $row[] = number_format($value->total_commission,2,'.','');
+                    $row[] = number_format($value->depo_cr,2,'.','');
+                    $row[] = number_format($value->depo_total_cr,2,'.','');
+                    $row[] = number_format($value->dealer_cr,2,'.','');
+                    $row[] = number_format($value->dealer_total_cr,2,'.','');
                     $row[] = date('d-M-Y',strtotime($value->sale_date));
                     $row[] = PAYMENT_STATUS_LABEL[$value->payment_status];
                     $row[] = $value->payment_method ? SALE_PAYMENT_METHOD[$value->payment_method] : '<span class="label label-danger label-pill label-inline" style="min-width:70px !important;">N/A</span>';

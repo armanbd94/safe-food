@@ -14,8 +14,6 @@ class DepoLedger extends BaseModel
     protected $table = 'transactions';
     protected $order = ['t.voucher_date' => 'asc'];
 
-    private const TYPE = 'Account Payable'; //Voucher Type In Transaction Table
-
     protected $fillable = ['chart_of_account_id', 'voucher_no', 'voucher_type', 'voucher_date', 'description', 'debit', 
     'credit', 'posted', 'approve', 'created_by', 'modified_by'];
     
@@ -62,7 +60,7 @@ class DepoLedger extends BaseModel
         ->select('t.*','coa.id as coa_id','coa.code','coa.name','coa.parent_name','d.id as depo_id','d.name as depo_name','d.mobile_no')
         ->join('chart_of_accounts as coa','t.chart_of_account_id','=','coa.id')
         ->join('depos as d','coa.depo_id','d.id')
-        ->where(['coa.parent_name'=>self::TYPE,'t.approve'=>1]);
+        ->where('t.approve',1);
 
         //search query
         if (!empty($this->depo_id)) {
@@ -105,7 +103,8 @@ class DepoLedger extends BaseModel
         ->select('t.*','coa.id as coa_id','coa.code','coa.name','coa.parent_name','d.id as depo_id','d.name as depo_name','d.mobile_no')
         ->join('chart_of_accounts as coa','t.chart_of_account_id','=','coa.id')
         ->join('depos as d','coa.depo_id','d.id')
-        ->where(['coa.parent_name'=>self::TYPE,'t.approve'=>1])->get()->count();
+        ->where('t.approve',1)
+        ->count();
     }
     /******************************************
      * * * End :: Custom Datatable Code * * *

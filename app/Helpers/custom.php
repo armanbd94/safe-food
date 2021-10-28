@@ -132,6 +132,12 @@ define('PURCHASE_STATUS_LABEL',[
     '4'=>'<span class="label label-info label-pill label-inline" style="min-width:70px !important;">Ordered</span>',
 ]);
 
+define('ORDER_FROM_STATUS',['1'=>'Depo','2'=>'Dealer']);
+define('ORDER_FROM_STATUS_LABEL',[
+    '1'=>'<span class="label label-success label-pill label-inline" style="min-width:70px !important;">Depo</span>',
+    '2'=>'<span class="label label-info label-pill label-inline" style="min-width:70px !important;">Dealer</span>',
+]);
+
 define('PAYMENT_STATUS',['1'=>'Paid','2'=>'Partial','3'=>'Due']);
 define('PAYMENT_STATUS_LABEL',[
     '1'=>'<span class="label label-success label-pill label-inline" style="min-width:70px !important;">Paid</span>',

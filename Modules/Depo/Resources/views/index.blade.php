@@ -18,7 +18,7 @@
                 <div class="card-toolbar">
                     <!--begin::Button-->
                     @if (permission('depo-add'))
-                    <a href="javascript:void(0);" onclick="showFormModal('Add New Depo','Save')" class="btn btn-primary btn-sm font-weight-bolder add-btn"> 
+                    <a href="javascript:void(0);" onclick="showDepoFormModal('Add New Depo','Save')" class="btn btn-primary btn-sm font-weight-bolder add-btn"> 
                         <i class="fas fa-plus-circle"></i> Add New</a>
                         @endif
                     <!--end::Button-->
@@ -31,18 +31,32 @@
             <div class="card-header flex-wrap py-5">
                 <form method="POST" id="form-filter" class="col-md-12 px-0">
                     <div class="row">
-                        <x-form.textbox labelName="Depo Name" name="name" col="col-md-4" />
-                        <div class="col-md-8">
-                            <div style="margin-top:28px;">    
-                                <div style="margin-top:28px;">    
-                                    <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
-                                    data-toggle="tooltip" data-theme="dark" title="Reset">
-                                    <i class="fas fa-undo-alt"></i></button>
-    
-                                    <button id="btn-filter" class="btn btn-primary btn-sm btn-elevate btn-icon mr-2 float-right" type="button"
-                                    data-toggle="tooltip" data-theme="dark" title="Search">
-                                    <i class="fas fa-search"></i></button>
-                                </div>
+                        <x-form.textbox labelName="Depo Name" name="name" col="col-md-3" />
+                        <x-form.textbox labelName="Mobile No." name="mobile_no" col="col-md-3" placeholder="Enter mobile number" />
+                        <x-form.textbox labelName="Email" name="email" col="col-md-3" placeholder="Enter email" />
+                        <x-form.selectbox labelName="District" name="district_id" col="col-md-3" class="selectpicker" onchange="getUpazilaList(this.value,1)">
+                            @if (!$districts->isEmpty())
+                                @foreach ($districts as $id => $name)
+                                    <option value="{{ $id }}">{{ $name }}</option>
+                                @endforeach
+                            @endif
+                        </x-form.selectbox>
+                        <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-3" class="selectpicker" onchange="getAreaList(this.value,1)"/>
+                        <x-form.selectbox labelName="Area" name="area_id" col="col-md-3" class="selectpicker"/>
+
+                        <x-form.selectbox labelName="Status" name="status" col="col-md-3" class="selectpicker">
+                            <option value="1">Active</option>
+                            <option value="2">Inactive</option>
+                        </x-form.selectbox>
+                        <div class="col-md-3">
+                            <div style="margin-top:28px;">     
+                                <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
+                                data-toggle="tooltip" data-theme="dark" title="Reset">
+                                <i class="fas fa-undo-alt"></i></button>
+
+                                <button id="btn-filter" class="btn btn-primary btn-sm btn-elevate btn-icon mr-2 float-right" type="button"
+                                data-toggle="tooltip" data-theme="dark" title="Search">
+                                <i class="fas fa-search"></i></button>
                             </div>
                         </div>
                     </div>
@@ -66,11 +80,12 @@
                                         @endif
                                         <th>Sl</th>
                                         <th>Depo Name</th>
-                                        <th>District Name</th>
                                         <th>Mobile No.</th>
                                         <th>Email</th>
-                                        <th>Address</th>
-                                        <th>Commission Rate (%)</th>
+                                        <th>District</th>
+                                        <th>Upazila</th>
+                                        <th>Area</th>
+                                        <th>Commission Rate(%)</th>
                                         <th>Balance</th>
                                         <th>Status</th>
                                         <th>Action</th>
@@ -88,6 +103,7 @@
     </div>
 </div>
 @include('depo::modal')
+@include('depo::view')
 @endsection
 
 @push('scripts')
@@ -119,39 +135,45 @@ $(document).ready(function(){
             "type": "POST",
             "data": function (data) {
                 data.name = $("#form-filter #name").val();
+                data.mobile_no   = $("#form-filter #mobile_no").val();
+                data.email       = $("#form-filter #email").val();
+                data.area_id     = $("#form-filter #area_id").val();
+                data.district_id = $("#form-filter #district_id").val();
+                data.upazila_id  = $("#form-filter #upazila_id").val();
+                data.status      = $("#form-filter #status").val();
                 data._token    = _token;
             }
         },
         "columnDefs": [{
                 @if (permission('depo-bulk-delete'))
-                "targets": [0,10],
-                @else 
-                "targets": [9],
+                "targets": [0,11],
+                @else
+                "targets": [10],
                 @endif
                 "orderable": false,
                 "className": "text-center"
             },
             {
                 @if (permission('depo-bulk-delete'))
-                "targets": [1,2,3,4,9],
-                @else 
-                "targets": [0,1,2,3,8],
+                "targets": [1,2,3,5,6,7,10],
+                @else
+                "targets": [0,1,2,4,5,6,9],
                 @endif
                 "className": "text-center"
             },
             {
                 @if (permission('depo-bulk-delete'))
+                "targets": [8,9],
+                @else
                 "targets": [7,8],
-                @else 
-                "targets": [6,7],
                 @endif
                 "className": "text-right"
             },
             {
                 @if (permission('depo-bulk-delete'))
-                "targets": [8],
+                "targets": [9],
                 @else 
-                "targets": [7],
+                "targets": [8],
                 @endif
                 "orderable": false,
             }
@@ -172,10 +194,10 @@ $(document).ready(function(){
                 "orientation": "landscape", //portrait
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
-                    @if (permission('depo-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(10))' 
+                     @if (permission('dealer-bulk-delete'))
+                    columns: ':visible:not(:eq(0),:eq(11))' 
                     @else 
-                    columns: ':visible:not(:eq(9))' 
+                    columns: ':visible:not(:eq(10))' 
                     @endif
                 },
                 customize: function (win) {
@@ -189,10 +211,10 @@ $(document).ready(function(){
                 "title": "{{ $page_title }} List",
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
-                    @if (permission('depo-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(10))' 
+                     @if (permission('dealer-bulk-delete'))
+                    columns: ':visible:not(:eq(0),:eq(11))' 
                     @else 
-                    columns: ':visible:not(:eq(9))' 
+                    columns: ':visible:not(:eq(10))' 
                     @endif
                 }
             },
@@ -203,10 +225,10 @@ $(document).ready(function(){
                 "title": "{{ $page_title }} List",
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
-                    @if (permission('depo-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(10))' 
+                     @if (permission('dealer-bulk-delete'))
+                    columns: ':visible:not(:eq(0),:eq(11))' 
                     @else 
-                    columns: ':visible:not(:eq(9))' 
+                    columns: ':visible:not(:eq(10))' 
                     @endif
                 }
             },
@@ -219,10 +241,10 @@ $(document).ready(function(){
                 "orientation": "landscape", //portrait
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
-                    @if (permission('depo-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(10))' 
+                     @if (permission('dealer-bulk-delete'))
+                    columns: ':visible:not(:eq(0),:eq(11))' 
                     @else 
-                    columns: ':visible:not(:eq(9))' 
+                    columns: ':visible:not(:eq(10))' 
                     @endif
                 },
             },
@@ -244,13 +266,11 @@ $(document).ready(function(){
 
     $('#btn-reset').click(function () {
         $('#form-filter')[0].reset();
+        $('#form-filter #upazila_id,#form-filter #area_id').empty().append(`<option value="">Select Please</option>`);
+        $('#form-filter .selectpicker').selectpicker('refresh');
         table.ajax.reload();
     });
 
-    $(document).on('click', '.add-btn', function () {
-        $('#store_or_update_form #asm_id').empty();
-        $('#store_or_update_form .selectpicker').selectpicker('refresh');
-    });
 
     $(document).on('click', '#save-btn', function () {
         let form = document.getElementById('store_or_update_form');
@@ -282,7 +302,6 @@ $(document).ready(function(){
                     if(data.status == 'error'){
                         notification(data.status,data.message)
                     }else{
-                        $('#store_or_update_form .pbalance').addClass('d-none');
                         $('#store_or_update_form #update_id').val(data.id);
                         $('#store_or_update_form #name').val(data.name);
                         $('#store_or_update_form #mobile_no').val(data.mobile_no);
@@ -290,16 +309,44 @@ $(document).ready(function(){
                         $('#store_or_update_form #district_id').val(data.district_id);
                         $('#store_or_update_form #address').val(data.address);
                         $('#store_or_update_form #commission_rate').val(data.commission_rate);
+                        $('#store_or_update_form .pbalance').addClass('d-none');
                         $('#store_or_update_form .selectpicker').selectpicker('refresh');
+
+                        getUpazilaList(data.district_id,2,data.upazila_id);
+                        getAreaList(data.upazila_id,2,data.area_id);
+                        
                         $('#store_or_update_modal').modal({
                             keyboard: false,
                             backdrop: 'static',
                         });
-                        $('#store_or_update_modal .modal-title').html(
-                            '<i class="fas fa-edit text-white"></i> <span>Edit ' + data.name + '</span>');
+                        $('#store_or_update_modal .modal-title').html( '<i class="fas fa-edit text-white"></i> <span>Edit ' + data.name + ' Data</span>');
                         $('#store_or_update_modal #save-btn').text('Update');
                     }
                     
+                },
+                error: function (xhr, ajaxOption, thrownError) {
+                    console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
+                }
+            });
+        }
+    });
+
+    $(document).on('click', '.view_data', function () {
+        let id = $(this).data('id');
+        let name = $(this).data('name');
+        if (id) {
+            $.ajax({
+                url: "{{route('depo.view')}}",
+                type: "POST",
+                data: { id: id,_token: _token},
+                success: function (data) {
+                    $('#view_modal #view-data').html('');
+                    $('#view_modal #view-data').html(data);
+                    $('#view_modal').modal({
+                        keyboard: false,
+                        backdrop: 'static',
+                    });
+                    $('#view_modal .modal-title').html('<i class="fas fa-eye text-white"></i> <span>View ' + name + ' Data</span>');
                 },
                 error: function (xhr, ajaxOption, thrownError) {
                     console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
@@ -345,10 +392,77 @@ $(document).ready(function(){
         change_status(id, url, table, row, name, status);
     });
 
-    $(document).on('click', '.add-btn', function () {
-        $('#store_or_update_form .pbalance').removeClass('d-none');
-    });
 });
+function getUpazilaList(district_id,selector,upazila_id=''){
+    $.ajax({
+        url:"{{ url('district-id-wise-upazila-list') }}/"+district_id,
+        type:"GET",
+        dataType:"JSON",
+        success:function(data){
+            html = `<option value="">Select Please</option>`;
+            $.each(data, function(key, value) {
+                html += '<option value="'+ key +'">'+ value +'</option>';
+            });
+            if(selector == 1)
+            {
+                $('#form-filter #upazila_id').empty();
+                $('#form-filter #upazila_id').append(html);
+            }else{
+                $('#store_or_update_form #upazila_id').empty();
+                $('#store_or_update_form #upazila_id').append(html);
+            }
+            $('.selectpicker').selectpicker('refresh');
+            if(upazila_id){
+                $('#store_or_update_form #upazila_id').val(upazila_id);
+                $('#store_or_update_form #upazila_id.selectpicker').selectpicker('refresh');
+            }
+      
+        },
+    });
+}
+
+function getAreaList(upazila_id,selector,area_id=''){
+    $.ajax({
+        url:"{{ url('upazila-id-wise-area-list') }}/"+upazila_id,
+        dataType:"JSON",
+        success:function(data){
+            html = `<option value="">Select Please</option>`;
+            $.each(data, function(key, value) {
+                html += '<option value="'+ key +'">'+ value +'</option>';
+            });
+            if(selector == 1)
+            {
+                $('#form-filter #area_id').empty();
+                $('#form-filter #area_id').append(html);
+            }else{
+                $('#store_or_update_form #area_id').empty();
+                $('#store_or_update_form #area_id').append(html);
+            }
+            $('.selectpicker').selectpicker('refresh');
+            if(area_id){
+                $('#store_or_update_form #area_id').val(area_id);
+                $('#store_or_update_form #area_id.selectpicker').selectpicker('refresh');
+            }
+      
+        },
+    });
+}
+
+function showDepoFormModal(modal_title, btn_text) {
+    $('#store_or_update_form')[0].reset();
+    $('#store_or_update_form #update_id').val('');
+    $('#store_or_update_form').find('.is-invalid').removeClass('is-invalid');
+    $('#store_or_update_form').find('.error').remove();
+    $('#store_or_update_form #upazila_id,#store_or_update_form #area_id').empty().append(`<option value="">Select Please</option>`);
+    $('#store_or_update_form .selectpicker').selectpicker('refresh');
+    $('#store_or_update_form .pbalance').removeClass('d-none');
+    $('#store_or_update_modal').modal({
+        keyboard: false,
+        backdrop: 'static',
+    });
+    $('#store_or_update_modal .modal-title').html('<i class="fas fa-plus-square text-white"></i> '+modal_title);
+    $('#store_or_update_modal #save-btn').text(btn_text);
+}
 
 </script>
 @endpush

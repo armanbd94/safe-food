@@ -18,7 +18,7 @@
                 <div class="card-toolbar">
                     <!--begin::Button-->
                     @if (permission('dealer-add'))
-                    <a href="javascript:void(0);" onclick="showSalesmenFormModal('Add New Dealer','Save')" class="btn btn-primary btn-sm font-weight-bolder"> 
+                    <a href="javascript:void(0);" onclick="showDealerFormModal('Add New Dealer','Save')" class="btn btn-primary btn-sm font-weight-bolder"> 
                         <i class="fas fa-plus-circle"></i> Add New
                     </a>
                     @endif
@@ -35,13 +35,6 @@
                         <x-form.textbox labelName="Dealer Name" name="name" col="col-md-3" placeholder="Enter name" />
                         <x-form.textbox labelName="Mobile No." name="mobile_no" col="col-md-3" placeholder="Enter mobile number" />
                         <x-form.textbox labelName="Email" name="email" col="col-md-3" placeholder="Enter email" />
-                        <x-form.selectbox labelName="Depo" name="depo_id" required="required" col="col-md-3" class="selectpicker">
-                            @if (!$depos->isEmpty())
-                            @foreach ($depos as $depo)
-                                <option value="{{ $depo->id }}">{{ $depo->name.' - '.$depo->mobile_no }}</option>
-                            @endforeach
-                            @endif
-                        </x-form.selectbox>
                         <x-form.selectbox labelName="District" name="district_id" col="col-md-3" class="selectpicker" onchange="getUpazilaList(this.value,1)">
                             @if (!$districts->isEmpty())
                                 @foreach ($districts as $id => $name)
@@ -49,18 +42,16 @@
                                 @endforeach
                             @endif
                         </x-form.selectbox>
-                        <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-3" class="selectpicker"/>
-                        <x-form.selectbox labelName="Dealer Type" name="type" col="col-md-3" class="selectpicker">
-                            <option value="1">Depo Dealer</option>
-                            <option value="2">Direct Dealer</option>
-                        </x-form.selectbox>
+                        <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-3" class="selectpicker" onchange="getAreaList(this.value,1)"/>
+                        <x-form.selectbox labelName="Area" name="area_id" col="col-md-3" class="selectpicker"/>
+
                         <x-form.selectbox labelName="Status" name="status" col="col-md-3" class="selectpicker">
                             <option value="1">Active</option>
                             <option value="2">Inactive</option>
                         </x-form.selectbox>
 
                         
-                        <div class="col-md-12">
+                        <div class="col-md-3">
                             <div style="margin-top:28px;">     
                                     <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
                                     data-toggle="tooltip" data-theme="dark" title="Reset">
@@ -91,14 +82,12 @@
                                         </th>
                                         @endif
                                         <th>Sl</th>
-                                        <th>Avatar</th>
-                                        <th>Name</th>
+                                        <th>Dealer Name</th>
                                         <th>Mobile No.</th>
                                         <th>Email</th>
-                                        <th>Type</th>
-                                        <th>Depo</th>
                                         <th>District</th>
                                         <th>Upazila</th>
+                                        <th>Area</th>
                                         <th>Commission Rate(%)</th>
                                         <th>Balance</th>
                                         <th>Status</th>
@@ -152,19 +141,18 @@ $(document).ready(function(){
                 data.name        = $("#form-filter #name").val();
                 data.mobile_no   = $("#form-filter #mobile_no").val();
                 data.email       = $("#form-filter #email").val();
-                data.depo_id     = $("#form-filter #depo_id").val();
+                data.area_id     = $("#form-filter #area_id").val();
                 data.district_id = $("#form-filter #district_id").val();
                 data.upazila_id  = $("#form-filter #upazila_id").val();
-                data.type        = $("#form-filter #type").val();
                 data.status      = $("#form-filter #status").val();
                 data._token      = _token;
             }
         },
         "columnDefs": [{
             @if (permission('dealer-bulk-delete'))
-            "targets": [0,13],
+            "targets": [0,11],
             @else
-            "targets": [12],
+            "targets": [10],
             @endif
                 
                 "orderable": false,
@@ -172,19 +160,27 @@ $(document).ready(function(){
             },
             {
                 @if (permission('dealer-bulk-delete'))
-                "targets": [1,2,3,4,6,7,8,9,12],
+                "targets": [1,2,3,5,6,7,10],
                 @else
-                "targets": [0,1,2,3,5,6,7,8,11],
+                "targets": [0,1,2,4,5,6,9],
                 @endif
                 "className": "text-center"
             },
             {
                 @if (permission('dealer-bulk-delete'))
-                "targets": [10,11],
+                "targets": [8,9],
                 @else
-                "targets": [9,10],
+                "targets": [7,8],
                 @endif
                 "className": "text-right"
+            },
+            {
+                @if (permission('dealer-bulk-delete'))
+                "targets": [9],
+                @else 
+                "targets": [8],
+                @endif
+                "orderable": false,
             }
         ],
         "dom": "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6' <'float-right'B>>>" +
@@ -204,9 +200,9 @@ $(document).ready(function(){
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
                     @if (permission('dealer-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(13))' 
+                    columns: ':visible:not(:eq(0),:eq(11))' 
                     @else 
-                    columns: ':visible:not(:eq(12))' 
+                    columns: ':visible:not(:eq(10))' 
                     @endif
                 },
                 customize: function (win) {
@@ -221,9 +217,9 @@ $(document).ready(function(){
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
                     @if (permission('dealer-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(13))' 
+                    columns: ':visible:not(:eq(0),:eq(11))' 
                     @else 
-                    columns: ':visible:not(:eq(12))' 
+                    columns: ':visible:not(:eq(10))' 
                     @endif
                 }
             },
@@ -235,9 +231,9 @@ $(document).ready(function(){
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
                     @if (permission('dealer-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(13))' 
+                    columns: ':visible:not(:eq(0),:eq(11))' 
                     @else 
-                    columns: ':visible:not(:eq(12))' 
+                    columns: ':visible:not(:eq(10))' 
                     @endif
                 }
             },
@@ -251,9 +247,9 @@ $(document).ready(function(){
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
                     @if (permission('dealer-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(13))' 
+                    columns: ':visible:not(:eq(0),:eq(11))' 
                     @else 
-                    columns: ':visible:not(:eq(12))' 
+                    columns: ':visible:not(:eq(10))' 
                     @endif
                 },
             },
@@ -275,71 +271,23 @@ $(document).ready(function(){
 
     $('#btn-reset').click(function () {
         $('#form-filter')[0].reset();
+        $('#form-filter #upazila_id,#form-filter #area_id').empty().append(`<option value="">Select Please</option>`);
         $('#form-filter .selectpicker').selectpicker('refresh');
         table.ajax.reload();
     });
 
     $(document).on('click', '#save-btn', function () {
-        let form     = document.getElementById('store_or_update_form');
+        let form = document.getElementById('store_or_update_form');
         let formData = new FormData(form);
-        let url      = "{{route('dealer.store.or.update')}}";
-        let id       = $('#update_id').val();
+        let url = "{{route('dealer.store.or.update')}}";
+        let id = $('#update_id').val();
         let method;
         if (id) {
             method = 'update';
         } else {
             method = 'add';
         }
-        $.ajax({
-            url: url,
-            type: "POST",
-            data: formData,
-            dataType: "JSON",
-            contentType: false,
-            processData: false,
-            cache: false,
-            beforeSend: function(){
-                $('#save-btn').addClass('spinner spinner-white spinner-right');
-            },
-            complete: function(){
-                $('#save-btn').removeClass('spinner spinner-white spinner-right');
-            },
-            success: function (data) {
-                $('#store_or_update_form').find('.is-invalid').removeClass('is-invalid');
-                $('#store_or_update_form').find('.error').remove();
-                if (data.status == false) {
-                    $.each(data.errors, function (key, value) {
-                        var key = key.split('.').join('_');
-                        $('#store_or_update_form input#' + key).addClass('is-invalid');
-                        $('#store_or_update_form textarea#' + key).addClass('is-invalid');
-                        $('#store_or_update_form select#' + key).parent().addClass('is-invalid');
-                        if(key == 'password' || key == 'password_confirmation'){
-                            $('#store_or_update_form #' + key).parents('.form-group').append(
-                            '<small class="error text-danger">' + value + '</small>');
-                        }else{
-                            $('#store_or_update_form #' + key).parent().append(
-                            '<small class="error text-danger">' + value + '</small>');
-                        }
-                        
-                        
-                    });
-                } else {
-                    notification(data.status, data.message);
-                    if (data.status == 'success') {
-                        if (method == 'update') {
-                            table.ajax.reload(null, false);
-                        } else {
-                            table.ajax.reload();
-                        }
-                        $('#store_or_update_modal').modal('hide');
-                    }
-                }
-
-            },
-            error: function (xhr, ajaxOption, thrownError) {
-                console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
-            }
-        });
+        store_or_update_data(table, method, url, formData);
     });
 
     $(document).on('click', '.edit_data', function () {
@@ -359,43 +307,24 @@ $(document).ready(function(){
                     if(data.status == 'error'){
                         notification(data.status,data.message)
                     }else{
-                        $('#store_or_update_form .depo').addClass('d-none');
-                        dealerType(data.type);
-                        $('#store_or_update_form #depo_id').val(data.depo_id);
                         $('#store_or_update_form #update_id').val(data.id);
                         $('#store_or_update_form #name').val(data.name);
                         $('#store_or_update_form #mobile_no').val(data.mobile_no);
                         $('#store_or_update_form #email').val(data.email);
-                        $('#store_or_update_form #type').val(data.type);
                         $('#store_or_update_form #district_id').val(data.district_id);
                         $('#store_or_update_form #address').val(data.address);
                         $('#store_or_update_form #commission_rate').val(data.commission_rate);
-                        $('#store_or_update_form #old_avatar').val(data.avatar);
                         $('#store_or_update_form .pbalance').addClass('d-none');
                         $('#store_or_update_form .selectpicker').selectpicker('refresh');
 
                         getUpazilaList(data.district_id,2,data.upazila_id);
-                        upazilaAreaList(data.upazila_id,data.areas);
+                        getAreaList(data.upazila_id,2,data.area_id);
                         
-                        if(data.avatar)
-                        {
-                            $('#avatar img').css('display','none');
-                            $('#avatar .spartan_remove_row').css('display','none');
-                            $('#avatar .img_').css('display','block');
-                            $('#avatar .img_').attr('dealerc',"{{ asset('storage/'.DEALER_AVATAR_PATH)}}/"+data.avatar);
-                        }else{
-                            $('#avatar img').css('display','block');
-                            $('#avatar .spartan_remove_row').css('display','none');
-                            $('#avatar .img_').css('display','none');
-                            $('#avatar .img_').attr('dealerc','');
-                        }
-
                         $('#store_or_update_modal').modal({
                             keyboard: false,
                             backdrop: 'static',
                         });
-                        $('#store_or_update_modal .modal-title').html(
-                            '<i class="fas fa-edit text-white"></i> <span>Edit ' + data.name + ' Data</span>');
+                        $('#store_or_update_modal .modal-title').html( '<i class="fas fa-edit text-white"></i> <span>Edit ' + data.name + ' Data</span>');
                         $('#store_or_update_modal #save-btn').text('Update');
                     }
                     
@@ -468,38 +397,9 @@ $(document).ready(function(){
         change_status(id, url, table, row, name, status);
     });
 
-
-
-    $("#avatar").spartanMultiImagePicker({
-        fieldName:        'avatar',
-        maxCount: 1,
-        rowHeight:        '200px',
-        groupClassName:   'col-md-12 col-sm-12 col-xs-12',
-        maxFileSize:      '',
-        dropFileLabel : "Drop Here",
-        allowedExt: 'png|jpg|jpeg',
-        onExtensionErr : function(index, file){
-            Swal.fire({icon: 'error',title: 'Oops...',text: 'Only png,jpg,jpeg file format allowed!'});
-        },
-
-    });
-
-    $("input[name='avatar']").prop('required',true);
-
-    $('.remove-files').on('click', function(){
-        $(this).parents(".col-md-12").remove();
-    });
-
-
 });
-function setDistrictData()
-{
-    $('#store_or_update_form #district_id').val($('#store_or_update_form #warehouse_id option:selected').data('districtid'))
-    $('#store_or_update_form #district_name').val($('#store_or_update_form #warehouse_id option:selected').data('districtname'))
-}
 
-function getUpazilaList(district_id,set_id,upazila_id='')
-{
+function getUpazilaList(district_id,selector,upazila_id=''){
     $.ajax({
         url:"{{ url('district-id-wise-upazila-list') }}/"+district_id,
         type:"GET",
@@ -509,8 +409,7 @@ function getUpazilaList(district_id,set_id,upazila_id='')
             $.each(data, function(key, value) {
                 html += '<option value="'+ key +'">'+ value +'</option>';
             });
-            
-            if(set_id == 1)
+            if(selector == 1)
             {
                 $('#form-filter #upazila_id').empty();
                 $('#form-filter #upazila_id').append(html);
@@ -523,54 +422,45 @@ function getUpazilaList(district_id,set_id,upazila_id='')
                 $('#store_or_update_form #upazila_id').val(upazila_id);
                 $('#store_or_update_form #upazila_id.selectpicker').selectpicker('refresh');
             }
-            
+      
         },
     });
-    
 }
-function upazilaAreaList(upazila_id,areas=null)
-{
+
+function getAreaList(upazila_id,selector,area_id=''){
     $.ajax({
         url:"{{ url('upazila-id-wise-area-list') }}/"+upazila_id,
-        type:"GET",
         dataType:"JSON",
         success:function(data){
             html = `<option value="">Select Please</option>`;
             $.each(data, function(key, value) {
                 html += '<option value="'+ key +'">'+ value +'</option>';
             });
-            
-            $('#store_or_update_form #areas').empty();
-            $('#store_or_update_form #areas').append(html);
-            $('#store_or_update_form #areas.selectpicker').selectpicker('refresh');
-            if(areas)
+            if(selector == 1)
             {
-                $('#store_or_update_form #areas').selectpicker('val', areas);
-                $('#store_or_update_form #areas.selectpicker').selectpicker('refresh');
+                $('#form-filter #area_id').empty();
+                $('#form-filter #area_id').append(html);
+            }else{
+                $('#store_or_update_form #area_id').empty();
+                $('#store_or_update_form #area_id').append(html);
             }
+            $('.selectpicker').selectpicker('refresh');
+            if(area_id){
+                $('#store_or_update_form #area_id').val(area_id);
+                $('#store_or_update_form #area_id.selectpicker').selectpicker('refresh');
+            }
+      
         },
     });
 }
 
-function dealerType(type)
-{
-    type == 1 ? $('#store_or_update_form .depo').removeClass('d-none') : $('#store_or_update_form .depo').addClass('d-none');
-}
-
-function showSalesmenFormModal(modal_title, btn_text) {
+function showDealerFormModal(modal_title, btn_text) {
     $('#store_or_update_form')[0].reset();
     $('#store_or_update_form #update_id').val('');
-    $('#store_or_update_form #upazila_id').html('');
-    $('#store_or_update_form #old_avatar').val('');
     $('#store_or_update_form').find('.is-invalid').removeClass('is-invalid');
     $('#store_or_update_form').find('.error').remove();
-    $('#store_or_update_form .depo').addClass('d-none')
-    $('#store_or_update_form #areas,#store_or_update_form #upazila_id').empty().append(`<option value="">Select Please</option>`);
+    $('#store_or_update_form #upazila_id,#store_or_update_form #area_id').empty().append(`<option value="">Select Please</option>`);
     $('#store_or_update_form .selectpicker').selectpicker('refresh');
-    $('#avatar .spartan_image_placeholder').css('display','block');
-    $('#avatar .spartan_remove_row').css('display','none');
-    $('#avatar .img_').css('display','none');
-    $('#avatar .img_').attr('dealerc','');
     $('#store_or_update_form .pbalance').removeClass('d-none');
     $('#store_or_update_modal').modal({
         keyboard: false,

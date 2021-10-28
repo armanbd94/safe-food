@@ -18,13 +18,12 @@ class CreateDealersTable extends Migration
             $table->string('name',100);
             $table->string('mobile_no',15)->unique();
             $table->string('email')->nullable();
-            $table->enum('type',['1','2'])->comment = "1=Depo Dealer, 2=Direct Dealer";
-            $table->unsignedBigInteger('depo_id')->nullable();
-            $table->foreign('depo_id')->references('id')->on('depos');
             $table->unsignedBigInteger('district_id');
             $table->foreign('district_id')->references('id')->on('locations');
             $table->unsignedBigInteger('upazila_id');
             $table->foreign('upazila_id')->references('id')->on('locations');
+            $table->unsignedBigInteger('area_id');
+            $table->foreign('area_id')->references('id')->on('locations');
             $table->text('address')->nullable();
             $table->float('commission_rate')->nullable();
             $table->enum('status',['1','2'])->default('1')->comment = "1=Active, 2=Inactive";

@@ -24,9 +24,9 @@ class CreateSaleProductsTable extends Migration
             $table->unsignedBigInteger('sale_unit_id')->nullable();
             $table->foreign('sale_unit_id')->references('id')->on('units');
             $table->double('net_unit_price');
-            $table->double('discount')->nullable();
-            $table->double('tax_rate')->nullable();
-            $table->double('tax')->nullable();
+            // $table->double('discount')->nullable();
+            // $table->double('tax_rate')->nullable();
+            // $table->double('tax')->nullable();
             $table->double('total');
             $table->timestamps();
         });

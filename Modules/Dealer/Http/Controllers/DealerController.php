@@ -38,23 +38,22 @@ class DealerController extends BaseController
                 if (!empty($request->name)) {
                     $this->model->setName($request->name);
                 }
-                if (!empty($request->type)) {
-                    $this->model->setType($request->type);
-                }
+
                 if (!empty($request->mobile_no)) {
                     $this->model->setMobileNo($request->mobile_no);
                 }
                 if (!empty($request->email)) {
                     $this->model->setEmail($request->email);
                 }
-                if (!empty($request->depo_id)) {
-                    $this->model->setDepoID($request->depo_id);
-                }
+                
                 if (!empty($request->district_id)) {
                     $this->model->setDistrictID($request->district_id);
                 }
                 if (!empty($request->upazila_id)) {
                     $this->model->setUpazilaID($request->upazila_id);
+                }
+                if (!empty($request->area_id)) {
+                    $this->model->setAreaID($request->area_id);
                 }
                 if (!empty($request->status)) {
                     $this->model->setStatus($request->status);
@@ -72,7 +71,7 @@ class DealerController extends BaseController
                     }
                     if(permission('dealer-view')){
                         $action .= ' <a class="dropdown-item view_data" data-id="' . $value->id . '"  data-name="' . $value->name . '">'.self::ACTION_BUTTON['View'].'</a>';
-                        }
+                    }
                     if(permission('dealer-delete')){
                         $action .= ' <a class="dropdown-item delete_data"  data-id="' . $value->id . '" data-name="' . $value->name . '">'.self::ACTION_BUTTON['Delete'].'</a>';
                     }
@@ -82,14 +81,12 @@ class DealerController extends BaseController
                         $row[] = row_checkbox($value->id);//custom helper function to show the table each row checkbox
                     }
                     $row[] = $no;
-                    $row[] = $this->table_image(DEALER_AVATAR_PATH,$value->avatar,$value->name,1);
                     $row[] = $value->name;
                     $row[] = $value->mobile_no;
                     $row[] = $value->email;
-                    $row[] = $value->type == 1 ? 'Depo Dealer' : 'Direct Dealer';
-                    $row[] = $value->depo_name ? $value->depo_name : '-';
                     $row[] = $value->district_name;
                     $row[] = $value->upazila_name;
+                    $row[] = $value->area_name;
                     $row[] = $value->commission_rate;
                     $row[] = number_format($value->balance,2,'.','').' Tk';
                     $row[] = permission('dealer-edit') ? change_status($value->id,$value->status, $value->name) : STATUS_LABEL[$value->status];
@@ -111,36 +108,20 @@ class DealerController extends BaseController
                 // dd($request->all());
                 DB::beginTransaction();
                 try {
-                    $collection   = collect($request->validated())->except(['areas']);
+                    $collection   = collect($request->validated());
                     $collection   = $this->track_data($collection,$request->update_id);
-                    $avatar = !empty($request->old_avatar) ? $request->old_avatar : null;
-                    if($request->hasFile('avatar')){
-                        $avatar  = $this->upload_file($request->file('avatar'),DEALER_AVATAR_PATH);
-                        if(!empty($request->old_avatar)){
-                            $this->delete_file($request->old_avatar, DEALER_AVATAR_PATH);
-                        }  
-                    }
-                    $collection     = $collection->merge(compact('avatar'));
-                    $result         = $this->model->updateOrCreate(['id'=>$request->update_id],$collection->all());
-                    
-                    $areas = [];
-                    if($request->has('areas') && count($request->areas) > 0)
-                    {
-                        $dealer = $this->model->with('areas')->find($result->id);
-                        $dealer->areas()->sync($request->areas);
-                    }
-                    
-                    
+                    $dealer       = $this->model->updateOrCreate(['id'=>$request->update_id],$collection->all());
+
                     if(empty($request->update_id))
                     {
-                        $coa_max_code  = ChartOfAccount::where('level',3)->where('code','like','50201%')->max('code');
-                        $code          = $coa_max_code ? ($coa_max_code + 1) : '5020101';
+                        $coa_max_code  = ChartOfAccount::where('level',4)->where('code','like','1020204%')->max('code');
+                        $code          = $coa_max_code ? ($coa_max_code + 1) : '1020204000001';
                         $head_name     = $dealer->id.'-'.$dealer->name;
                         $dealer_coa    = ChartOfAccount::create($this->model->coa_data($code,$head_name,$dealer->id));
                         if(!empty($request->previous_balance))
                         {
                             if($dealer_coa){
-                                Transaction::create($this->model->previous_balance_data($request->previous_balance,$dealer_coa->id,$dealer->name));
+                                Transaction::insert($this->model->previous_balance_data($request->previous_balance,$dealer_coa->id,$dealer->name));
                             }
                         }
                     }else{
@@ -180,29 +161,8 @@ class DealerController extends BaseController
     {
         if($request->ajax()){
             if(permission('dealer-edit')){
-                $data   = $this->model->with('areas')->findOrFail($request->id);
-                $areas = [];
-                if(!$data->areas->isEmpty())
-                {
-                    foreach ($data->areas as $value) {
-                        array_push($areas,$value->id);
-                    }
-                }
-                $output = [
-                    'id' => $data->id, 
-                    'name' => $data->name, 
-                    'mobile_no' => $data->mobile_no, 
-                    'email' => $data->email,
-                    'avatar' => $data->avatar, 
-                    'type' => $data->type, 
-                    'depo_id' => $data->depo_id, 
-                    'district_id' => $data->district_id, 
-                    'upazila_id' => $data->upazila_id,
-                    'address' => $data->address, 
-                    'commission_rate' => $data->commission_rate,
-                    'areas' => $areas
-                ]; 
-                
+                $data   = $this->model->findOrFail($request->id);
+                $output = $this->data_message($data); 
             }else{
                 $output = $this->unauthorized();
             }
@@ -216,12 +176,7 @@ class DealerController extends BaseController
     {
         if($request->ajax()){
             if(permission('dealer-delete')){
-                $dealer   = $this->model->with('areas')->find($request->id);
-                if(!$dealer->areas->isEmpty())
-                {
-                    $dealer->areas()->detach();
-                }
-                $result = $dealer->delete();
+                $result   = $this->model->with('areas')->find($request->id)->delete();
                 $output   = $this->delete_message($result);
             }else{
                 $output   = $this->unauthorized();
@@ -239,7 +194,6 @@ class DealerController extends BaseController
             if(permission('dealer-bulk-delete')){
                 DB::beginTransaction();
                 try {
-                    DealerArea::whereIn('dealer_id',$request->ids)->delete();
                     $result   = $this->model->destroy($request->ids);
                     $output   = $this->bulk_delete_message($result);
                     DB::commit();
@@ -272,18 +226,11 @@ class DealerController extends BaseController
         }
     }
 
-    public function depo_dealer_list(int $depo_id)
+    public function area_wise_dealer_list(int $area_id)
     {
-        $dealers = DB::table('dealers')->where('depo_id',$depo_id)->select('id','name','shop_name')->get();
+        $dealers = DB::table('dealers')
+        ->where('area_id',$area_id)
+        ->pluck('name','id');
         return response()->json($dealers);
-    }
-
-    public function area_list(int $id)
-    {
-        $areas = DB::table('dealer_areas')
-        ->join('locations','dealer_areas.area_id','=','locations.id')
-        ->where('dealer_areas.dealer_id',$id)
-        ->pluck('locations.name','locations.id');
-        return response()->json($areas);
     }
 }

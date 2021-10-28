@@ -37,6 +37,26 @@ class DepoController extends BaseController
                     $this->model->setName($request->name);
                 }
 
+                if (!empty($request->mobile_no)) {
+                    $this->model->setMobileNo($request->mobile_no);
+                }
+                if (!empty($request->email)) {
+                    $this->model->setEmail($request->email);
+                }
+                
+                if (!empty($request->district_id)) {
+                    $this->model->setDistrictID($request->district_id);
+                }
+                if (!empty($request->upazila_id)) {
+                    $this->model->setUpazilaID($request->upazila_id);
+                }
+                if (!empty($request->area_id)) {
+                    $this->model->setAreaID($request->area_id);
+                }
+                if (!empty($request->status)) {
+                    $this->model->setStatus($request->status);
+                }
+
                 $this->set_datatable_default_properties($request);//set datatable default properties
                 $list = $this->model->getDatatableList();//get table data
                 $data = [];
@@ -46,6 +66,9 @@ class DepoController extends BaseController
                     $action = '';
                     if(permission('depo-edit')){
                         $action .= ' <a class="dropdown-item edit_data" data-id="' . $value->id . '">'.self::ACTION_BUTTON['Edit'].'</a>';
+                    }
+                    if(permission('depo-view')){
+                        $action .= ' <a class="dropdown-item view_data" data-id="' . $value->id . '"  data-name="' . $value->name . '">'.self::ACTION_BUTTON['View'].'</a>';
                     }
                     if(permission('depo-delete')){
                         $action .= ' <a class="dropdown-item delete_data"  data-id="' . $value->id . '" data-name="' . $value->name . '">'.self::ACTION_BUTTON['Delete'].'</a>';
@@ -57,12 +80,13 @@ class DepoController extends BaseController
                     }
                     $row[] = $no;
                     $row[] = $value->name;
-                    $row[] = $value->district_name;
                     $row[] = $value->mobile_no;
                     $row[] = $value->email;
-                    $row[] = $value->address;
+                    $row[] = $value->district_name;
+                    $row[] = $value->upazila_name;
+                    $row[] = $value->area_name;
                     $row[] = $value->commission_rate;
-                    $row[] = $this->model->balance($value->id).' Tk';
+                    $row[] = number_format($value->balance,2,'.','').' Tk';
                     $row[] = permission('depo-edit') ? change_status($value->id,$value->status, $value->name) : STATUS_LABEL[$value->status];
                     $row[] = action_button($action);//custom helper function for action button
                     $data[] = $row;
@@ -87,14 +111,14 @@ class DepoController extends BaseController
                     
                     if(empty($request->update_id))
                     {
-                        $coa_max_code  = ChartOfAccount::where('level',3)->where('code','like','50201%')->max('code');
-                        $code          = $coa_max_code ? ($coa_max_code + 1) : '5020101';
+                        $coa_max_code  = ChartOfAccount::where('level',4)->where('code','like','1020203%')->max('code');
+                        $code          = $coa_max_code ? ($coa_max_code + 1) : '102020300001';
                         $head_name     = $depo->id.'-'.$depo->name;
                         $depo_coa      = ChartOfAccount::create($this->model->coa_data($code,$head_name,$depo->id));
                         if(!empty($request->previous_balance))
                         {
                             if($depo_coa){
-                                Transaction::create($this->model->previous_balance_data($request->previous_balance,$depo_coa->id,$depo->name));
+                                Transaction::insert($this->model->previous_balance_data($request->previous_balance,$depo_coa->id,$depo->name));
                             }
                         }
                     }else{
@@ -106,7 +130,7 @@ class DepoController extends BaseController
                         }
                     }
                     $output = $this->store_message($depo, $request->update_id);
-                    $this->model->flushCache();
+
                     DB::commit();
                 } catch (\Throwable $th) {
                     DB::rollback();
@@ -118,6 +142,16 @@ class DepoController extends BaseController
             return response()->json($output);
         }else{
             return response()->json($this->unauthorized());
+        }
+    }
+
+    public function view(Request $request)
+    {
+        if($request->ajax()){
+            if(permission('depo-view')){
+                $depo   = $this->model->with('district','upazila','area')->findOrFail($request->id);
+                return view('depo::view-data',compact('depo'))->render();
+            }
         }
     }
 
@@ -142,7 +176,6 @@ class DepoController extends BaseController
             if(permission('depo-delete')){
                 $result   = $this->model->find($request->id)->delete();
                 $output   = $this->delete_message($result);
-                $this->model->flushCache();
             }else{
                 $output   = $this->unauthorized();
 
@@ -159,7 +192,6 @@ class DepoController extends BaseController
             if(permission('depo-bulk-delete')){
                 $result   = $this->model->destroy($request->ids);
                 $output   = $this->bulk_delete_message($result);
-                $this->model->flushCache();
             }else{
                 $output   = $this->unauthorized();
             }
@@ -176,7 +208,6 @@ class DepoController extends BaseController
                 $result   = $this->model->find($request->id)->update(['status' => $request->status]);
                 $output   = $result ? ['status' => 'success','message' => 'Status Has Been Changed Successfully']
                 : ['status' => 'error','message' => 'Failed To Change Status'];
-                $this->model->flushCache();
             }else{
                 $output       = $this->unauthorized();
             }
@@ -184,5 +215,13 @@ class DepoController extends BaseController
         }else{
             return response()->json($this->unauthorized());
         }
+    }
+
+    public function area_wise_depo_list(int $area_id)
+    {
+        $depos = DB::table('depos')
+        ->where('area_id',$area_id)
+        ->pluck('name','id');
+        return response()->json($depos);
     }
 }
