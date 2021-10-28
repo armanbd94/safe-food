@@ -42,15 +42,15 @@
                         <div class="row">
                             <input type="hidden" name="sale_id" id="sale_id" >
                             <input type="hidden" name="warehouse_id" id="warehouse_id" value="1">
-                            <div class="form-group col-md-3 required">
+                            <div class="form-group col-md-4 required">
                                 <label for="memo_no">Memo No.</label>
                                 <input type="text" class="fcs form-control" name="memo_no" id="memo_no" value="{{  $memo_no }}"/>
                             </div>
-                            <div class="form-group col-md-3 required">
+                            <div class="form-group col-md-4 required">
                                 <label for="sale_date">Sale Date</label>
                                 <input type="text" class="fcs form-control date" name="sale_date" id="sale_date" value="{{ date('Y-m-d') }}" readonly />
                             </div>
-                            <div class="form-group col-md-3 required">
+                            <div class="form-group col-md-4 required">
                                 <label for="">Ordered By</label>
                                 <select name="order_from" id="order_from" onchange="orderFrom(this.value)" class="form-control selectpicker">
                                     <option value="">Select Please</option>
@@ -58,131 +58,76 @@
                                     <option value="2">Direct Dealer</option>
                                 </select>
                             </div>
-                            <x-form.selectbox labelName="Depo" name="depo_id" col="col-md-3 depo d-none" required="required" class="fcs selectpicker">
+                            <x-form.selectbox labelName="Depo" name="depo_id" col="col-md-4 depo d-none" required="required" class="fcs selectpicker">
                                 @if (!$depos->isEmpty())
                                 @foreach ($depos as $value)
-                                <option value="{{ $value->id }}" data-commission="{{ $value->commission_rate }}">{{ $value->name.' - '.$value->mobile_no }}</option>
+                                <option value="{{ $value->id }}" data-commission="{{ $value->commission_rate }}">{{ $value->name.' - '.$value->mobile_no.' ('.$value->area_name.')' }}</option>
                                 @endforeach
                                 @endif
                             </x-form.selectbox>
-                            <x-form.selectbox labelName="Dealer" name="dealer_id" col="col-md-3 depo_dealer d-none" class="fcs selectpicker" onchange="getAreaList(this.value)"/>
 
-                            <x-form.selectbox labelName="Dealer" name="dealer_id" col="col-md-3 direct_dealer d-none" class="fcs selectpicker" onchange="getAreaList(this.value)">
+                            <x-form.selectbox labelName="Dealer" name="dealer_id" col="col-md-4 dealer d-none" class="fcs selectpicker" onchange="getAreaList(this.value)">
                                 @if (!$dealers->isEmpty())
                                 @foreach ($dealers as $value)
-                                <option value="{{ $value->id }}" data-commission="{{ $value->commission_rate }}">{{ $value->name.' ('.$value->mobile_no.') ' }}</option>
+                                <option value="{{ $value->id }}" data-commission="{{ $value->commission_rate }}">{{ $value->name.' - '.$value->mobile_no.' ('.$value->area_name.')'  }}</option>
                                 @endforeach
                                 @endif
                             </x-form.selectbox>
-
-                            <x-form.selectbox labelName="Area" name="area_id" col="col-md-3" class="fcs selectpicker" onchange="customer_list(this.value)"/>
-                            <x-form.selectbox labelName="Customer" name="customer_id" col="col-md-3" class="fcs selectpicker"/>
                             
-                            <div class="form-group col-md-3">
+                            <div class="form-group col-md-4">
                                 <label for="document">Attach Document <i class="fas fa-info-circle" data-toggle="tooltip" data-theme="dark" title="Maximum Allowed File Size 5MB and Format (png,jpg,jpeg,svg,webp,pdf,csv,xlxs)"></i></label>
                                 <input type="file" class="form-control fcs" name="document" id="document">
                             </div>
 
-                            <!-- <div class="form-group col-md-12">
-                                <label for="product_code_name">Select Product</label>
-                                <div class="input-group mb-3">
-                                    <div class="input-group-prepend">
-                                    <span class="input-group-text" id="basic-addon1"><i class="fas fa-barcode"></i></span>
-                                    </div>
-                                    <input type="text" class="form-control" name="product_code_name" id="product_code_name" placeholder="Please type product code and select...">
-                                </div>
-                            </div> -->
+                            <x-form.selectbox labelName="Payment Status" name="payment_status" required="required"  col="col-md-4" class="fcs selectpicker">
+                                @foreach (PAYMENT_STATUS as $key => $value)
+                                <option value="{{ $key }}">{{ $value }}</option>
+                                @endforeach
+                            </x-form.selectbox>
+
                             <div class="col-md-12">
                                 <table class="table table-bordered" id="product_table">
                                     <thead class="bg-primary">
                                         <th>Name</th>
-                                        <th class="text-center">Code</th>
                                         <th class="text-center">Sale Unit</th>
                                         <th class="text-center">Available Qty</th>
                                         <th class="text-center">Qty</th>
-                                        <th class="text-center">Free Qty</th>
                                         <th class="text-right">Net Sale Unit Price</th>
-                                        <th class="text-right">Tax</th>
                                         <th class="text-right">Subtotal</th>
                                         <th class="text-center"><i class="fas fa-trash text-white"></i></th>
                                     </thead>
                                     <tbody>
-                                        {{-- <tr>
+                                        <tr>
                                             <td class="col-md-3">                                                
-                                                <select name="products[1][pro_id]" id="product_list_1" class="fcs col-md-12 product_name form-control" onchange="getProductDetails(this,1)"  data-live-search="true" data-row="1">
-                                                
+                                                <select name="products[1][id]" id="products_1_id" class="fcs col-md-12 form-control" onchange="setProductDetails(this.value,1)"  data-live-search="true" data-row="1">
                                                 @if (!$products->isEmpty())
                                                 <option value="0">Please Select</option>
                                                 @foreach ($products as $product)
-                                                    <option value="{{ $product->product_id }}" data-pro_code="{{ $product->code}}" data-pro_avl_qty="{{ $product->qty}}" data-pro_net_price="{{ $product->price}}" data-pro_net_tax_rate="{{ $product->tax_rate}}" data-pro_unit="{{ $product->unit_name}}" >{{ $product->name.' ('.$product->code.') - [Stock Avl. Qty: '.$product->qty.']'; }}</option>
+                                                    <option value="{{ $product->product_id }}" data-stockqty="{{ $product->qty }}" data-price="{{ $product->price }}" data-unitid={{ $product->base_unit_id }}  data-unitname="{{ $product->unit_name }}" >{{ $product->name }}</option>
                                                 @endforeach
                                                 @endif
                                                 </select>
                                             </td>
-                                            <td class="product-code_tx_1 text-center" id="products_code_1" data-row="1"></td>
-                                            <td class="unit-name_tx_1 text-center" id="products_unit_1" data-row="1"></td>
-                                            <td class="available-qty_tx_1 text-center" id="products_available_qty_1" data-row="1"></td>
-                                            <td><input type="text" class="fcs form-control qty text-center" name="products[1][qty]" id="products_qty_1" value="1" data-row="1"></td>
-                                            <td><input type="text" class="fcs form-control free_qty text-center" name="products[1][free_qty]" id="products_free_qty_1" value="0" data-row="1"></td>
-                                            <td><input type="text" class="fcs text-right form-control net_unit_price" name="products[1][net_unit_price]" id="products_net_unit_price_1" data-row="1"></td>
-                                            <td class="tax text-right" id="tax_tx_1" data-row="1"></td>
-                                            <td class="sub-total text-right" id="sub_total_tx_1" data-row="1"></td>
+                                            <td class="unit_name_1 text-center" data-row="1"></td>
+                                            <td class="stock_qty_1 text-center" data-row="1"></td>
+                                            <td><input type="text" class="fcs form-control qty text-center" name="products[1][qty]" id="products_1_qty" value="1" data-row="1"></td>
+                                            <td><input type="text" readonly class="fcs text-right form-control net_unit_price" name="products[1][net_unit_price]" id="products_1_net_unit_price" data-row="1"></td>
+                                            <td class="subtotal_1 text-right" data-row="1"></td>
                                             <td class="text-center"></td>
-                                            <input type="hidden" class="product-id_vl_1" name="products[1][id]" id="products_id_vl_1" data-row="1">
-                                            <input type="hidden" class="product-code_vl_1" name="products[1][code]" id="products_code_vl_1" data-row="1">
-                                            <input type="hidden" class="batch-no_vl_1" name="products[1][batch_no]" id="products_batch_no_1" data-row="1">
-                                            <input type="hidden" class="product-unit_vl_1" name="products[1][unit]"  id="products_unit_vl_1" data-row="1">
-                                            <input type="hidden" class="stock-qty_vl_1" name="products[1][stock_qty]" id="products_stock_qty_1"  data-row="1">
-                                            <input type="hidden" class="free-stock-qty_vl_1" name="products[1][free_stock_qty]" id="products_free_stock_qty_1"  data-row="1">
-                                            <input type="hidden" class="tax-rate" name="products[1][tax_rate]" id="tax_rate_vl_1" data-row="1">
-                                            <input type="hidden" class="tax-value" name="products[1][tax]" id="tax_value_vl_1" data-row="1">
-                                            <input type="hidden" class="subtotal-value" name="products[1][subtotal]" id="subtotal_value_vl_1" data-row="1">
-
-                                        </tr> --}}
+                                            <input type="hidden" class="sale_unit_id" name="products[1][sale_unit_id]"  id="products_1_sale_unit_id" data-row="1">
+                                            <input type="hidden" class="stock_qty" name="products[1][stock_qty]" id="products_1_stock_qty"  data-row="1">
+                                            <input type="hidden" class="subtotal" name="products[1][subtotal]" id="products_1_subtotal" data-row="1">
+                                        </tr>
                                     </tbody>
                                     <tfoot class="bg-primary">
                                         <th colspan="4" class="font-weight-bolder">Total</th>
                                         <th id="total-qty" class="text-center font-weight-bolder">0.00</th>
-                                        <th id="total-free-qty" class="text-center font-weight-bolder">0.00</th>
                                         <th></th>
-                                        <th id="total-tax" class="text-right font-weight-bolder">0.00</th>
                                         <th id="total" class="text-right font-weight-bolder">0.00</th>
                                         <th class="text-center"><button type="button" class="btn btn-success btn-md add-product"><i class="fas fa-plus"></i></button></th>
                                     </tfoot>
                                 </table>
                             </div>
-                            <div class="col-md-12">
-                                <div class="row justify-content-between">
-                                    <x-form.selectbox labelName="Order Tax" name="order_tax_rate" col="col-md-2" class="fcs">
-                                        <option value="0" selected>No Tax</option>
-                                        @if (!$taxes->isEmpty())
-                                            @foreach ($taxes as $tax)
-                                                <option value="{{ $tax->rate }}">{{ $tax->name }}</option>
-                                            @endforeach
-                                        @endif
-                                    </x-form.selectbox>
-
-                                    <div class="form-group col-md-2">
-                                        <label for="order_discount">Order Discount</label>
-                                        <input type="text" class="fcs form-control" name="order_discount" id="order_discount">
-                                    </div>
-                                    <div class="form-group col-md-2">
-                                        <label for="shipping_cost">Shipping Cost</label>
-                                        <input type="text" class="fcs form-control" name="shipping_cost" id="shipping_cost"/>
-                                    </div>
-                                    <div class="form-group col-md-2">
-                                        <label for="labor_cost">Labor Cost</label>
-                                        <input type="text" class="fcs form-control" name="labor_cost" id="labor_cost"/>
-                                    </div>
-
-                                    <x-form.selectbox labelName="Payment Status" name="payment_status" required="required"  col="col-md-2" class="fcs">
-                                        @foreach (PAYMENT_STATUS as $key => $value)
-                                        <option value="{{ $key }}">{{ $value }}</option>
-                                        @endforeach
-                                    </x-form.selectbox>
-                                </div>
-                            </div>
-                            
                             
                             <div class="form-group col-md-12">
                                 <label for="shipping_cost">Note</label>
@@ -193,10 +138,6 @@
                                     <thead class="bg-primary">
                                         <th><strong>Items</strong><span class="float-right" id="item">0(0)</span></th>
                                         <th><strong>Total</strong><span class="float-right" id="subtotal">0.00</span></th>
-                                        <th><strong>Order Tax</strong><span class="float-right" id="order_total_tax">0.00</span></th>
-                                        <th><strong>Order Discount</strong><span class="float-right" id="order_total_discount">0.00</span></th>
-                                        <th><strong>Shipping Cost</strong><span class="float-right" id="shipping_total_cost">0.00</span></th>
-                                        <th><strong>Labor Cost</strong><span class="float-right" id="labor_total_cost">0.00</span></th>
                                         <th><strong>Grand Total</strong><span class="float-right" id="grand_total">0.00</span></th>
                                         <th><strong>SR Commission</strong><span class="float-right" id="sr_commission">0.00</span></th>
                                     </thead>
@@ -204,15 +145,9 @@
                             </div>
                             <div class="col-md-12">
                                 <input type="hidden" name="total_qty">
-                                <input type="hidden" name="total_free_qty">
-                                <input type="hidden" name="total_discount">
-                                <input type="hidden" name="total_tax">
                                 <input type="hidden" name="total_price">
                                 <input type="hidden" name="item">
-                                <input type="hidden" name="order_tax">
                                 <input type="hidden" name="grand_total">
-                                <input type="hidden" name="sr_commission_rate" id="sr_commission_rate">
-                                <input type="hidden" name="total_commission" id="total_commission">
                             </div>
                             <div class="payment col-md-12 d-none">
                                 <div class="row">
@@ -232,12 +167,12 @@
                                         <label for="due_amount">Due Amount</label>
                                         <input type="text" class="fcs form-control" name="due_amount" id="due_amount" readonly>
                                     </div>
-                                    <x-form.selectbox labelName="Payment Method" name="payment_method" onchange="account_list(this.value)" required="required"  col="col-md-4">
+                                    <x-form.selectbox labelName="Payment Method" name="payment_method" onchange="account_list(this.value)" required="required"  col="col-md-4" class="selectpicker">
                                         @foreach (SALE_PAYMENT_METHOD as $key => $value)
                                         <option value="{{ $key }}">{{ $value }}</option>
                                         @endforeach
                                     </x-form.selectbox>
-                                    <x-form.selectbox labelName="Account" name="account_id" required="required"  col="col-md-4" class="fcs"/>
+                                    <x-form.selectbox labelName="Account" name="account_id" required="required"  col="col-md-4" class="fcs selectpicker"/>
                                     <div class="form-group required col-md-4 d-none reference_no">
                                         <label for="reference_no">Reference No</label>
                                         <input type="text" class="fcs form-control" name="reference_no" id="reference_no">
@@ -821,11 +756,11 @@ function account_list(payment_method)
 function orderFrom(value)
 {
     if(value == 1){
-        $('.depo,.depo_dealer').removeClass('d-none');
-        $('.direct_dealer').addClass('d-none');
+        $('.depo').removeClass('d-none');
+        $('.dealer').addClass('d-none');
     }else{
-        $('.depo,.depo_dealer').addClass('d-none');
-        $('.direct_dealer').removeClass('d-none');
+        $('.depo').addClass('d-none');
+        $('.dealer').removeClass('d-none');
     }
 }
 function store_data(){

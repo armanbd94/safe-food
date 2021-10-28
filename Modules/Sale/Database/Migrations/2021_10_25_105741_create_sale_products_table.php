@@ -20,7 +20,7 @@ class CreateSaleProductsTable extends Migration
             $table->unsignedBigInteger('product_id');
             $table->foreign('product_id')->references('id')->on('products');
             $table->float('qty');
-            $table->float('free_qty')->nullable();
+            // $table->float('free_qty')->nullable();
             $table->unsignedBigInteger('sale_unit_id')->nullable();
             $table->foreign('sale_unit_id')->references('id')->on('units');
             $table->double('net_unit_price');

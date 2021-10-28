@@ -35,8 +35,8 @@ class SaleController extends BaseController
             $this->setPageData('Sale Manage','Sale Manage','fab fa-opencart',[['name' => 'Sale Manage']]);
             $data = [
                 'locations'   => DB::table('locations')->where('status', 1)->get(),
-                'depos' => DB::table('depos')->get(),
-                'dealers' => DB::table('dealers')->where('type',2)->get()
+                'depos' => DB::table('depos as d')->leftJoin('locations as a','d.area_id','=','a.id')->select('d.id','d.name','d.mobile_no','a.name as area_name')->get(),
+                'dealers' => DB::table('dealers as d')->leftJoin('locations as a','d.area_id','=','a.id')->select('d.id','d.name','d.mobile_no','a.name as area_name')->get()
             ];
             return view('sale::index',$data);
         }else{
@@ -165,19 +165,17 @@ class SaleController extends BaseController
 
             $products = DB::table('warehouse_product as wp')
             ->join('products as p','wp.product_id','=','p.id')
-            ->leftjoin('taxes as t','p.tax_id','=','t.id')
             ->leftjoin('units as u','p.base_unit_id','=','u.id')
-            ->selectRaw('wp.*,p.name,p.code,p.image,p.base_unit_id,p.base_unit_price as price,p.tax_method,t.name as tax_name,t.rate as tax_rate,u.unit_name,u.unit_code')
+            ->selectRaw('wp.*,p.name,p.base_unit_id,p.base_unit_price,u.unit_name')
             ->where([['wp.warehouse_id',1],['wp.qty','>',0]])
-            ->orderBy('p.name','asc')
+            ->orderBy('p.id','asc')
             ->get();
 
             $data = [
-                'products'       => $products,
-                'taxes'       => Tax::activeTaxes(),
-                'depos' => DB::table('depos')->get(),
-                'dealers' => DB::table('dealers')->where('type',2)->get(),
-                'memo_no'     => 'SINV-'.date('ymd').rand(1,999),
+                'products'  => $products,
+                'depos'     => DB::table('depos as d')->leftJoin('locations as a','d.area_id','=','a.id')->select('d.*','a.name as area_name')->get(),
+                'dealers'   => DB::table('dealers as d')->leftJoin('locations as a','d.area_id','=','a.id')->select('d.*','a.name as area_name')->get(),
+                'memo_no'   => 'SINV-'.date('ymd').rand(1,999),
             ];
             return view('sale::create',$data);
         }else{
@@ -192,7 +190,7 @@ class SaleController extends BaseController
                 //dd($request->all());
                 DB::beginTransaction();
                 try {
-                    $customer = Customer::with('coa')->find($request->customer_id);
+                    $customer  = Customer::with('coa')->find($request->customer_id);
                     $salesmen  = Salesmen::with('coa')->find($request->salesmen_id);
                     $warehouse_id = $request->warehouse_id;
                     $sale_data = [

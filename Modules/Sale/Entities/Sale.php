@@ -16,10 +16,10 @@ use Modules\Setting\Entities\Warehouse;
 
 class Sale extends BaseModel
 {
-    protected $fillable = ['memo_no', 'order_from', 'depo_id', 'dealer_id', 'district_id', 'upazila_id', 'area_id', 'item',
-    'total_qty', 'total_price', 'grand_total', 'previous_due', 'net_total', 'paid_amount', 'due_amount', 'depo_cr',
-    'depo_total_cr', 'dealer_cr', 'dealer_total_cr', 'payment_status', 'payment_method', 'account_id', 'reference_no',
-    'document', 'note', 'sale_date', 'delivery_status', 'delivery_date', 'created_by', 'modified_by' ];
+    protected $fillable = [ 'memo_no', 'order_from', 'depo_id', 'dealer_id', 'district_id', 'upazila_id', 'area_id',
+    'item', 'total_qty', 'total_price', 'grand_total', 'previous_due', 'net_total', 'paid_amount', 'due_amount',
+    'commission_rate', 'total_commission', 'payment_status', 'payment_method', 'account_id', 'reference_no',
+    'document', 'note', 'sale_date', 'delivery_status', 'delivery_date', 'created_by', 'modified_by'];
 
     public function depo()
     {
@@ -28,7 +28,7 @@ class Sale extends BaseModel
 
     public function dealer()
     {
-        return $this->belongsTo(Dealer::class,'dealer_id','id');
+        return $this->belongsTo(Dealer::class,'dealer_id','id')->withDefault(['name'=>'','mobile_no'=>'']);
     }
 
     public function district()
