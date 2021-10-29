@@ -92,48 +92,95 @@
                                         <th class="text-center">Sale Unit</th>
                                         <th class="text-center">Available Qty</th>
                                         <th class="text-center">Qty</th>
-                                        <th class="text-right">Net Sale Unit Price</th>
+                                        <th class="text-right">Price</th>
                                         <th class="text-right">Subtotal</th>
                                         <th class="text-center"><i class="fas fa-trash text-white"></i></th>
                                     </thead>
                                     <tbody>
                                         <tr>
                                             <td class="col-md-3">                                                
-                                                <select name="products[1][id]" id="products_1_id" class="fcs col-md-12 form-control" onchange="setProductDetails(this.value,1)"  data-live-search="true" data-row="1">
+                                                <select name="products[1][id]" id="products_1_id" class="fcs col-md-12 form-control selectpicker"  data-live-search="true" data-row="1">
                                                 @if (!$products->isEmpty())
                                                 <option value="0">Please Select</option>
                                                 @foreach ($products as $product)
-                                                    <option value="{{ $product->product_id }}" data-stockqty="{{ $product->qty }}" data-price="{{ $product->price }}" data-unitid={{ $product->base_unit_id }}  data-unitname="{{ $product->unit_name }}" >{{ $product->name }}</option>
+                                                    <option value="{{ $product->product_id }}" data-stockqty="{{ $product->qty }}" data-price="{{ $product->base_unit_price }}" data-unitid={{ $product->base_unit_id }}  data-unitname="{{ $product->unit_name }}" >{{ $product->name }}</option>
                                                 @endforeach
                                                 @endif
                                                 </select>
                                             </td>
                                             <td class="unit_name_1 text-center" data-row="1"></td>
                                             <td class="stock_qty_1 text-center" data-row="1"></td>
-                                            <td><input type="text" class="fcs form-control qty text-center" name="products[1][qty]" id="products_1_qty" value="1" data-row="1"></td>
-                                            <td><input type="text" readonly class="fcs text-right form-control net_unit_price" name="products[1][net_unit_price]" id="products_1_net_unit_price" data-row="1"></td>
+                                            <td><input type="text" class="fcs form-control qty text-center" onkeyup="calculateRowTotal(this.value,1)" name="products[1][qty]" id="products_1_qty" data-row="1"></td>
+                                            <td class="net_unit_price_1 text-right" data-row="1"></td>
                                             <td class="subtotal_1 text-right" data-row="1"></td>
                                             <td class="text-center"></td>
                                             <input type="hidden" class="sale_unit_id" name="products[1][sale_unit_id]"  id="products_1_sale_unit_id" data-row="1">
                                             <input type="hidden" class="stock_qty" name="products[1][stock_qty]" id="products_1_stock_qty"  data-row="1">
+                                            <input type="hidden" class="net_unit_price" name="products[1][net_unit_price]" id="products_1_net_unit_price" data-row="1">
                                             <input type="hidden" class="subtotal" name="products[1][subtotal]" id="products_1_subtotal" data-row="1">
                                         </tr>
                                     </tbody>
-                                    <tfoot class="bg-primary">
-                                        <th colspan="4" class="font-weight-bolder">Total</th>
-                                        <th id="total-qty" class="text-center font-weight-bolder">0.00</th>
-                                        <th></th>
-                                        <th id="total" class="text-right font-weight-bolder">0.00</th>
-                                        <th class="text-center"><button type="button" class="btn btn-success btn-md add-product"><i class="fas fa-plus"></i></button></th>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="3" class="font-weight-bolder">Total</td>
+                                            <td id="total-qty" class="text-center font-weight-bolder">0.00</td>
+                                            <td></td>
+                                            <td id="total" class="text-right font-weight-bolder">0.00</td>
+                                            <td class="text-center"><button type="button" class="btn btn-success btn-md add-product"><i class="fas fa-plus"></i></button></td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4" rowspan="2">
+                                                <div class="form-group col-md-12 mb-0">
+                                                    <label for="shipping_cost">Note</label>
+                                                    <textarea  class="fcs form-control" name="note" id="note" cols="30" rows="3"></textarea>
+                                                </div>
+                                            </td>
+                                            <td class="text-right font-weight-bolder">Previous Due</td>
+                                            <td><input type="text" class="fcs form-control text-right bg-secondary" name="previous_due" id="previous_due" placeholder="0.00" readonly></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-right font-weight-bolder">Net Total</td>
+                                            <td><input type="text" class="fcs form-control text-right bg-secondary" name="net_total" id="net_total" placeholder="0.00" readonly></td>
+                                        </tr>
+                                        <tr class="commission_row d-none">
+                                            <td colspan="5" class="text-right font-weight-bolder">Commission <span id="commission"></span></td>
+                                            <td>
+                                                <input type="text" class="fcs form-control text-right bg-secondary" name="total_commission" id="total_commission" placeholder="0.00" readonly>
+                                                <input type="hidden" class="fcs form-control" name="commission_rate" id="commission_rate" value="0" readonly>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="5" class="text-right font-weight-bolder">Payable Amount</td>
+                                            <td><input type="text" class="fcs form-control text-right bg-secondary" id="payable_amount" placeholder="0.00" readonly></td>
+                                        </tr>
+                                        <tr class="payment_row d-none">
+                                            <td colspan="4" rowspan="2">
+                                                <div class="row">
+                                                    <x-form.selectbox labelName="Payment Method" name="payment_method" onchange="account_list(this.value)" required="required"  col="col-md-4" class="selectpicker">
+                                                        @foreach (SALE_PAYMENT_METHOD as $key => $value)
+                                                        <option value="{{ $key }}">{{ $value }}</option>
+                                                        @endforeach
+                                                    </x-form.selectbox>
+                                                    <x-form.selectbox labelName="Account" name="account_id" required="required"  col="col-md-4" class="fcs selectpicker"/>
+                                                    <div class="form-group required col-md-4 d-none reference_no">
+                                                        <label for="reference_no">Reference No</label>
+                                                        <input type="text" class="fcs form-control" name="reference_no" id="reference_no">
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-right font-weight-bolder">Paid Amount</td>
+                                            <td><input type="text" class="fcs form-control text-right" name="paid_amount" id="paid_amount" placeholder="0.00"></td>
+                                        </tr>
+                                        <tr class="payment_row d-none">
+                                            <td class="text-right font-weight-bolder">Due Amount</td>
+                                            <td><input type="text" class="fcs form-control bg-secondary text-right" name="due_amount" id="due_amount" placeholder="0.00" readonly></td>
+                                        </tr>
                                     </tfoot>
                                 </table>
                             </div>
                             
-                            <div class="form-group col-md-12">
-                                <label for="shipping_cost">Note</label>
-                                <textarea  class="fcs form-control" name="note" id="note" cols="30" rows="3"></textarea>
-                            </div>
-                            <div class="col-md-12">
+                            
+                            {{-- <div class="col-md-12">
                                 <table class="table table-bordered">
                                     <thead class="bg-primary">
                                         <th><strong>Items</strong><span class="float-right" id="item">0(0)</span></th>
@@ -142,14 +189,14 @@
                                         <th><strong>SR Commission</strong><span class="float-right" id="sr_commission">0.00</span></th>
                                     </thead>
                                 </table>
-                            </div>
+                            </div> --}}
                             <div class="col-md-12">
                                 <input type="hidden" name="total_qty">
                                 <input type="hidden" name="total_price">
                                 <input type="hidden" name="item">
                                 <input type="hidden" name="grand_total">
                             </div>
-                            <div class="payment col-md-12 d-none">
+                            {{-- <div class="payment col-md-12 d-none">
                                 <div class="row">
                                     <div class="form-group col-md-4 required">
                                         <label for="previous_due">Previous Due</label>
@@ -178,7 +225,7 @@
                                         <input type="text" class="fcs form-control" name="reference_no" id="reference_no">
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
 
                             <div class="form-grou col-md-12 text-center pt-5">
                                 <button type="button" class="btn btn-danger btn-sm mr-3" onclick="window.location.replace('{{ route("sale.add") }}');"><i class="fas fa-sync-alt"></i> Reset</button>
@@ -211,102 +258,48 @@
     });
    
 
-    //$(document).fcs(".fcs");
-    //array data depend on warehouse
-    var product_array = [];
-    var product_code  = [];
-    var product_name  = [];
-    var product_qty   = [];
-    var product_free_qty   = [];
-
-    // array data with selection
-    var product_price        = [];
-    var tax_rate             = [];
-    var tax_name             = [];
-    var tax_method           = [];
-    var unit_name            = [];
-    var unit_operator        = [];
-    var unit_operation_value = [];
-
-    //temporary array
-    var temp_unit_name            = [];
-    var temp_unit_operator        = [];
-    var temp_unit_operation_value = [];
-
-    var rowindex;
-    var customer_group_rate;
-    var row_product_price;
-
 $(document).ready(function () {
     $('.date').datetimepicker({format: 'YYYY-MM-DD',ignoreReadonly: true});
 
     //Get customer group rate for special price
-    $('#customer_id').on('change',function(){
-        var id = $(this).val();
-        $.get('{{ url("customer/group-data") }}/'+id,function(data){
-            customer_group_rate = (data/100);
-        });
-        $.get('{{ url("customer/previous-balance") }}/'+id,function(data){
-            $('#previous_due').val(parseFloat(data).toFixed(2));
-        });
-    });
-    //Update product qty
-    $('#product_table').on('keyup','.qty',function(){
-        rowindex = $(this).closest('tr').index();
-        let free_qty = $('#product_table tbody tr:nth-child('+(rowindex + 1)+') .free_qty').val();
-        if(parseFloat($(this).val()) == ''){
-            free_qty = 0;
-        }
-        if(parseFloat($(this).val()) < 1 && parseFloat($(this).val()) != ''){
-            $('#product_table tbody tr:nth-child('+(rowindex + 1)+') .qty').val(1);
-            notification('error','Qunatity can\'t be less than 1');
-        }
-        checkQuantity($(this).val(),true,free_qty,rowindex,input=2);
-    });
-
-    //Update product free qty
-    $('#product_table').on('keyup','.free_qty',function(){
-        rowindex = $(this).closest('tr').index();
-        let qty = $('#product_table tbody tr:nth-child('+(rowindex + 1)+') .qty').val();
-        if(parseFloat(qty) == ''){
-            qty = 0;
-        }
-        if(parseFloat($(this).val()) > parseFloat(qty)){
-            console.log(qty);
-            $('#product_table tbody tr:nth-child('+(rowindex + 1)+') .free_qty').val(0);
-        }
-        // checkQuantity(qty,true,$(this).val(),rowindex,input=2);
-    });
-
-    $('#product_table').on('keyup','.net_unit_price',function(){
-        rowindex = $(this).closest('tr').index();
-        if($(this).val() < 1 && $(this).val() != ''){
-            $('#product_table tbody tr:nth-child('+(rowindex + 1)+') .net_unit_price').val(1);
-            notification('error','Net unit price can\'t be less than 1');
+    $('#products_1_id').on('change',function(){
+        let order_from = document.getElementById('order_from').value;
+        if(order_from)
+        {
+            if(order_from == 1)
+            {
+                let depo_id = document.getElementById('depo_id').value;
+                if(depo_id)
+                {
+                    setProductDetails(1);
+                }else{
+                    $('#products_1_id').val('');
+                    $('#products_1_id.selectpicker').selectpicker('refresh');
+                    notification('error','Please at first select depo!');
+                }
+            }else if(order_from == 2)
+            {
+                let dealer_id = document.getElementById('dealer_id').value;
+                if(dealer_id)
+                {
+                    setProductDetails(1);
+                }else{
+                    $('#products_1_id').val('');
+                    $('#products_1_id.selectpicker').selectpicker('refresh');
+                    notification('error','Please at first select dealer!');
+                }
+            }
         }else{
-            product_price[rowindex] = $('#product_table tbody tr:nth-child('+(rowindex + 1)+') .net_unit_price').val();
+            $('#products_1_id').val('');
+            $('#products_1_id.selectpicker').selectpicker('refresh');
+            notification('error','Please at first select order from!');
         }
-        var qty = $('#product_table tbody tr:nth-child('+(rowindex + 1)+') .qty').val();
-        let free_qty = $('#product_table tbody tr:nth-child('+(rowindex + 1)+') .free_qty').val();
-        if(parseFloat($(this).val()) == ''){
-            free_qty = 0;
-        }
-        if(qty > 0){
-            checkQuantity(qty,true,0,rowindex,input=1);
-        }
-        
     });
+
+
 
     //Remove product from cart table
     $('#product_table').on('click','.remove-product',function(){
-        rowindex = $(this).closest('tr').index();
-        product_price.splice(rowindex,1);
-        tax_rate.splice(rowindex,1);
-        tax_name.splice(rowindex,1);
-        tax_method.splice(rowindex,1);
-        unit_name.splice(rowindex,1);
-        unit_operator.splice(rowindex,1);
-        unit_operation_value.splice(rowindex,1);
         $(this).closest('tr').remove();
         calculateTotal();
     });
@@ -314,343 +307,77 @@ $(document).ready(function () {
     //Remove product from cart table
     var count = 1;
     $('#product_table').on('click','.add-product',function(){
-        count++;
-        product_row_add(count);
+        if($('#products_1_id option:selected').val()){
+            count++;
+            product_row_add(count);
+        }else{
+            notification('error','Please select first row product!');
+        }
     });    
     function product_row_add(count){
-        var warehouse_id = document.getElementById('warehouse_id').value;
-        var salesmen_id = document.getElementById('salesmen_id').value;
-        var route_id = document.getElementById('route_id').value;
-        var area_id = document.getElementById('area_id').value;
-        var customer_id = document.getElementById('customer_id').value;
-        if(warehouse_id){
-            if(salesmen_id){
-                if(route_id)
-                {
-                    if(area_id)
-                    {
-                        if(customer_id)
-                        {
-                            $.ajax({
-                                url: '{{ route("sale.warehouse.wise.products") }}',
-                                type: 'POST',
-                                data: {
-                                    _token:_token, warehouse_id: warehouse_id
-                                },
-                                success: function(data) {
-                                    console.log(data);
-                                    var newRow = $('<tr>');
-                                    var cols = '';
-                                    cols += `<td class="product-select-box"><select name="products[${count}][pro_id]" id="product_list_${count}" class="fcs selectpicker col-md-12  products-alls product_details_${count} form-control" onchange="getProductDetails(this,${count})" data-live-search="true" data-row="${count}">
-                                                ${data}
-                                                </select></td>`;
-                                    cols += `<td class="product-code_tx_${count} text-center" id="products_code_${count}" data-row="${count}"></td>`
-                                    cols += `<td class="unit-name_tx_${count} text-center" id="products_unit_${count}" data-row="${count}"></td>`;
-                                    cols += `<td class="available-qty_tx_${count} text-center" id="products_available_qty_${count}" data-row="${count}"></td>`;
-                                    cols += `<td><input type="text" class="fcs form-control qty text-center" name="products[${count}][qty]" id="products_qty_${count}" value="1" data-row="${count}"></td>`;
-                                    cols += `<td><input type="text" class="fcs form-control free_qty text-center" name="products[${count}][free_qty]" id="products_free_qty_${count}" value="0" data-row="${count}"></td>`;
-                                    cols += `<td><input type="text" class="fcs text-right form-control net_unit_price" name="products[${count}][net_unit_price]" id="products_net_unit_price_${count}" data-row="${count}"></td>`;
-                                    cols += `<td class="tax text-right" id="tax_tx_${count}" data-row="${count}"></td>`;
-                                    cols += `<td class="sub-total text-right" id="sub_total_tx_${count}" data-row="${count}"></td>`;
-                                    cols += `<td class="text-center" data-row="${count}"><button type="button" class="btn btn-danger btn-md remove-product"><i class="fas fa-trash"></i></button></td>`;
-                                    cols += `<input type="hidden" class="product-id_vl_${count}" name="products[${count}][id]" id="products_id_vl_${count}" data-row="${count}">`;
-                                    cols += `<input type="hidden" class="product-code_vl_${count}" name="products[${count}][code]" id="products_code_vl_${count}" data-row="${count}">`;
-                                    cols += `<input type="hidden" class="batch-no_vl_${count}" name="products[${count}][batch_no]" id="products_batch_no_${count}"  data-row="${count}">`;
-                                    cols += `<input type="hidden" class="product-unit_vl_${count}" name="products[${count}][unit]" id="products_unit_vl_${count}">`;
-                                    cols += `<input type="hidden" class="stock-qty_vl_${count}" name="products[${count}][stock_qty]" id="products_stock_qty_${count}"  data-row="${count}">`;
-                                    cols += `<input type="hidden" class="free-stock-qty_vl_${count}" name="products[${count}][free_stock_qty]" id="products_free_stock_qty_${count}" data-row="${count}">`;
-                                    cols += `<input type="hidden" class="tax-rate" name="products[${count}][tax_rate]" id="tax_rate_vl_${count}" data-row="${count}">`;
-                                    cols += `<input type="hidden" class="tax-value" name="products[${count}][tax]" id="tax_value_vl_${count}" data-row="${count}">`;
-                                    cols += `<input type="hidden" class="subtotal-value" name="products[${count}][subtotal]" id="subtotal_value_vl_${count}" data-row="${count}">`;
-
-                                    newRow.append(cols);
-                                    $('#product_table tbody').append(newRow);
-                                    $('#product_table .selectpicker').selectpicker();
-                                }
-                            });
-                        }else{
-                            notification('error','Please select customer!');
-                        }
-                    }else{
-                        notification('error','Please select area!');
-                    }
-                }else{
-                    notification('error','Please select route!');
-                }
-            }else{
-                notification('error','Please select order received by!');
-            }
-           
-        }else{
-            notification('error','Please select depo!');
-        }
-        
-
+        var html =  `<tr>
+                        <td class="col-md-3">                                                
+                            <select name="products[${count}][id]" id="products_${count}_id" class="fcs col-md-12 form-control selectpicker" onchange="setProductDetails(${count})"  data-live-search="true" data-row="${count}">
+                            @if (!$products->isEmpty())
+                            <option value="0">Please Select</option>
+                            @foreach ($products as $product)
+                                <option value="{{ $product->product_id }}" data-stockqty="{{ $product->qty }}" data-price="{{ $product->base_unit_price }}" data-unitid={{ $product->base_unit_id }}  data-unitname="{{ $product->unit_name }}" >{{ $product->name }}</option>
+                            @endforeach
+                            @endif
+                            </select>
+                        </td>
+                        <td class="unit_name_${count} text-center" data-row="${count}"></td>
+                        <td class="stock_qty_${count} text-center" data-row="${count}"></td>
+                        <td><input type="text" class="fcs form-control qty text-center" onkeyup="calculateRowTotal(this.value,${count})" name="products[${count}][qty]" id="products_${count}_qty" data-row="${count}"></td>
+                        <td class="net_unit_price_${count} text-right" data-row="${count}"></td>
+                        <td class="subtotal_${count} text-right" data-row="${count}"></td>
+                        <td class="text-center" data-row="${count}"><button type="button" class="btn btn-danger btn-md remove-product"><i class="fas fa-trash"></i></button></td>
+                        <input type="hidden" class="sale_unit_id" name="products[${count}][sale_unit_id]"  id="products_${count}_sale_unit_id" data-row="${count}">
+                        <input type="hidden" class="stock_qty" name="products[${count}][stock_qty]" id="products_${count}_stock_qty"  data-row="${count}">
+                        <input type="hidden" class="net_unit_price" name="products[${count}][net_unit_price]" id="products_${count}_net_unit_price" data-row="${count}">
+                        <input type="hidden" class="subtotal" name="products[${count}][subtotal]" id="products_${count}_subtotal" data-row="${count}">
+                    </tr>`;
+        $('#product_table tbody').append(html);
+        $('#product_table .selectpicker').selectpicker();
     } 
-});
-  
-    function product_search(data,row) {
-        var customer_id  = $('#customer_id option:selected').val();
-            rowindex = $('#product_list_'+row).closest('tr').index();
-        var temp_data = $('#product_list_'+row).val();
-        if(!customer_id){
-            $('#product_list_'+row).val('');
-            $('#product_table #product_list_'+row+'.selectpicker').selectpicker('refresh');
-            notification('error','Please select customer');
-        }else{        
-            $.ajax({
-                url: '{{ route("sale.product.search.with.id") }}',
-                type: 'POST',
-                data: {
-                    data: data,_token:_token,warehouse_id: document.getElementById('warehouse_id').value
-                },
-                success: function(data) {
-                    console.log(data);
-                    temp_unit_name = data.unit_name.split(',');
-                    $('#products_code_'+row).text(data.code);
-                    $('#products_unit_'+row).text(temp_unit_name[0]);
-                    $('#products_available_qty_'+row).text(data.qty);
-                    $('#products_net_unit_price_'+row).val(data.price);
-                    $('#tax_tx_'+row).text(data.tax_name);
-                    $('#products_id_vl_'+row).val(data.id);
-                    $('#products_code_vl_'+row).val(data.code);
-                    $('#products_batch_no_'+row).val(data.batch_no);
-                    $('#products_unit_vl_'+row).val(temp_unit_name[0]);
-                    $('#products_stock_qty_'+row).val(data.qty);
-                    $('#products_free_stock_qty_'+row).val(data.qty);
-                    $('#tax_rate_vl_'+row).val(data.tax_rate);
-                    
-                    if(product_price[rowindex] == 'undefined'){
-                        product_price.push(parseFloat(data.price) + parseFloat(data.price * customer_group_rate));
-                    }else{
-                        product_price[rowindex] = (parseFloat(data.price) + parseFloat(data.price * customer_group_rate));
-                    }
-                    product_qty.push(data.qty);
-                    product_free_qty.push(data.free_qty);
-                    tax_rate.push(parseFloat(data.tax_rate));
-                    tax_name.push(data.tax_name);
-                    tax_method.push(data.tax_method);
-                    unit_name.push(data.unit_name);
-                    unit_operator.push(data.unit_operator);
-                    unit_operation_value.push(data.unit_operation_value);
-                    checkQuantity(1,true,0,rowindex,input=2);
-                }
-            });
+
+    $('#depo_id').on('change',function(){
+        let commission_rate = $('#depo_id option:selected').data('commission');
+        if (commission_rate) {
+            $('.commission_row').removeClass('d-none');
+            $('#commission').text(`(${commission_rate}%)`);
+            commission_rate > 0 ? $('#commission_rate').val(parseFloat(commission_rate)) : $('#commission_rate').val(0);
+        } else {
+            $('.commission_row').addClass('d-none');
+            $('#commission_rate').val(0);
+            $('#commission').text('');
         }
-    }
-    function checkQuantity(sale_qtyadd,flag,free_qty=0,rowindex,input=2){
-            //alert(rowindex);
-            var sale_qty=0;
-            if(free_qty != 0){
-                sale_qty = (sale_qtyadd + free_qty);            
-            }else{
-                sale_qty = sale_qtyadd;   
-            }
-
-            //console.log(unit_operator);
-            var operator = unit_operator[rowindex].split(',');
-            var operation_value = unit_operation_value[rowindex].split(',');
-
-            if(operator[0] == '*')
-            {
-                total_qty = sale_qty * operation_value[0];
-            }else if(operator[0] == '/'){
-                total_qty = sale_qty / operation_value[0];
-            }
-            if(parseFloat(total_qty) > parseFloat(product_qty[rowindex])){
-                notification('error','Quantity exceed stock quantity');
-                if(flag)
-                {
-                    sale_qty = sale_qty.substring(0,sale_qty.length - 1);
-                    $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.qty').val(sale_qty);
-                }else{
-                    return;
-                }
-            }
-
-            if(!flag)
-            {
-                $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.qty').val(sale_qty);
-            }
-            calculateProductData(sale_qtyadd,rowindex,input);
-    }
-
-    function calculateProductData(quantity,rowindex,input=2){ 
-        unitConversion(rowindex);
-
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.tax-rate').val(tax_rate[rowindex].toFixed(2));
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.unit-name').text(unit_name[rowindex].slice(0,unit_name[rowindex].indexOf(",")));
-
-        if(tax_method[rowindex] == 1)
-        {
-            //alert(row_product_price);
-            var net_unit_price = row_product_price - 0;
-            var tax = net_unit_price * quantity * (tax_rate[rowindex]/100);
-            var sub_total = (net_unit_price * quantity) + tax;
-        }else{
-            var sub_total_unit = row_product_price - 0;
-            var net_unit_price = (100 / (100 + tax_rate[rowindex])) * sub_total_unit;
-            var tax = (sub_total_unit - net_unit_price) * quantity;
-            var sub_total = sub_total_unit * quantity;
-        }
-
-        // $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(6)').text(net_unit_price.toFixed(2));
-        // $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.net-unit-price').val(net_unit_price.toFixed(2));
-        if(input==2){
-            $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.net_unit_price').val(net_unit_price.toFixed(2));
-        }
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(8)').text(tax.toFixed(2));
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.tax-value').val(tax.toFixed(2));
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(9)').text(sub_total.toFixed(2));
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.subtotal-value').val(sub_total.toFixed(2));
-
-        calculateTotal();
-    }
-
-    function unitConversion(rowindex)
-    {
-        var row_unit_operator = unit_operator[rowindex].slice(0,unit_operator[rowindex].indexOf(','));
-        var row_unit_operation_value = unit_operation_value[rowindex].slice(0,unit_operation_value[rowindex].indexOf(','));
-        row_unit_operation_value = parseFloat(row_unit_operation_value);
-        if(row_unit_operator == '*')
-        {
-            row_product_price = product_price[rowindex] * row_unit_operation_value;
-        }else{
-            row_product_price = product_price[rowindex] / row_unit_operation_value;
-        }
-    }
-    function calculateTotal()
-    {
-        //sum of qty
-        var total_qty = 0;
-        var total_free_qty = 0;
-        $('.qty').each(function() {
-            if($(this).val() == ''){
-                total_qty += 0;
-            }else{
-                total_qty += parseFloat($(this).val());
-            }
+        $.get('{{ url("depo/previous-balance") }}/'+$('#depo_id option:selected').val(),function(data){
+            console.log(data);
+            $('#previous_due').val(parseFloat(data).toFixed(2));
         });
-        $('#total-qty').text(total_qty);
-        $('input[name="total_qty"]').val(total_qty);
-
-        //sum offree qty
-        $('.free_qty').each(function() {
-            if($(this).val() == ''){
-                total_free_qty += 0;
-            }else{
-                total_free_qty += parseFloat($(this).val());
-            }
+    });
+    $('#deaaler_id').on('change',function(){
+        let commission_rate = $('#deaaler_id option:selected').data('commission');
+        if (commission_rate) {
+            $('.commission_row').removeClass('d-none');
+            $('#commission').text(`(${commission_rate}%)`);
+            commission_rate > 0 ? $('#commission_rate').val(parseFloat(commission_rate)) : $('#commission_rate').val(0);
+        } else {
+            $('.commission_row').addClass('d-none');
+            $('#commission_rate').val(0);
+            $('#commission').text('');
+        }
+        $.get('{{ url("dealer/previous-balance") }}/'+$('#deaaler_id option:selected').val(),function(data){
+            $('#previous_due').val(parseFloat(data).toFixed(2));
         });
-        $('#total-free-qty').text(total_free_qty);
-        $('input[name="total_free_qty"]').val(total_free_qty);
-
-        //sum of tax
-        var total_tax = 0;
-        $('.tax').each(function() {
-            total_tax += parseFloat($(this).text());
-        });
-        $('#total-tax').text(total_tax.toFixed(2));
-        $('input[name="total_tax"]').val(total_tax.toFixed(2));
-
-        //sum of subtotal
-        var total = 0;
-        $('.sub-total').each(function() {
-            total += parseFloat($(this).text());
-        });
-        $('#total').text(total.toFixed(2));
-        $('input[name="total_price"]').val(total.toFixed(2));
-
-        calculateGrandTotal();
-    }
-    function calculateGrandTotal()
-    {
-        var item           = $('#product_table tbody tr:last').index();
-        var total_qty      = parseFloat($('#total-qty').text());
-        var total_free_qty      = parseFloat($('#total-free-qty').text());
-        var subtotal       = parseFloat($('#total').text());
-        var order_tax      = parseFloat($('select[name="order_tax_rate"]').val());
-        var order_discount = parseFloat($('#order_discount').val());
-        var shipping_cost  = parseFloat($('#shipping_cost').val());
-        var labor_cost     = parseFloat($('#labor_cost').val());
-        var sr_commission_rate = $('#sr_commission_rate').val();
-        if(!order_discount){
-            order_discount = 0.00;
-        }
-        if(!shipping_cost){
-            shipping_cost = 0.00;
-        }
-        if(!labor_cost){
-            labor_cost = 0.00;
-        }
-        if(!sr_commission_rate){
-            sr_commission_rate = 0.00;
-        }
-
-
-        item = ++item + '(' + (total_qty+total_free_qty) + ')';
-        order_tax = (subtotal - order_discount) * (order_tax / 100);
-        var grand_total = (subtotal + order_tax + shipping_cost + labor_cost) - order_discount;
-        var previous_due = parseFloat($('#previous_due').val());
-        var net_total = grand_total + previous_due;
-        var total_commission = (subtotal - order_discount) * (sr_commission_rate/100);
-        $('#item').text(item);
-        $('input[name="item"]').val($('#product_table tbody tr:last').index() + 1);
-        $('#subtotal').text(subtotal.toFixed(2));
-        $('#order_total_tax').text(order_tax.toFixed(2));
-        $('input[name="order_tax"]').val(order_tax.toFixed(2));
-        $('#order_total_discount').text(order_discount.toFixed(2));
-        $('#shipping_total_cost').text(shipping_cost.toFixed(2));
-        $('#labor_total_cost').text(labor_cost.toFixed(2));
-        $('#grand_total').text(grand_total.toFixed(2));
-        $('#sr_commission').text(total_commission.toFixed(2));
-        $('input[name="grand_total"]').val(grand_total.toFixed(2));
-        $('input[name="net_total"]').val(net_total.toFixed(2));
-        $('input[name="net_total"]').val(net_total.toFixed(2));
-        $('input[name="total_commission"]').val(total_commission.toFixed(2));
-        if($('#payment_status option:selected').val() == 1)
-        {
-            $('#paid_amount').val(net_total.toFixed(2));
-            $('#due_amount').val(parseFloat(0).toFixed(2));
-        }else if($('#payment_status option:selected').val() == 2){
-            var paid_amount = $('#paid_amount').val();
-            $('#due_amount').val(parseFloat(net_total-paid_amount).toFixed(2));
-        }else{
-            $('#due_amount').val(parseFloat(net_total).toFixed(2));
-        }
-    }
-
-    $('input[name="order_discount"]').on('input',function(){
-        if(parseFloat($(this).val()) > parseFloat($('input[name="grand_total"]').val()))
-        {
-            notification('error','Order discount can\'t exceed grand total amount');
-            $('input[name="order_discount"]').val(parseFloat(0));
-        }
-        calculateGrandTotal();
-
-    });
-    $('input[name="shipping_cost"]').on('input',function(){
-        calculateGrandTotal();
-    });
-    $('input[name="labor_cost"]').on('input',function(){
-        calculateGrandTotal();
-    });
-    $('select[name="order_tax_rate"]').on('change',function(){
-        calculateGrandTotal();
-    });
-
-    $('#salesmen_id').on('change',function(){
-        $('#sr_commission_rate').val($('#salesmen_id option:selected').data('cpr'));
     });
     $('#payment_status').on('change',function(){
         if($(this).val() != 3){
-            $('.payment').removeClass('d-none');
-            $('#paid_amount').val($('input[name="net_total"]').val());
-            $('#due_amount').val(parseFloat(0).toFixed(2));
+            $('.payment_row').removeClass('d-none');
         }else{
             $('#paid_amount').val(0);
-            $('#due_amount').val(parseFloat($('input[name="net_total"]').val()).toFixed(2));
-            $('.payment').addClass('d-none');
+            $('.payment_row').addClass('d-none');
         }
     });
 
@@ -663,81 +390,114 @@ $(document).ready(function () {
     });
 
     $('#paid_amount').on('input',function(){
-        var payable_amount = parseFloat($('input[name="net_total"]').val());
+        var payable_amount = parseFloat($('#payable_amount').val());
         var paid_amount = parseFloat($(this).val());
         
         if(paid_amount > payable_amount){
             $('#paid_amount').val(payable_amount.toFixed(2));
-            notification('error','Paid amount cannot be bigger than net total amount');
+            paid_amount = payable_amount;
+            notification('error','Paid amount cannot be bigger than payable amount');
         }
-        $('#due_amount').val((payable_amount - parseFloat($('#paid_amount').val())).toFixed(2));
+        $('#due_amount').val(parseFloat(payable_amount - paid_amount).toFixed(2));
         
     });
+});
 
+function setProductDetails(row)
+{
+    let unit_id = $(`#products_${row}_id option:selected`).data('unitid');
+    let unit_name = $(`#products_${row}_id option:selected`).data('unitname');
+    let price = $(`#products_${row}_id option:selected`).data('price');
+    let stock_qty = $(`#products_${row}_id option:selected`).data('stockqty');
 
-function getProductDetails(value,rowindex){
-    // alert($(value).val());
-    product_search($(value).val(),rowindex);
+    $(`.unit_name_${row}`).text(unit_name);
+    $(`.stock_qty_${row}`).text(stock_qty);
+    $(`.net_unit_price_${row}`).text(parseFloat(price));
+    $(`#products_${row}_sale_unit_id`).val(unit_id);
+    $(`#products_${row}_stock_qty`).val(stock_qty);
+    $(`#products_${row}_net_unit_price`).val(price);
+}
 
-}    
-function loadProduct(warehouse_id=null,rowcount){
+function calculateRowTotal(qty,row)
+{
+    let price = parseFloat($(`#products_${row}_net_unit_price`).val());
+    if(parseFloat(qty) < 1 || parseFloat(qty) == ''){
+        qty = 1;
+        $(`#products_${row}_qty`).val(qty);
+        $(`.subtotal_${row}`).text(qty * price);
+        $(`#products_${row}_subtotal`).val(qty * price);
+        notification('error','Qunatity can\'t be less than 1');
+    }else{
+        $(`.subtotal_${row}`).text(qty * price);
+        $(`#products_${row}_subtotal`).val(qty * price);
+    }
+    calculateTotal();
+}
 
-    $.ajax({
-        url:"{{url('sale/product-select-search')}}",
-        type: 'post',
-        data: { _token: _token,warehouse_id:warehouse_id},
-        success: function( data ) {
-            var html = `<option value="">Select Please</option>`;
-            $.each(data, function(key, value) {
-                html += '<option value="'+ value.id +'">'+ value.label +'</option>';
-            });
-
-            $('#product_table #product_list_'+rowcount).empty().html(html);
-            // $('#product_table .products-alls').selectpicker();
-            $('#product_table #product_list_'+rowcount+'.selectpicker').selectpicker('refresh');
-        },
-        error: function (xhr, ajaxOption, thrownError) {
-            console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
+function calculateTotal()
+{
+    //sum of qty
+    var total_qty = 0;
+    $('.qty').each(function() {
+        if($(this).val() == ''){
+            total_qty += 0;
+        }else{
+            total_qty += parseFloat($(this).val());
         }
     });
-}
+    $('#total-qty').text(total_qty);
+    $('input[name="total_qty"]').val(total_qty);
 
-function getAreaList(dealer_id){
-    $.ajax({
-        url:"{{ url('dealer-area-list') }}/"+dealer_id,
-        type:"GET",
-        dataType:"JSON",
-        success:function(data){
-            console.log(data);
-            html = `<option value="">Select Please</option>`;
-            $.each(data, function(key, value) {
-                html += '<option value="'+ key +'">'+ value +'</option>';
-            });
-
-            $('#area_id').empty().append(html);
-            $('#area_id.selectpicker').selectpicker('refresh');
-        },
+    //sum of subtotal
+    var total = 0;
+    $('.subtotal').each(function() {
+        total += parseFloat($(this).val());
     });
+    $('#total').text(total.toFixed(2));
+    $('input[name="total_price"]').val(total.toFixed(2));
+
+    var item           = $('#product_table tbody tr:last').index()+1;
+    $('#item').text(item + '(' + total_qty + ')');
+    $('input[name="item"]').val(item);
+    calculateNetTotal();
 }
-function customer_list(area_id)
+function calculateNetTotal()
 {
-    $.ajax({
-        url:"{{ url('customer-list') }}",
-        type:"POST",
-        data:{area_id:area_id,_token:_token},
-        dataType:"JSON",
-        success:function(data){
-            html = `<option value="">Select Please</option>`;
-            $.each(data, function(key, value) {
-                html += `<option value="${value.id}">${value.name} - ${value.mobile} (${value.shop_name})</option>`;
-            });
-            $('#customer_id').empty().append(html);
-            $('#customer_id.selectpicker').selectpicker('refresh');
-      
-        },
-    });
+    
+    var grand_total  = parseFloat($('#total').text());
+    var previous_due = parseFloat($('#previous_due').val());
+    var net_total = grand_total + previous_due;
+    
+    var commission_rate = $('#commission_rate').val();
+    if(!commission_rate){
+        commission_rate = 0;
+    }
+    var total_commission = grand_total * (commission_rate/100);
+    var payable_amount = net_total - total_commission;
 
+   
+    $('input[name="grand_total"]').val(grand_total.toFixed(2));
+    $('input[name="net_total"]').val(net_total.toFixed(2));
+    $('input[name="total_commission"]').val(total_commission.toFixed(2));
+    $('#payable_amount').val(payable_amount.toFixed(2));
+
+    var paid_amount =parseFloat($('#paid_amount').val());
+    if(!paid_amount)
+    {
+        paid_amount = 0;
+    }
+    // if($('#payment_status option:selected').val() == 1)
+    // {
+    //     $('#paid_amount').val(net_total.toFixed(2));
+    //     $('#due_amount').val(parseFloat(0).toFixed(2));
+    // }else if($('#payment_status option:selected').val() == 2){
+    //     var paid_amount = $('#paid_amount').val();
+    //     $('#due_amount').val(parseFloat(net_total-paid_amount).toFixed(2));
+    // }else{
+        $('#due_amount').val(parseFloat(payable_amount - paid_amount).toFixed(2));
+    // }
 }
+
 function account_list(payment_method)
 {
     $.ajax({
@@ -758,10 +518,18 @@ function orderFrom(value)
     if(value == 1){
         $('.depo').removeClass('d-none');
         $('.dealer').addClass('d-none');
+        $('#dealer_id').val('');
+        $('#dealer_id.selectpicker').selectpicker('refresh');
     }else{
         $('.depo').addClass('d-none');
+        $('#depo_id').val('');
+        $('#depo_id.selectpicker').selectpicker('refresh');
         $('.dealer').removeClass('d-none');
     }
+    $('.commission_row').addClass('d-none');
+    $('#commission_rate').val(0);
+    $('#commission').text('');
+    $('#previous_due').val(0);
 }
 function store_data(){
     var rownumber = $('table#product_table tbody tr:last').index();

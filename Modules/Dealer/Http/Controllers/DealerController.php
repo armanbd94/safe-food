@@ -233,4 +233,10 @@ class DealerController extends BaseController
         ->pluck('name','id');
         return response()->json($dealers);
     }
+
+    public function previous_balance(int $id)
+    {
+        $balance = $this->model->previous_balance($id);
+        return  response()->json($balance);
+    }
 }

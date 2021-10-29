@@ -46,6 +46,18 @@ class Depo extends BaseModel
         return $balance;
     }
 
+    public function previous_balance(int $id)
+    {
+        $data = DB::table('transactions as t')
+                ->leftjoin('chart_of_accounts as coa','t.chart_of_account_id','=','coa.id')
+                ->select(DB::raw("SUM(t.debit) - SUM(t.credit) as balance"),'coa.id','coa.code')
+                ->groupBy('t.chart_of_account_id')
+                ->where('coa.depo_id',$id)
+                ->where('t.approve',1)
+                ->first();
+        return $data ? $data->balance : 0;
+    }
+
     public function coa(){
         return $this->hasOne(ChartOfAccount::class,'depo_id','id');
     }

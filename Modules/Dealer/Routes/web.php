@@ -23,7 +23,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('delete', 'DealerController@delete')->name('delete');
         Route::post('bulk-delete', 'DealerController@bulk_delete')->name('bulk.delete');
         Route::post('change-status', 'DealerController@change_status')->name('change.status');
-
+        Route::get('previous-balance/{id}', 'DealerController@previous_balance');
         //Ledger Route
         Route::get('ledger', 'DealerLedgerController@index')->name('ledger');
         Route::post('ledger/datatable-data', 'DealerLedgerController@get_datatable_data')->name('ledger.datatable.data');

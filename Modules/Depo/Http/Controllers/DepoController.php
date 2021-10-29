@@ -224,4 +224,10 @@ class DepoController extends BaseController
         ->pluck('name','id');
         return response()->json($depos);
     }
+
+    public function previous_balance(int $id)
+    {
+        $balance = $this->model->previous_balance($id);
+        return  response()->json($balance);
+    }
 }

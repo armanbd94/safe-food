@@ -23,7 +23,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('delete', 'DepoController@delete')->name('delete');
         Route::post('bulk-delete', 'DepoController@bulk_delete')->name('bulk.delete');
         Route::post('change-status', 'DepoController@change_status')->name('change.status');
-
+        Route::get('previous-balance/{id}', 'DepoController@previous_balance');
         //Ledger Route
         Route::get('ledger', 'DepoLedgerController@index')->name('ledger');
         Route::post('ledger/datatable-data', 'DepoLedgerController@get_datatable_data')->name('ledger.datatable.data');
