@@ -51,6 +51,10 @@
                                 <input type="text" class="fcs form-control date" name="sale_date" id="sale_date" value="{{ date('Y-m-d') }}" readonly />
                             </div>
                             <div class="form-group col-md-4 required">
+                                <label for="delivery_date">Delivery Date</label>
+                                <input type="text" class="fcs form-control date" name="delivery_date" id="delivery_date" value="{{ date('Y-m-d') }}" readonly />
+                            </div>
+                            <div class="form-group col-md-4 required">
                                 <label for="">Ordered By</label>
                                 <select name="order_from" id="order_from" onchange="orderFrom(this.value)" class="form-control selectpicker">
                                     <option value="">Select Please</option>
@@ -79,12 +83,6 @@
                                 <input type="file" class="form-control fcs" name="document" id="document">
                             </div>
 
-                            <x-form.selectbox labelName="Payment Status" name="payment_status" required="required"  col="col-md-4" class="fcs selectpicker">
-                                @foreach (PAYMENT_STATUS as $key => $value)
-                                <option value="{{ $key }}">{{ $value }}</option>
-                                @endforeach
-                            </x-form.selectbox>
-
                             <div class="col-md-12">
                                 <table class="table table-bordered" id="product_table">
                                     <thead class="bg-primary">
@@ -103,7 +101,7 @@
                                                 @if (!$products->isEmpty())
                                                 <option value="0">Please Select</option>
                                                 @foreach ($products as $product)
-                                                    <option value="{{ $product->product_id }}" data-stockqty="{{ $product->qty }}" data-price="{{ $product->base_unit_price }}" data-unitid={{ $product->base_unit_id }}  data-unitname="{{ $product->unit_name }}" >{{ $product->name }}</option>
+                                                    <option value="{{ $product->id }}" data-stockqty="{{ $product->qty ?? 0 }}" data-price="{{ $product->base_unit_price }}" data-unitid={{ $product->base_unit_id }}  data-unitname="{{ $product->unit_name }}" >{{ $product->name }}</option>
                                                 @endforeach
                                                 @endif
                                                 </select>
@@ -150,26 +148,39 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td colspan="5" class="text-right font-weight-bolder">Payable Amount</td>
-                                            <td><input type="text" class="fcs form-control text-right bg-secondary" id="payable_amount" placeholder="0.00" readonly></td>
-                                        </tr>
-                                        <tr class="payment_row d-none">
-                                            <td colspan="4" rowspan="2">
+                                            <td colspan="4">
                                                 <div class="row">
-                                                    <x-form.selectbox labelName="Payment Method" name="payment_method" onchange="account_list(this.value)" required="required"  col="col-md-4" class="selectpicker">
+                                                    <x-form.selectbox labelName="Payment Status" name="payment_status" required="required"  col="col-md-6 mb-0" class="fcs selectpicker">
+                                                        @foreach (PAYMENT_STATUS as $key => $value)
+                                                        <option value="{{ $key }}">{{ $value }}</option>
+                                                        @endforeach
+                                                    </x-form.selectbox>
+                                                    <x-form.selectbox labelName="Payment Method" name="payment_method" onchange="account_list(this.value)" required="required"  col="col-md-6 payment_row d-none" class="selectpicker">
                                                         @foreach (SALE_PAYMENT_METHOD as $key => $value)
                                                         <option value="{{ $key }}">{{ $value }}</option>
                                                         @endforeach
                                                     </x-form.selectbox>
-                                                    <x-form.selectbox labelName="Account" name="account_id" required="required"  col="col-md-4" class="fcs selectpicker"/>
-                                                    <div class="form-group required col-md-4 d-none reference_no">
+                                                </div>
+                                            </td>
+                                            <td class="text-right font-weight-bolder">Payable Amount</td>
+                                            <td><input type="text" class="fcs form-control text-right bg-secondary" name="payable_amount" id="payable_amount" placeholder="0.00" readonly></td>
+                                        </tr>
+                                        <tr class="payment_row d-none">
+                                            <td colspan="4" rowspan="2">
+                                                <div class="row">
+                                                    <x-form.selectbox labelName="Account" name="account_id" required="required"  col="col-md-6" class="fcs selectpicker"/>
+                                                    <div class="form-group col-md-6 d-none reference_no">
                                                         <label for="reference_no">Reference No</label>
                                                         <input type="text" class="fcs form-control" name="reference_no" id="reference_no">
                                                     </div>
                                                 </div>
                                             </td>
                                             <td class="text-right font-weight-bolder">Paid Amount</td>
-                                            <td><input type="text" class="fcs form-control text-right" name="paid_amount" id="paid_amount" placeholder="0.00"></td>
+                                            <td>
+                                                <div class="form-group mb-0">
+                                                <input type="text" class="fcs form-control text-right" name="paid_amount" id="paid_amount" placeholder="0.00">
+                                                </div>
+                                            </td>
                                         </tr>
                                         <tr class="payment_row d-none">
                                             <td class="text-right font-weight-bolder">Due Amount</td>
@@ -321,7 +332,7 @@ $(document).ready(function () {
                             @if (!$products->isEmpty())
                             <option value="0">Please Select</option>
                             @foreach ($products as $product)
-                                <option value="{{ $product->product_id }}" data-stockqty="{{ $product->qty }}" data-price="{{ $product->base_unit_price }}" data-unitid={{ $product->base_unit_id }}  data-unitname="{{ $product->unit_name }}" >{{ $product->name }}</option>
+                                <option value="{{ $product->id }}" data-stockqty="{{ $product->qty ?? 0 }}" data-price="{{ $product->base_unit_price }}" data-unitid={{ $product->base_unit_id }}  data-unitname="{{ $product->unit_name }}" >{{ $product->name }}</option>
                             @endforeach
                             @endif
                             </select>
@@ -421,13 +432,22 @@ function setProductDetails(row)
 function calculateRowTotal(qty,row)
 {
     let price = parseFloat($(`#products_${row}_net_unit_price`).val());
+    let stock_qty = $(`#products_${row}_stock_qty`).val() ? parseFloat($(`#products_${row}_stock_qty`).val()) : 0;
     if(parseFloat(qty) < 1 || parseFloat(qty) == ''){
         qty = 1;
         $(`#products_${row}_qty`).val(qty);
         $(`.subtotal_${row}`).text(qty * price);
         $(`#products_${row}_subtotal`).val(qty * price);
         notification('error','Qunatity can\'t be less than 1');
-    }else{
+    }
+    // else if(parseFloat(qty) > stock_qty)
+    //     qty = stock_qty;
+    //     $(`#products_${row}_qty`).val(qty);
+    //     $(`.subtotal_${row}`).text(qty * price);
+    //     $(`#products_${row}_subtotal`).val(qty * price);
+    //     notification('error','Qunatity must be less than or equal to stock available quantity');
+    // }
+    else{
         $(`.subtotal_${row}`).text(qty * price);
         $(`#products_${row}_subtotal`).val(qty * price);
     }

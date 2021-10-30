@@ -55,7 +55,7 @@ class SettingController extends BaseController
                 }
 
                 if($request->hasFile('logo')){
-                    $logo    = $this->upload_file($request->file('logo'),LOGO_PATH,$file_name='keapl-logo','public');
+                    $logo    = $this->upload_file($request->file('logo'),LOGO_PATH,$file_name='safe-food-logo','public');
                     if(!empty($request->old_logo)){
                         $this->delete_file($request->old_logo, LOGO_PATH);
                     }
@@ -63,7 +63,7 @@ class SettingController extends BaseController
                 }
 
                 if($request->hasFile('favicon')){
-                    $favicon    = $this->upload_file($request->file('favicon'),LOGO_PATH,$file_name='keapl-favicon','public');
+                    $favicon    = $this->upload_file($request->file('favicon'),LOGO_PATH,$file_name='safe-food-favicon','public');
                     if(!empty($request->old_favicon)){
                         $this->delete_file($request->old_favicon, LOGO_PATH);
                     }

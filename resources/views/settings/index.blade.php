@@ -40,22 +40,24 @@
                                     <x-form.textarea labelName="Address" name="address" value="{{ config('settings.address')}}" required="required" col="col-md-6" placeholder="Enter title"/>
                                     <div class="col-md-6">
                                         <div class="row">
-                                            <div class="form-group col-md-6">
+                                            <div class="form-group col-md-6 text-center">
                                                 <label for="logo" class="form-control-label">Logo</label>
                                                 <div class="col=md-12 px-0  text-center">
                                                     <div id="site_logo">
                                     
                                                     </div>
                                                 </div>
+                                                <div class="text-center"><span class="text-muted">Maximum Allowed File Size 2MB and Format PNG</span></div>
                                                 <input type="hidden" name="old_logo" value="{{ config('settings.logo')}}">
                                             </div>
-                                            <div class="form-group col-md-6">
+                                            <div class="form-group col-md-6 text-center">
                                                 <label for="favicon" class="form-control-label">Favicon</label>
                                                 <div class="col=md-12 px-0  text-center">
                                                     <div id="site_favicon">
                                     
                                                     </div>
                                                 </div>
+                                                <div class="text-center"><span class="text-muted">Maximum Allowed File Size 2MB and Format PNG</span></div>
                                                 <input type="hidden" name="old_favicon" value="{{ config('settings.favicon')}}">
                                             </div>
                                         </div>
@@ -193,14 +195,14 @@ $(document).ready(function(){
 
 
     @if(config('settings.logo'))
-    $('#site_logo img.spartan_image_placeholder').css('display','none');
+    $('#site_logo img').css('display','none');
     $('#site_logo .spartan_remove_row').css('display','none');
     $('#site_logo .img_').css('display','block');
     $('#site_logo .img_').attr('src',"{{ asset('storage/'.LOGO_PATH.config('settings.logo'))}}");
     @endif
 
     @if(config('settings.favicon'))
-    $('#site_favicon img.spartan_image_placeholder').css('display','none');
+    $('#site_favicon img').css('display','none');
     $('#site_favicon .spartan_remove_row').css('display','none');
     $('#site_favicon .img_').css('display','block');
     $('#site_favicon .img_').attr('src',"{{ asset('storage/'.LOGO_PATH.config('settings.favicon'))}}");

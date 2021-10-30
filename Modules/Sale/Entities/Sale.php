@@ -3,34 +3,37 @@
 namespace Modules\Sale\Entities;
 
 use App\Models\BaseModel;
+use Modules\Depo\Entities\Depo;
 use Illuminate\Support\Facades\DB;
+use Modules\Dealer\Entities\Dealer;
 use Modules\Location\Entities\Area;
-use Modules\Location\Entities\Route;
 use Modules\Product\Entities\Product;
 use Modules\Location\Entities\Upazila;
-use Modules\Customer\Entities\Customer;
 use Modules\Location\Entities\District;
-use Modules\SalesMen\Entities\Salesmen;
 use Modules\Setting\Entities\Warehouse;
 
 
 class Sale extends BaseModel
 {
-    protected $fillable = [ 'memo_no', 'order_from', 'depo_id', 'dealer_id', 'district_id', 'upazila_id', 'area_id',
-    'item', 'total_qty', 'total_price', 'grand_total', 'previous_due', 'net_total', 'paid_amount', 'due_amount',
+    protected $fillable = [ 'memo_no', 'order_from', 'warehouse_id','depo_id', 'dealer_id', 'district_id', 'upazila_id', 'area_id',
+    'item', 'total_qty', 'total_price', 'grand_total', 'previous_due', 'net_total', 'payable_amount','paid_amount', 'due_amount',
     'commission_rate', 'total_commission', 'payment_status', 'payment_method', 'account_id', 'reference_no',
     'document', 'note', 'sale_date', 'delivery_status', 'delivery_date', 'created_by', 'modified_by'];
 
     public function depo()
     {
-        return $this->belongsTo(Depo::class,'depo_id','id')->withDefault(['name'=>'','mobile_no'=>'']);
+        return $this->belongsTo(Depo::class,'depo_id','id')->withDefault(['name'=>'','mobile_no'=>'','address'=>'']);
     }
 
     public function dealer()
     {
-        return $this->belongsTo(Dealer::class,'dealer_id','id')->withDefault(['name'=>'','mobile_no'=>'']);
+        return $this->belongsTo(Dealer::class,'dealer_id','id')->withDefault(['name'=>'','mobile_no'=>'','address'=>'']);
     }
 
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class,'warehouse_id','id');
+    }
     public function district()
     {
         return $this->belongsTo(District::class,'district_id','id');
@@ -50,7 +53,7 @@ class Sale extends BaseModel
     public function sale_products()
     {
         return $this->belongsToMany(Product::class,'sale_products','sale_id','product_id','id','id')
-        ->withPivot('id', 'qty','free_qty', 'sale_unit_id', 'net_unit_price', 'total')
+        ->withPivot('id', 'qty', 'sale_unit_id', 'net_unit_price', 'total')
         ->withTimestamps(); 
     }
 
@@ -124,16 +127,22 @@ class Sale extends BaseModel
 
     private function get_datatable_query()
     {
-        $this->column_order = ['s.id','s.memo_no', 's.order_from','s.depo_id','s.dealer_id', 's.item','s.total_price',
-        's.grand_total','s.previous_due','s.net_total', 's.paid_amount', 's.due_amount','s.depo_cr',
-        's.depo_total_cr', 's.dealer_cr', 's.dealer_total_cr','s.sale_date', 
-        's.payment_status','s.payment_method','s,delivery_status','s.delivery_date', null];
+        if(permission('sale-bulk-delete'))
+        {
+            $this->column_order = ['s.id','s.id','s.memo_no', 's.order_from',null, 's.area_id','s.upazila_id','d.district_id','s.item',
+            's.grand_total','s.previous_due','s.net_total', 's.commission_rate','s.total_commission','s.payable_amount','s.paid_amount', 's.due_amount',
+            's.sale_date','s.payment_status','s.payment_method','s,delivery_status','s.delivery_date', null];
+        }else{
+            $this->column_order = ['s.id','s.memo_no', 's.order_from',null, 's.area_id','s.upazila_id','d.district_id','s.item',
+            's.grand_total','s.previous_due','s.net_total', 's.commission_rate','s.total_commission','s.payable_amount','s.paid_amount', 's.due_amount',
+            's.sale_date','s.payment_status','s.payment_method','s,delivery_status','s.delivery_date', null];
+        }
 
         $query = DB::table('sales as s')
         ->selectRaw('s.*,dp.name as depo_name,dp.mobile_no as depo_mobile_no,dl.name as dealer_name,dl.mobile_no as dealer_mobile_no,
         d.name as district_name,u.name as upazila_name,a.name as area_name')
         ->leftJoin('depos as dp','s.depo_id','=','dp.id')
-        ->join('dealers as dl','s.dealer_id','=','dl.id')
+        ->leftJoin('dealers as dl','s.dealer_id','=','dl.id')
         ->join('locations as d', 's.district_id', '=', 'd.id')
         ->join('locations as u', 's.upazila_id', '=', 'u.id')
         ->join('locations as a', 's.area_id', '=', 'a.id');
