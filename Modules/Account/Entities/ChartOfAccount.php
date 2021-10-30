@@ -3,10 +3,12 @@
 namespace Modules\Account\Entities;
 
 use App\Models\BaseModel;
+use Modules\Depo\Entities\Depo;
+use Modules\Dealer\Entities\Dealer;
 use Modules\Customer\Entities\Customer;
+use Modules\SalesMen\Entities\Salesmen;
 use Modules\Supplier\Entities\Supplier;
 use Modules\Account\Entities\Transaction;
-use Modules\SalesMen\Entities\Salesmen;
 
 class ChartOfAccount extends BaseModel
 {
@@ -38,13 +40,13 @@ class ChartOfAccount extends BaseModel
     {
         return $this->belongsTo(Supplier::class,'supplier_id','id');
     }
-    public function customer()
+    public function depo()
     {
-        return $this->belongsTo(Customer::class,'customer_id','id');
+        return $this->belongsTo(Depo::class,'depo_id','id');
     }
-    public function salesmen()
+    public function dealer()
     {
-        return $this->belongsTo(Salesmen::class,'salesmen_id','id');
+        return $this->belongsTo(Dealer::class,'dealer_id','id');
     }
 
 

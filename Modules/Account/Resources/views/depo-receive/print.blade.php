@@ -15,8 +15,8 @@
                 <div class="card-toolbar">
                     <!--begin::Button-->
                     <button type="button" class="btn btn-primary btn-sm mr-3" id="print-invoice"> <i class="fas fa-print"></i> Print</button>
-                    @if (permission('supplier-payment-access'))
-                    <a href="{{ url('supplier-payment') }}" class="btn btn-warning btn-sm font-weight-bolder"> 
+                    @if (permission('depo-receive-access'))
+                    <a href="{{ url('depo-receive') }}" class="btn btn-warning btn-sm font-weight-bolder"> 
                         <i class="fas fa-arrow-left"></i> Back</a>
                     @endif
                     <!--end::Button-->
@@ -37,7 +37,7 @@
                                         <tr>
                                             <td width="100%" class="text-center">
                                                 <h3 style="margin:0;">{{ config('settings.title') ? config('settings.title') : env('APP_NAME') }}</h3>
-                                                @if(config('settings.contact_no'))<p style="font-weight: normal;margin:0;"><b>Contact: </b>{{ config('settings.contact_no') }}, @if(config('settings.email'))<b>Email: </b>{{ config('settings.email') }}@endif</p>@endif
+                                                {{-- @if(config('settings.contact_no'))<p style="font-weight: normal;margin:0;"><b>Contact: </b>{{ config('settings.contact_no') }}, @if(config('settings.email'))<b>Email: </b>{{ config('settings.email') }}@endif</p>@endif --}}
                                                 @if(config('settings.address'))<p style="font-weight: normal;margin:0;">{{ config('settings.address') }}</p>@endif
                                                 <p style="font-weight: normal;margin:0;"><b>Date: </b>{{ date('d-M-Y') }}</p>
                                             </td>
@@ -51,7 +51,7 @@
                                             <td width="25%"><b>Voucher No</b></td><td width="5%"><b>:</b></td><td width="70%" class="text-left">{{ $data->voucher_no }}</td>
                                         </tr>
                                         <tr>
-                                            <td width="25%"><b>Name</b></td><td width="5%"><b>:</b></td><td width="70%" class="text-left">{{ $data->coa->customer->name }}</td>
+                                            <td width="25%"><b>Depo Name</b></td><td width="5%"><b>:</b></td><td width="70%" class="text-left">{{ $data->coa->depo->name }}</td>
                                         </tr>
                                         <tr>
                                             <td width="25%"><b>Payment Type</b></td width="5%"><td><b>:</b></td><td width="70%" class="text-left">{{ SALE_PAYMENT_METHOD[$payment_type] }}</td>

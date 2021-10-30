@@ -25,16 +25,10 @@
             <div class="card-body">
                 <!--begin: Datatable-->
                 <div id="kt_datatable_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
-                    <form id="customer-receive-form" method="post">
+                    <form id="dealer-receive-form" method="post">
                         @csrf
                         <div class="row">
-                            <x-form.selectbox labelName="Warehouse" name="warehouse_id" col="col-md-4" required="required" class="selectpicker">
-                                @if (!$warehouses->isEmpty())
-                                @foreach ($warehouses as $id => $name)
-                                    <option value="{{ $id }}" data-name="{{ $name }}">{{ $name }}</option>
-                                @endforeach
-                                @endif
-                            </x-form.selectbox>
+
                             <div class="form-group col-md-4 required">
                                 <label for="voucher_no">Voucher No</label>
                                 <input type="text" class="form-control" name="voucher_no" id="voucher_no" value="{{ $voucher_no }}" readonly />
@@ -44,22 +38,14 @@
                                 <input type="text" class="form-control date" name="voucher_date" id="voucher_date" value="{{ date('Y-m-d') }}" readonly />
                             </div>
                             
-                            <x-form.selectbox labelName="District" name="district_id" col="col-md-4" class="selectpicker"
-                                onchange="getUpazilaList(this.value,2)">
-                                @if (!$districts->isEmpty())
-                                @foreach ($districts as $id => $name)
-                                <option value="{{ $id }}">{{ $name }}</option>
+                            <x-form.selectbox labelName="Dealer" name="dealer_id"  col="col-md-4" class="selectpicker"
+                                onchange="dueAmount(this.value)">
+                                @if (!$dealers->isEmpty())
+                                @foreach ($dealers as $value)
+                                <option value="{{ $value->id }}">{{ $value->name.' - '.$value->mobile_no.' | '.$value->district_name.' - '.$value->area_name }}</option>
                                 @endforeach
                                 @endif
                             </x-form.selectbox>
-
-                            <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-4" class="selectpicker" onchange="getRouteList(this.value,2)"/>
-    
-                            <x-form.selectbox labelName="Route" name="route_id" col="col-md-4" class="selectpicker" onchange="getAreaList(this.value,2)"/>
-    
-                            <x-form.selectbox labelName="Area" name="area_id" col="col-md-4" class="selectpicker" onchange="customer_list(2)"/>
-
-                            <x-form.selectbox labelName="Customer" name="customer_id" onchange="dueAmount(this.value)" required="required" col="col-md-4" class="selectpicker" />
 
                             <div class="form-group col-md-4">
                                 <label for="due_amount">Due Amount</label>
@@ -101,19 +87,19 @@ $(document).on('change', '#payment_type', function () {
         type: "POST",
         data: { payment_method: $('#payment_type option:selected').val(),_token: _token},
         success: function (data) {
-            $('#customer-receive-form #account_id').html('');
-            $('#customer-receive-form #account_id').html(data);
-            $('#customer-receive-form #account_id.selectpicker').selectpicker('refresh');
+            $('#dealer-receive-form #account_id').html('');
+            $('#dealer-receive-form #account_id').html(data);
+            $('#dealer-receive-form #account_id.selectpicker').selectpicker('refresh');
         },
         error: function (xhr, ajaxOption, thrownError) {
             console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
         }
     });
 });
-function dueAmount(customer_id)
+function dueAmount(dealer_id)
 {
     $.ajax({
-        url: "{{url('customer/previous-balance')}}/"+customer_id,
+        url: "{{url('dealer/previous-balance')}}/"+dealer_id,
         type: "GET",
         dataType: "JSON",
         success: function (data) {
@@ -124,85 +110,11 @@ function dueAmount(customer_id)
         }
     });
 }
-function customer_list()
-{
-    let district_id = document.getElementById('district_id').value;
-    let upazila_id = document.getElementById('upazila_id').value;
-    let route_id = document.getElementById('route_id').value;
-    let area_id = document.getElementById('area_id').value;
-    $.ajax({
-        url:"{{ url('customer-list') }}",
-        type:"POST",
-        data:{district_id:district_id,upazila_id:upazila_id,route_id:route_id,area_id:area_id,_token:_token},
-        dataType:"JSON",
-        success:function(data){
-            html = `<option value="">Select Please</option>`;
-            $.each(data, function(key, value) {
-                html += `<option value="${value.id}">${value.name} - ${value.mobile} (${value.shop_name})</option>`;
-            });
 
-            $('#customer-receive-form #customer_id').empty().append(html);
-            $('#customer-receive-form #customer_id.selectpicker').selectpicker('refresh');
-            
-        },
-    });
-}
-function getUpazilaList(district_id){
-    $.ajax({
-        url:"{{ url('district-id-wise-upazila-list') }}/"+district_id,
-        type:"GET",
-        dataType:"JSON",
-        success:function(data){
-            html = `<option value="">Select Please</option>`;
-            $.each(data, function(key, value) {
-                html += '<option value="'+ key +'">'+ value +'</option>';
-            });
-
-            $('#customer-receive-form #upazila_id').empty().append(html);
-            $('.selectpicker').selectpicker('refresh');
-      
-        },
-    });
-}
-function getRouteList(upazila_id){
-    $.ajax({
-        url:"{{ url('upazila-id-wise-route-list') }}/"+upazila_id,
-        type:"GET",
-        dataType:"JSON",
-        success:function(data){
-            html = `<option value="">Select Please</option>`;
-            $.each(data, function(key, value) {
-                html += '<option value="'+ key +'">'+ value +'</option>';
-            });
-
-            $('#customer-receive-form #route_id').empty().append(html);
-            $('.selectpicker').selectpicker('refresh');
-            
-        },
-    });
-}
-
-function getAreaList(route_id){
-    $.ajax({
-        url:"{{ url('route-id-wise-area-list') }}/"+route_id,
-        type:"GET",
-        dataType:"JSON",
-        success:function(data){
-            html = `<option value="">Select Please</option>`;
-            $.each(data, function(key, value) {
-                html += '<option value="'+ key +'">'+ value +'</option>';
-            });
-
-            $('#customer-receive-form #area_id').empty().append(html);
-            $('.selectpicker').selectpicker('refresh');
-      
-        },
-    });
-}
 function store_data(){
-    let form = document.getElementById('customer-receive-form');
+    let form = document.getElementById('dealer-receive-form');
     let formData = new FormData(form);
-    let url = "{{url('customer-receive')}}";
+    let url = "{{url('dealer-receive')}}";
     $.ajax({
         url: url,
         type: "POST",
@@ -218,22 +130,22 @@ function store_data(){
             $('#save-btn').removeClass('spinner spinner-white spinner-right');
         },
         success: function (data) {
-            $('#customer-receive-form').find('.is-invalid').removeClass('is-invalid');
-            $('#customer-receive-form').find('.error').remove();
+            $('#dealer-receive-form').find('.is-invalid').removeClass('is-invalid');
+            $('#dealer-receive-form').find('.error').remove();
             if (data.status == false) {
                 $.each(data.errors, function (key, value) {
                     var key = key.split('.').join('_');
-                    $('#customer-receive-form input#' + key).addClass('is-invalid');
-                    $('#customer-receive-form textarea#' + key).addClass('is-invalid');
-                    $('#customer-receive-form select#' + key).parent().addClass('is-invalid');
-                    $('#customer-receive-form #' + key).parent().append(
+                    $('#dealer-receive-form input#' + key).addClass('is-invalid');
+                    $('#dealer-receive-form textarea#' + key).addClass('is-invalid');
+                    $('#dealer-receive-form select#' + key).parent().addClass('is-invalid');
+                    $('#dealer-receive-form #' + key).parent().append(
                         '<small class="error text-danger">' + value + '</small>');
                 });
             } else {
                 notification(data.status, data.message);
                 if (data.status == 'success' && data.supplier_transaction != '') {
 
-                    window.location.replace("{{ url('customer-receive') }}/"+data.customer_transaction+'/'+$('#payment_type option:selected').val());
+                    window.location.replace("{{ url('dealer-receive') }}/"+data.dealer_transaction+'/'+$('#payment_type option:selected').val());
                     
                 }
             }
