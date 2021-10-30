@@ -634,27 +634,22 @@ class SaleController extends BaseController
     
                     if(!$saleData->sale_products->isEmpty())
                     {
-                        
-                        foreach ($saleData->sale_products as  $sale_product) {
-                            $sold_qty = $sale_product->pivot->qty ? $sale_product->pivot->qty : 0;
-                            $sale_unit = Unit::find($sale_product->pivot->sale_unit_id);
-                            if($sale_unit->operator == '*'){
-                                $sold_qty = $sold_qty * $sale_unit->operation_value;
-                            }else{
-                                $sold_qty = $sold_qty / $sale_unit->operation_value;
-                            }
+                        if($saleData->delivery_status == 2){
+                            foreach ($saleData->sale_products as  $sale_product) {
+                                $sold_qty = $sale_product->pivot->qty ? $sale_product->pivot->qty : 0;
 
-                            $warehouse_product = WarehouseProduct::where([
-                                ['warehouse_id', $saleData->warehouse_id],
-                                ['product_id',$sale_product->pivot->product_id]
-                            ])->first();
-                            if($warehouse_product)
-                            {
-                                $warehouse_product->qty += $sold_qty;
-                                $warehouse_product->update();
+                                $warehouse_product = WarehouseProduct::where([
+                                    ['warehouse_id', $saleData->warehouse_id],
+                                    ['product_id',$sale_product->pivot->product_id]
+                                ])->first();
+                                if($warehouse_product)
+                                {
+                                    $warehouse_product->qty += $sold_qty;
+                                    $warehouse_product->update();
+                                }
                             }
                         }
-                        SaleProduct::where('sale_id',$saleData->id)->delete();
+                        $saleData->sale_products()->detach();
                     }
                     Transaction::where(['voucher_no'=>$saleData->memo_no,'voucher_type'=>'INVOICE'])->delete();
     
@@ -696,28 +691,23 @@ class SaleController extends BaseController
         
                         if(!$saleData->sale_products->isEmpty())
                         {
-                            
-                            foreach ($saleData->sale_products as  $sale_product) {
-                                $sold_qty = $sale_product->pivot->qty ? $sale_product->pivot->qty : 0;
-                                $sale_unit = Unit::find($sale_product->pivot->sale_unit_id);
-                                if($sale_unit->operator == '*'){
-                                    $sold_qty = $sold_qty * $sale_unit->operation_value;
-                                }else{
-                                    $sold_qty = $sold_qty / $sale_unit->operation_value;
+                            if($saleData->delivery_status == 2){
+                                foreach ($saleData->sale_products as  $sale_product) {
+                                    $sold_qty = $sale_product->pivot->qty ? $sale_product->pivot->qty : 0;
+
+                                    $warehouse_product = WarehouseProduct::where([
+                                        ['warehouse_id', $saleData->warehouse_id],
+                                        ['product_id',$sale_product->pivot->product_id]
+                                    ])->first();
+                                    if($warehouse_product)
+                                    {
+                                        $warehouse_product->qty += $sold_qty;
+                                        $warehouse_product->update();
+                                    }
+                                    
                                 }
-    
-                                $warehouse_product = WarehouseProduct::where([
-                                    ['warehouse_id', $saleData->warehouse_id],
-                                    ['product_id',$sale_product->pivot->product_id]
-                                ])->first();
-                                if($warehouse_product)
-                                {
-                                    $warehouse_product->qty += $sold_qty;
-                                    $warehouse_product->update();
-                                }
-                                
                             }
-                            SaleProduct::where('sale_id',$saleData->id)->delete();
+                            $saleData->sale_products()->detach(); 
                         }
                         Transaction::where(['voucher_no'=>$saleData->memo_no,'voucher_type'=>'INVOICE'])->delete();
         
@@ -749,11 +739,38 @@ class SaleController extends BaseController
 
     public function delivery_status_update(SaleDeliveryFormRequest $request)
     {
-        $result = $this->model->find($request->sale_id)->update([
-            'delivery_status' => $request->delivery_status,
-            'delivery_date'   => $request->delivery_date,
-        ]);
-        $output  = $this->store_message($result, $request->sale_id);
+        DB::beginTransaction();
+        try {
+            $saleData = $this->model->with('sale_products')->find($request->sale_id);
+            if(!$saleData->sale_products->isEmpty())
+            {
+                if($request->delivery_status == 2){
+                    foreach ($saleData->sale_products as  $sale_product) {
+                        $sold_qty = $sale_product->pivot->qty ? $sale_product->pivot->qty : 0;
+
+                        $warehouse_product = WarehouseProduct::where([
+                            ['warehouse_id', $saleData->warehouse_id],
+                            ['product_id',$sale_product->pivot->product_id]
+                        ])->first();
+                        if($warehouse_product)
+                        {
+                            $warehouse_product->qty -= $sold_qty;
+                            $warehouse_product->update();
+                        }
+                        
+                    }
+                } 
+            }
+            $result = $saleData->update([
+                'delivery_status' => $request->delivery_status,
+                'delivery_date'   => $request->delivery_date,
+            ]);
+            $output  = $this->store_message($result, $request->sale_id);
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollback();
+            $output = ['status' => 'error','message' => $e->getMessage()];
+        }
         return response()->json($output);
     } 
 
