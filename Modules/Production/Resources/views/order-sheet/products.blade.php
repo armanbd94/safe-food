@@ -3,7 +3,7 @@
     <h6>Date: {{ date('d-M-Y') }}</h6>
     <h6>Sheet No.: {{ $sheet_no }}</h6>
     <input type="hidden" name="sheet_no" value="{{ $sheet_no }}">
-    <input type="hidden" name="order_date" value="{{ date('d-M-Y') }}">
+    <input type="hidden" name="order_date" value="{{ date('Y-m-d') }}">
 </div>
 <div class="col-sm-12">
     <table id="dataTable" class="table table-bordered table-hover">

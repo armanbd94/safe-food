@@ -3,6 +3,8 @@
 namespace Modules\Production\Entities;
 
 use App\Models\BaseModel;
+use Modules\Sale\Entities\Sale;
+use Modules\Product\Entities\Product;
 
 
 class OrderSheet extends BaseModel

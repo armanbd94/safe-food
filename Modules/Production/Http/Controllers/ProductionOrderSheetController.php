@@ -19,8 +19,7 @@ class ProductionOrderSheetController extends BaseController
     {
         if(permission('production-order-sheet-access')){
             $this->setPageData('Manage Production','Manage Production','fas fa-industry',[['name' => 'Manage Production']]);
-            $warehouses = DB::table('warehouses')->where('status',1)->pluck('name','id');
-            return view('production::production.index',compact('warehouses'));
+            return view('production::order-sheed.index');
         }else{
             return $this->access_blocked();
         }
@@ -31,18 +30,6 @@ class ProductionOrderSheetController extends BaseController
     {
         if(permission('todays-production-order-sheet-access')){
             $this->setPageData('Today\'s Production Order Sheet','Today\'s Production Order Sheet','fas fa-file',[['name' => 'Today\'s Production Order Sheet']]);
-            // $products = DB::table('sale_products as sp')
-            // ->join('sales as s','sp.sale_id','=','s.id')
-            // ->join('products as p','sp.product_id','=','p.id')
-            // ->leftJoin('warehouse_product as wp','p.id','=','wp.product_id')
-            // ->join('units as bu','sp.sale_unit_id','=','bu.id')
-            // ->join('units as u','p.unit_id','=','u.id')
-            // ->selectRaw('p.name,bu.unit_name as sale_unit,u.unit_name as ctn_size,SUM(sp.qty) as ordered_qty,sp.net_unit_price as price,sp.total,SUM(wp.qty) as stock_qty')
-            // ->groupBy('sp.product_id')
-            // ->whereDate('s.sale_date',date('Y-m-d'))
-            // ->orderBy('p.id','asc')
-            // ->get();
-            // dd($products);
             return view('production::order-sheet.create');
         }else{
             return $this->access_blocked(); 
@@ -51,7 +38,7 @@ class ProductionOrderSheetController extends BaseController
 
     public function generate_production_order_sheet()
     {
-        $sheet_no = 'POS-'.date('ymd');
+        $sheet_no = date('ymd');
         if(DB::table('order_sheets')->where('sheet_no', $sheet_no)->exists())
         {
             return 'exist';
@@ -79,7 +66,7 @@ class ProductionOrderSheetController extends BaseController
     public function store(Request $request)
     {
         if ($request->ajax()) {
-            dd($request->all());
+            // dd($request->all());
             DB::beginTransaction();
             try {
                 $order_sheet = $this->model->create([
@@ -90,6 +77,36 @@ class ProductionOrderSheetController extends BaseController
                     'total' => $request->total, 
                     'total_commission' => $request->total_commission
                 ]);
+                if($order_sheet)
+                {
+                    $orderSheetData = $this->model->with(['products','memos'])->find($order_sheet->id);
+                    if($request->has('products'))
+                    {
+                        $products = [];
+                        foreach ($request->products as $key => $value) {
+                            $products[$value['id']] = [
+                                'stock_qty'    => $value['stock_qty'],
+                                'ordered_qty'  => $value['ordered_qty'],
+                                'required_qty' => $value['required_qty'],
+                                'price'        => $value['price'],
+                                'total'        => $value['total']
+                            ];
+                        }
+                        $orderSheetData->products()->sync($products);
+
+                    }
+                    if($request->has('memos'))
+                    {
+                        $memos = [];
+                        foreach ($request->memos as $key => $value) {
+                            array_push($memos,$value['sale_id']);
+                        }
+                        $orderSheetData->memos()->sync($memos);
+                    }
+                    $output = ['status'=>'success','message'=> 'Product Order Sheet Data has Been Saved Successfully','sheet_id' => $order_sheet->id];
+                }else{
+                    $output = ['status'=>'error','message'=> 'Failed To Save Product Order Sheet Data!'];
+                }
                 DB::commit();
             } catch (\Throwable $th) {
                 DB::rollback();
@@ -100,9 +117,15 @@ class ProductionOrderSheetController extends BaseController
     }
 
 
-    public function show($id)
+    public function show(int $id)
     {
-        return view('production::show');
+        if(permission('production-order-sheet-view')){
+            $this->setPageData('Production Order Sheet Details','Production Order Sheet Details','fas fa-file',[['name' => 'Production Order Sheet Details']]);
+            $order_sheet = $this->model->with(['products','memos'])->find($id);
+            return view('production::order-sheet.details',compact('order_sheet'));
+        }else{
+            return $this->access_blocked(); 
+        }
     }
 
 

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrderSheetMemo extends Model
 {
-    protected $fillable = ['order_sheets_id', 'sale_id'];
+    protected $table = 'order_sheet_memos';
+    protected $fillable = ['order_sheet_id', 'sale_id'];
     
 }
