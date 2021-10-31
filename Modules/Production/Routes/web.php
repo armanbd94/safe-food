@@ -38,4 +38,13 @@ Route::group(['middleware' => ['auth']], function () {
     });
     Route::get('finish-goods', 'FinishGoodsController@index')->name('finish.goods');
     Route::post('finish-goods/datatable-data', 'FinishGoodsController@get_datatable_data')->name('finish.goods.datatable.data');
+
+    Route::get('todays-production-order-sheet', 'ProductionOrderSheetController@create');
+    Route::get('production-order-sheet', 'ProductionOrderSheetController@index')->name('production.order.sheet');
+    Route::group(['prefix' => 'production-order-sheet', 'as'=>'production.order.sheet.'], function () {
+        Route::get('view/{id}', 'ProductionOrderSheetController@show')->name('view');
+        Route::post('store', 'ProductionOrderSheetController@store')->name('store');
+        Route::post('delete', 'ProductionOrderSheetController@delete')->name('delete');
+        Route::get('generate', 'ProductionOrderSheetController@generate_production_order_sheet')->name('generate');
+    });
 });
