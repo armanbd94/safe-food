@@ -108,7 +108,10 @@ class AdjustmentController extends BaseController
             $this->setPageData('Finish Goods Stock','Finish Goods Stock','fas fa-adjust',[['name' => 'Finish Goods Stock']]);
             $data = [
                 'adjustment_no' => 'ADJ-'.date('my').rand(1,999),
-                'warehouses'    => DB::table('warehouses')->where('status',1)->pluck('name','id')
+                'products'   => DB::table('products as p')
+                                ->leftjoin('units as bu','p.base_unit_id','=','bu.id')
+                                ->selectRaw('p.id,p.name,p.base_unit_id,bu.unit_name')
+                                ->get()
             ];
             return view('product::finish-goods-stock.create',$data);
         }else{
@@ -149,7 +152,12 @@ class AdjustmentController extends BaseController
                                 'total_cost'     => $value['subtotal'],
                                 'created_at'     => date('Y-m-d')
                             ];
-
+                            $product = Product::find($value['id']);
+                            if($product)
+                            {
+                                $product->base_unit_qty += $value['base_unit_qty'];
+                                $product->update();
+                            }
                             $warehouse_product = WarehouseProduct::where([
                                 ['warehouse_id', $request->warehouse_id],
                                 ['product_id', $value['id']],

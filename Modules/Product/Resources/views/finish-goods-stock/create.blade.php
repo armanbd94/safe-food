@@ -3,7 +3,6 @@
 @section('title', $page_title)
 
 @push('styles')
-<link rel="stylesheet" href="css/jquery-ui.css" />
 <link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet" type="text/css" />
 @endpush
 
@@ -33,6 +32,7 @@
                     <form action="" id="store_form" method="post" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="update_id">
+                        <input type="hidden" name="warehouse_id" value="1">
                         <div class="row">
                             <div class="form-group col-md-4 required">
                                 <label for="adjustment_no">Adjustment No.</label>
@@ -44,23 +44,6 @@
                                 <input type="text" class="form-control date" name="date" id="date" value="{{ date('Y-m-d') }}"  readonly />
                             </div>
 
-                            <x-form.selectbox labelName="Depo" name="warehouse_id" col="col-md-4" required="required" class="selectpicker">
-                                @if (!$warehouses->isEmpty())
-                                @foreach ($warehouses as $id => $name)
-                                    <option value="{{ $id }}" {{ $id==1 ? 'selected' : '' }}>{{ $name }}</option>
-                                @endforeach
-                                @endif
-                            </x-form.selectbox>
-
-                            <div class="form-group col-md-12">
-                                <label for="product_code_name">Select Product</label>
-                                <div class="input-group mb-3">
-                                    <div class="input-group-prepend">
-                                    <span class="input-group-text" id="basic-addon1"><i class="fas fa-barcode"></i></span>
-                                    </div>
-                                    <input type="text" class="form-control" name="product_code_name" id="product_code_name" placeholder="Please type product code and select...">
-                                </div>
-                            </div>
                             <div class="col-md-12">
                                 <table class="table table-bordered" id="product_table">
                                     <thead class="bg-primary">
@@ -72,13 +55,32 @@
                                         <th class="text-center"><i class="fas fa-trash text-white"></i></th>
                                     </thead>
                                     <tbody>
+                                        <tr>
+                                            <td class="col-md-3">                                                
+                                                <select name="products[1][id]" id="products_1_id" class="fcs col-md-12 form-control selectpicker" onchange="setProductDetails(1)"  data-live-search="true" data-row="1">
+                                                @if (!$products->isEmpty())
+                                                <option value="">Please Select</option>
+                                                @foreach ($products as $product)
+                                                    <option value="{{ $product->id }}" data-unitid={{ $product->base_unit_id }}  data-unitname="{{ $product->unit_name }}" >{{ $product->name }}</option>
+                                                @endforeach
+                                                @endif
+                                                </select>
+                                            </td>
+                                            <td class="unit_name_1 text-center" data-row="1"></td>
+                                            <td><input type="text" class="fcs form-control base_unit_qty base_unit_qty_1 text-center" onkeyup="calculateRowTotal(1)" name="products[1][base_unit_qty]" id="products_1_base_unit_qty" data-row="1"></td>
+                                            <td><input type="text" class="form-control base_unit_cost base_unit_cost_1 text-center" onkeyup="calculateRowTotal(1)" name="products[1][base_unit_cost]" id="products_1_base_unit_cost" data-row="1"></td>
+                                            <td class="subtotal_1 text-right" data-row="1"></td>
+                                            <td class="text-center"></td>
+                                            <input type="hidden" class="base_unit_id" name="products[1][base_unit_id]"  id="products_1_base_unit_id" data-row="1">
+                                            <input type="hidden" class="subtotal" name="products[1][subtotal]" id="products_1_subtotal" data-row="1">
+                                        </tr>
                                     </tbody>
                                     <tfoot class="bg-primary">
                                         <th colspan="2" class="font-weight-bolder">Total</th>
                                         <th id="total-qty" class="text-center font-weight-bolder">0</th>
                                         <th></th>
                                         <th id="total" class="text-right font-weight-bolder">0.00</th>
-                                        <th></th>
+                                        <th class="text-center"><button type="button" class="btn btn-success btn-md add-product"><i class="fas fa-plus"></i></button></th>
                                     </tfoot>
                                 </table>
                             </div>
@@ -93,7 +95,7 @@
                                 <table class="table table-bordered">
                                     <thead class="bg-primary">
                                         <th width="50%"><strong>Items</strong><span class="float-right" id="item">0.00</span></th>
-                                        <th width="50%"><strong>Grand Total</strong><span class="float-right" id="total-cost">0.00</span></th>
+                                        <th width="50%"><strong>Total Cost</strong><span class="float-right" id="total-cost">0.00</span></th>
                                     </thead>
                                 </table>
                             </div>
@@ -119,98 +121,49 @@
 @endsection
 
 @push('scripts')
-<script src="js/jquery-ui.js"></script>
 <script src="js/moment.js"></script>
 <script src="js/bootstrap-datetimepicker.min.js"></script>
 <script>
 $(document).ready(function () {
 
     $('.date').datetimepicker({format: 'YYYY-MM-DD',ignoreReadonly: true});
-    $('#product_code_name').autocomplete({
-        // source: "{{url('product-autocomplete-search')}}",
-        source: function( request, response ) {
-          // Fetch data
-          $.ajax({
-            url:"{{url('barcode/product-autocomplete-search')}}",
-            type: 'post',
-            dataType: "json",
-            data: {
-               _token: _token,
-               search: request.term
-            },
-            success: function( data ) {
-               response( data );
-            }
-          });
-        },
-        minLength: 3,
-        response: function(event, ui) {
-            if (ui.content.length == 1) {
-                var data = ui.content[0].code;
-                $(this).autocomplete( "close" );
-                productSearch(data);
-            };
-        },
-        select: function (event, ui) {
-            // $('.product_search').val(ui.item.value);
-            // $('.product_id').val(ui.item.id);
-            var data = ui.item.code;
-            productSearch(data);
-        },
-    }).data('ui-autocomplete')._renderItem = function (ul, item) {
-        return $("<li class='ui-autocomplete-row'></li>")
-            .data("item.autocomplete", item)
-            .append(item.label)
-            .appendTo(ul);
-    };
 
+
+    var count = 1;
+    $('#product_table').on('click','.add-product',function(){
+        if($('#products_1_id option:selected').val()){
+            count++;
+            product_row_add(count);
+        }else{
+            notification('error','Please select first row product!');
+        }
+    });   
     $('#product_table').on('click','.remove-product',function(){
         $(this).closest('tr').remove();
         calculateGrandTotal();
     });
-
-    var count = 1;
-
-    function productSearch(data) {
-        $.ajax({
-            url: '{{ route("barcode.search.product") }}',
-            type: 'POST',
-            data: {
-                data: data,_token:_token
-            },
-            success: function(data) {
-                var flag = 1;
-                $('.product-code').each(function(i){
-                    if($(this).val() == data.code){
-                        notification('error','This product already added in table!');
-                        flag = 0;
-                    }
-                });
-                $('#product_code_name').val('');
-                if(flag)
-                {
-                    var newRow = $(`<tr>`);
-                    var cols = '';
-                    cols += `<td>`+data.name+` (`+data.code+`)</td>`;
-                    cols += `<td class="text-center">${data.base_unit_name}</td>`;
-                    cols += `<td><input type="text" class="form-control base_unit_qty base_unit_qty_${count} text-center" onkeyup="calculateRowTotal(${count})" value="1" name="products[`+count+`][base_unit_qty]" id="products_`+count+`_base_unit_qty" data-row="${count}"></td>`;
-                    cols += `<td><input type="text" class="form-control base_unit_cost base_unit_cost_${count} text-center" onkeyup="calculateRowTotal(${count})" value="0" name="products[`+count+`][base_unit_cost]" id="products_`+count+`_base_unit_cost" data-row="${count}"></td>`;
-                    cols += `<td class="sub-total sub-total_${count} text-right" data-row="${count}"></td>`;
-                    cols += `<td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-product small-btn"><i class="fas fa-trash"></i></button></td>`;
-                    
-                    cols += `<input type="hidden" class="product-id product-id_${count}" name="products[`+count+`][id]" value="`+data.id+`" data-row="${count}">`;
-                    cols += `<input type="hidden"  name="products[`+count+`][name]" value="`+data.name+`" data-row="${count}">`;
-                    cols += `<input type="hidden" class="product-code product-code_${count}" name="products[`+count+`][code]" value="`+data.code+`" data-row="${count}">`;
-                    cols += `<input type="hidden" class="product-unit product-unit_${count}" name="products[`+count+`][base_unit_id]" value="`+data.base_unit_id+`" data-row="${count}">`;
-                    cols += `<input type="hidden" class="subtotal-value subtotal-value_${count}" name="products[`+count+`][subtotal]" data-row="${count}">`;
-                    newRow.append(cols);
-                    $('#product_table tbody').append(newRow);
-                    calculateRowTotal(count);
-                    count++;
-                }
-                
-            }
-        });
+    function product_row_add(count){
+        var html =  `<tr>
+                        <td class="col-md-3">                                                
+                            <select name="products[${count}][id]" id="products_${count}_id" class="fcs col-md-12 form-control selectpicker" onchange="setProductDetails(${count})"  data-live-search="true" data-row="${count}">
+                            @if (!$products->isEmpty())
+                            <option value="">Please Select</option>
+                            @foreach ($products as $product)
+                                <option value="{{ $product->id }}" data-unitid={{ $product->base_unit_id }}  data-unitname="{{ $product->unit_name }}" >{{ $product->name }}</option>
+                            @endforeach
+                            @endif
+                            </select>
+                        </td>
+                        <td class="unit_name_${count} text-center" data-row="${count}"></td>
+                        <td><input type="text" class="fcs form-control base_unit_qty base_unit_qty_${count} text-center" onkeyup="calculateRowTotal(${count})" name="products[${count}][base_unit_qty]" id="products_${count}_base_unit_qty" data-row="${count}"></td>
+                        <td><input type="text" class="form-control base_unit_cost base_unit_cost_${count} text-center" onkeyup="calculateRowTotal(${count})" name="products[${count}][base_unit_cost]" id="products_${count}_base_unit_cost" data-row="${count}"></td>
+                        <td class="subtotal_${count} text-right" data-row="${count}"></td>
+                        <td class="text-center" data-row="${count}"><button type="button" class="btn btn-danger btn-md remove-product"><i class="fas fa-trash"></i></button></td>
+                        <input type="hidden" class="base_unit_id" name="products[${count}][base_unit_id]"  id="products_${count}_base_unit_id" data-row="${count}">
+                        <input type="hidden" class="subtotal" name="products[${count}][subtotal]" id="products_${count}_subtotal" data-row="${count}">
+                    </tr>`
+        $('#product_table tbody').append(html);
+        $('#product_table .selectpicker').selectpicker();
     }
 });
 
@@ -218,8 +171,8 @@ function calculateRowTotal(row){
 
     let qty = parseFloat($(`#product_table .base_unit_qty_${row}`).val());
     let cost = parseFloat($(`#product_table .base_unit_cost_${row}`).val());
-    if(qty == ''){qty = 0};
-    if(cost == ''){cost = 0};
+    if(!qty){qty = 0};
+    if(!cost){cost = 0};
     if(qty < 0)
     {
         notification('error','Quantity must be greater than 0');
@@ -235,8 +188,8 @@ function calculateRowTotal(row){
     console.log(qty,cost);
     let subtotal = qty * cost;
     console.log(subtotal);
-    $(`#product_table .sub-total_${row}`).text(parseFloat(subtotal).toFixed(2));
-    $(`#product_table .subtotal-value_${row}`).val(subtotal);
+    $(`#product_table .subtotal_${row}`).text(parseFloat(subtotal).toFixed(2));
+    $(`#product_table #products_${row}_subtotal`).val(subtotal);
     calculateGrandTotal();
 }
 
@@ -256,7 +209,7 @@ function calculateGrandTotal()
 
     //sum of subtotal
     var total = 0;
-    $('.subtotal-value').each(function() {
+    $('.subtotal').each(function() {
         total += parseFloat($(this).val());
     });
     $('#total').text(total.toFixed(2));
@@ -271,7 +224,14 @@ function calculateGrandTotal()
     
 
 }
+function setProductDetails(row)
+{
+    let unit_id = $(`#products_${row}_id option:selected`).data('unitid');
+    let unit_name = $(`#products_${row}_id option:selected`).data('unitname');
 
+    $(`.unit_name_${row}`).text(unit_name);
+    $(`#products_${row}_base_unit_id`).val(unit_id);
+}
 
 function store_data(){
     var rownumber = $('table#product_table tbody tr:last').index();

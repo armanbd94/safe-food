@@ -114,9 +114,12 @@ class ProductionController extends BaseController
             $this->setPageData('Add Production','Add Production','fas fa-industry',[['name' => 'Add Production']]);
             $last_batch_no = $this->model->select('batch_no')->orderBy('id','desc')->first();
             $data = [
-                'products'   => DB::table('products')->where('status', 1)->pluck('name','id'),
-                'warehouses' => Warehouse::activeWarehouses(),
-                'batch_no'   => $last_batch_no ? $last_batch_no->batch_no + 1 : '1001'
+                'batch_no'   => $last_batch_no ? $last_batch_no->batch_no + 1 : '1001',
+                'products'   => DB::table('products as p')
+                                ->leftjoin('units as bu','p.base_unit_id','=','bu.id')
+                                ->selectRaw('p.id,p.name,p.base_unit_id,p.base_unit_price,u.unit_name')
+                                ->get(),
+                
             ];
             return view('production::production.create',$data);
         }else{
