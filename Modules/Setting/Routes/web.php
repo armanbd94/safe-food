@@ -28,14 +28,14 @@ Route::group(['middleware' => ['auth']], function () {
     
 
     //Customer Group Routes
-    Route::get('customer-group', 'CustomerGroupController@index')->name('customer.group');
-    Route::group(['prefix' => 'customer-group', 'as'=>'customer.group.'], function () {
-        Route::post('datatable-data', 'CustomerGroupController@get_datatable_data')->name('datatable.data');
-        Route::post('store-or-update', 'CustomerGroupController@store_or_update_data')->name('store.or.update');
-        Route::post('edit', 'CustomerGroupController@edit')->name('edit');
-        Route::post('delete', 'CustomerGroupController@delete')->name('delete');
-        Route::post('bulk-delete', 'CustomerGroupController@bulk_delete')->name('bulk.delete');
-        Route::post('change-status', 'CustomerGroupController@change_status')->name('change.status');
+    Route::get('dealer-group', 'DealerGroupController@index')->name('dealer.group');
+    Route::group(['prefix' => 'dealer-group', 'as'=>'dealer.group.'], function () {
+        Route::post('datatable-data', 'DealerGroupController@get_datatable_data')->name('datatable.data');
+        Route::post('store-or-update', 'DealerGroupController@store_or_update_data')->name('store.or.update');
+        Route::post('edit', 'DealerGroupController@edit')->name('edit');
+        Route::post('delete', 'DealerGroupController@delete')->name('delete');
+        Route::post('bulk-delete', 'DealerGroupController@bulk_delete')->name('bulk.delete');
+        Route::post('change-status', 'DealerGroupController@change_status')->name('change.status');
     });
 
 

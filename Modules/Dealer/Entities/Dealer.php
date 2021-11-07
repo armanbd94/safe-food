@@ -13,7 +13,7 @@ use Modules\Account\Entities\ChartOfAccount;
 class Dealer extends BaseModel
 {
 
-    protected $fillable = ['name', 'mobile_no', 'email', 'district_id', 'upazila_id', 'area_id', 'address', 'commission_rate', 'status', 'created_by', 'modified_by'];
+    protected $fillable = ['name', 'mobile_no', 'email', 'depo_id','district_id', 'upazila_id', 'area_id', 'address', 'commission_rate', 'type','status', 'created_by', 'modified_by'];
 
     protected $hidden = [
         'password',
@@ -73,9 +73,11 @@ class Dealer extends BaseModel
     protected $_name;
     protected $_mobile_no;
     protected $_email;
+    protected $_depo_id;
     protected $_district_id;
     protected $_upazila_id;
     protected $_area_id;
+    protected $_type;
     protected $_status;
 
     public function setName($name)
@@ -93,6 +95,11 @@ class Dealer extends BaseModel
         $this->_email = $email;
     }
 
+    public function setDepoID($depo_id)
+    {
+        $this->_depo_id = $depo_id;
+    }
+
     public function setDistrictID($district_id)
     {
         $this->_district_id = $district_id;
@@ -108,6 +115,11 @@ class Dealer extends BaseModel
         $this->_area_id = $area_id;
     }
 
+    public function setType($type)
+    {
+        $this->_type = $type;
+    }
+
     public function setStatus($status)
     {
         $this->_status = $status;
@@ -116,17 +128,18 @@ class Dealer extends BaseModel
     private function get_datatable_query()
     { 
         if (permission('dealer-bulk-delete')){
-            $this->column_order = ['d.id','d.id', 'd.name', 'd.mobile_no', 'd.email', 'd.district_id', 'd.upazila_id','d.area_id','d.commission_rate',null, 'd.status',null];
+            $this->column_order = ['d.id','d.id', 'd.name', 'd.type','d.mobile_no', 'd.email', 'd.depo_id','d.district_id', 'd.upazila_id','d.area_id','d.commission_rate',null, 'd.status',null];
         }else{
-            $this->column_order = ['d.id', 'd.name', 'd.mobile_no', 'd.email', 'd.district_id', 'd.upazila_id','d.area_id','d.commission_rate',null, 'd.status',null];
+            $this->column_order = ['d.id', 'd.name', 'd.type','d.mobile_no', 'd.email', 'd.depo_id','d.district_id', 'd.upazila_id','d.area_id','d.commission_rate',null, 'd.status',null];
         }
 
         $query = DB::table('dealers as d')
+        ->leftJoin('depos as dp','d.depo_id','=','dp.id')
         ->join('locations as di','d.district_id','=','di.id')
         ->join('locations as u','d.upazila_id','=','u.id')
         ->join('locations as a','d.area_id','=','a.id')
         ->leftjoin('chart_of_accounts as b', 'd.id', '=', 'b.dealer_id')
-        ->selectRaw('d.*,a.name as area_name,di.name as district_name,u.name as upazila_name,
+        ->selectRaw('d.*,dp.name,a.name as area_name,di.name as district_name,u.name as upazila_name,
         ((select ifnull(sum(debit),0) from transactions where chart_of_account_id= b.id AND approve = 1)-(select ifnull(sum(credit),0) from transactions where chart_of_account_id= b.id AND approve = 1)) as balance');
 
         if (!empty($this->_name)) {
@@ -139,6 +152,10 @@ class Dealer extends BaseModel
             $query->where('d.email', 'like', '%' . $this->_email . '%');
         }
 
+        if (!empty($this->_depo_id)) {
+            $query->where('d.depo_id', $this->_depo_id );
+        }
+
         if (!empty($this->_district_id)) {
             $query->where('d.district_id', $this->_district_id );
         }
@@ -147,6 +164,9 @@ class Dealer extends BaseModel
         }
         if (!empty($this->_area_id)) {
             $query->where('d.area_id', $this->_area_id );
+        }
+        if (!empty($this->_type)) {
+            $query->where('d.type', $this->_type );
         }
         if (!empty($this->_status)) {
             $query->where('d.status', $this->_status );

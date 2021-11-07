@@ -46,6 +46,10 @@ class DealerController extends BaseController
                     $this->model->setEmail($request->email);
                 }
                 
+                if (!empty($request->depo_id)) {
+                    $this->model->setDepoID($request->depo_id);
+                }
+                
                 if (!empty($request->district_id)) {
                     $this->model->setDistrictID($request->district_id);
                 }
@@ -54,6 +58,9 @@ class DealerController extends BaseController
                 }
                 if (!empty($request->area_id)) {
                     $this->model->setAreaID($request->area_id);
+                }
+                if (!empty($request->type)) {
+                    $this->model->setType($request->type);
                 }
                 if (!empty($request->status)) {
                     $this->model->setStatus($request->status);
@@ -82,8 +89,10 @@ class DealerController extends BaseController
                     }
                     $row[] = $no;
                     $row[] = $value->name;
+                    $row[] = $value->type == 1 ? 'Depo Dealer' : 'Direct Dealer';
                     $row[] = $value->mobile_no;
                     $row[] = $value->email;
+                    $row[] = $value->depo_name ?? 'N/A';
                     $row[] = $value->district_name;
                     $row[] = $value->upazila_name;
                     $row[] = $value->area_name;
@@ -108,30 +117,48 @@ class DealerController extends BaseController
                 // dd($request->all());
                 DB::beginTransaction();
                 try {
+                    if(!empty($request->update_id))
+                    {
+                        $old_data = $this->model->find($request->update_id);
+                        if($old_data->type == 2)
+                        {
+                            if($old_data->type != $request->type)
+                            {
+                                $dealer_coa = ChartOfAccount::where('dealer_id',$request->update_id)->first();
+                                if($dealer_coa)
+                                {
+                                    Transaction::where('chart_of_account_id',$dealer_coa->id)->delete();
+                                }
+                                $dealer_coa->delete();
+                            }
+                        }
+                    }
                     $collection   = collect($request->validated());
                     $collection   = $this->track_data($collection,$request->update_id);
                     $dealer       = $this->model->updateOrCreate(['id'=>$request->update_id],$collection->all());
-
-                    if(empty($request->update_id))
-                    {
-                        $coa_max_code  = ChartOfAccount::where('level',4)->where('code','like','1020204%')->max('code');
-                        $code          = $coa_max_code ? ($coa_max_code + 1) : '1020204000001';
-                        $head_name     = $dealer->id.'-'.$dealer->name;
-                        $dealer_coa    = ChartOfAccount::create($this->model->coa_data($code,$head_name,$dealer->id));
-                        if(!empty($request->previous_balance))
+                    if($request->type == 2){
+                        if(empty($request->update_id))
                         {
-                            if($dealer_coa){
-                                Transaction::insert($this->model->previous_balance_data($request->previous_balance,$dealer_coa->id,$dealer->name));
+                            $coa_max_code  = ChartOfAccount::where('level',4)->where('code','like','1020204%')->max('code');
+                            $code          = $coa_max_code ? ($coa_max_code + 1) : '1020204000001';
+                            $head_name     = $dealer->id.'-'.$dealer->name;
+                            $dealer_coa    = ChartOfAccount::create($this->model->coa_data($code,$head_name,$dealer->id));
+                            if(!empty($request->previous_balance))
+                            {
+                                if($dealer_coa){
+                                    Transaction::insert($this->model->previous_balance_data($request->previous_balance,$dealer_coa->id,$dealer->name));
+                                }
+                            }
+                        }else{
+                            $new_head_name = $request->update_id.'-'.$request->name;
+                            $dealer_coa = ChartOfAccount::where('dealer_id',$request->update_id)->first();
+                            if($dealer_coa)
+                            {
+                                $dealer_coa->update(['name'=>$new_head_name]);
                             }
                         }
-                    }else{
-                        $new_head_name = $request->update_id.'-'.$request->name;
-                        $dealer_coa = ChartOfAccount::where('dealer_id',$request->update_id)->first();
-                        if($dealer_coa)
-                        {
-                            $dealer_coa->update(['name'=>$new_head_name]);
-                        }
                     }
+                    
                     $output = $this->store_message($dealer, $request->update_id);
                     DB::commit();
                 } catch (\Throwable $th) {
@@ -224,6 +251,14 @@ class DealerController extends BaseController
         }else{
             return response()->json($this->unauthorized());
         }
+    }
+
+    public function depo_wise_dealer_list(int $depo_id)
+    {
+        $dealers = DB::table('dealers')
+        ->where('depo_id',$depo_id)
+        ->pluck('name','id');
+        return response()->json($dealers);
     }
 
     public function area_wise_dealer_list(int $area_id)

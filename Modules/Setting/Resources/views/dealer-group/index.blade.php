@@ -17,8 +17,8 @@
                 </div>
                 <div class="card-toolbar">
                     <!--begin::Button-->
-                    @if (permission('customer-group-add'))
-                    <a href="javascript:void(0);" onclick="showFormModal('Add New Customer Group','Save')" class="btn btn-primary btn-sm font-weight-bolder"> 
+                    @if (permission('dealer-group-add'))
+                    <a href="javascript:void(0);" onclick="showFormModal('Add New Dealer Group','Save')" class="btn btn-primary btn-sm font-weight-bolder"> 
                         <i class="fas fa-plus-circle"></i> Add New</a>
                     @endif
                     <!--end::Button-->
@@ -56,7 +56,7 @@
                             <table id="dataTable" class="table table-bordered table-hover">
                                 <thead class="bg-primary">
                                     <tr>
-                                        @if (permission('customer-group-bulk-delete'))
+                                        @if (permission('dealer-group-bulk-delete'))
                                         <th>
                                             <div class="custom-control custom-checkbox">
                                                 <input type="checkbox" class="custom-control-input" id="select_all" onchange="select_all()">
@@ -66,7 +66,6 @@
                                         @endif
                                         <th>Sl</th>
                                         <th>Group Name</th>
-                                        <th>Percentage</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
@@ -82,7 +81,7 @@
         <!--end::Card-->
     </div>
 </div>
-@include('setting::customer-group.modal')
+@include('setting::dealer-group.modal')
 @endsection
 
 @push('scripts')
@@ -110,7 +109,7 @@
                 zeroRecords: '<strong class="text-danger">No Data Found</strong>'
             },
             "ajax": {
-                "url": "{{route('customer.group.datatable.data')}}",
+                "url": "{{route('dealer.group.datatable.data')}}",
                 "type": "POST",
                 "data": function (data) {
                     data.group_name   = $("#form-filter #group_name").val();
@@ -119,16 +118,16 @@
             },
             "columnDefs": [{
 
-                @if (permission('customer-group-bulk-delete'))
-                "targets": [0,5],
+                @if (permission('dealer-group-bulk-delete'))
+                "targets": [0,4],
                 @else 
-                "targets": [4],
+                "targets": [3],
                 @endif
                 "orderable": false,
                 "className": "text-center"
             },
             {
-                @if (permission('customer-group-bulk-delete'))
+                @if (permission('dealer-group-bulk-delete'))
                 "targets": [1,2,3],
                 @else 
                 "targets": [0,1,2],
@@ -141,7 +140,6 @@
                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'<'float-right'p>>>",
     
             "buttons": [
-                @if (permission('customer-group-report'))
                 {
                     'extend':'colvis','className':'btn btn-secondary btn-sm text-white','text':'Column','columns': ':gt(0)'
                 },
@@ -153,9 +151,11 @@
                     "orientation": "landscape", //portrait
                     "pageSize": "A4", //A3,A5,A6,legal,letter
                     "exportOptions": {
-                        columns: function (index, data, node) {
-                            return table.column(index).visible();
-                        }
+                        @if (permission('dealer-group-bulk-delete'))
+                        columns: ':visible:not(:eq(0),:eq(4))' 
+                        @else 
+                        columns: ':visible:not(:eq(3))' 
+                        @endif
                     },
                     customize: function (win) {
                         $(win.document.body).addClass('bg-white');
@@ -168,9 +168,11 @@
                     "title": "{{ $page_title }} List",
                     "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                     "exportOptions": {
-                        columns: function (index, data, node) {
-                            return table.column(index).visible();
-                        }
+                         @if (permission('dealer-group-bulk-delete'))
+                        columns: ':visible:not(:eq(0),:eq(4))' 
+                        @else 
+                        columns: ':visible:not(:eq(3))' 
+                        @endif
                     }
                 },
                 {
@@ -180,9 +182,11 @@
                     "title": "{{ $page_title }} List",
                     "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                     "exportOptions": {
-                        columns: function (index, data, node) {
-                            return table.column(index).visible();
-                        }
+                         @if (permission('dealer-group-bulk-delete'))
+                        columns: ':visible:not(:eq(0),:eq(4))' 
+                        @else 
+                        columns: ':visible:not(:eq(3))' 
+                        @endif
                     }
                 },
                 {
@@ -194,13 +198,14 @@
                     "orientation": "landscape", //portrait
                     "pageSize": "A4", //A3,A5,A6,legal,letter
                     "exportOptions": {
-                        columns: function (index, data, node) {
-                            return table.column(index).visible();
-                        }
+                         @if (permission('dealer-group-bulk-delete'))
+                        columns: ':visible:not(:eq(0),:eq(4))' 
+                        @else 
+                        columns: ':visible:not(:eq(3))' 
+                        @endif
                     },
                 },
-                @endif 
-                @if (permission('customer-group-bulk-delete'))
+                @if (permission('dealer-group-bulk-delete'))
                 {
                     'className':'btn btn-danger btn-sm delete_btn d-none text-white',
                     'text':'Delete',
@@ -224,7 +229,7 @@
         $(document).on('click', '#save-btn', function () {
             let form = document.getElementById('store_or_update_form');
             let formData = new FormData(form);
-            let url = "{{route('customer.group.store.or.update')}}";
+            let url = "{{route('dealer.group.store.or.update')}}";
             let id = $('#update_id').val();
             let method;
             if (id) {
@@ -242,7 +247,7 @@
             $('#store_or_update_form').find('.error').remove();
             if (id) {
                 $.ajax({
-                    url: "{{route('customer.group.edit')}}",
+                    url: "{{route('dealer.group.edit')}}",
                     type: "POST",
                     data: { id: id,_token: _token},
                     dataType: "JSON",
@@ -252,7 +257,6 @@
                         }else{
                             $('#store_or_update_form #update_id').val(data.id);
                             $('#store_or_update_form #group_name').val(data.group_name);
-                            $('#store_or_update_form #percentage').val(data.percentage);
                            
                             $('#store_or_update_modal').modal({
                                 keyboard: false,
@@ -275,7 +279,7 @@
             let id    = $(this).data('id');
             let name  = $(this).data('name');
             let row   = table.row($(this).parent('tr'));
-            let url   = "{{ route('customer.group.delete') }}";
+            let url   = "{{ route('dealer.group.delete') }}";
             delete_data(id, url, table, row, name);
         });
     
@@ -294,7 +298,7 @@
                     icon: 'warning',
                 });
             }else{
-                let url = "{{route('customer.group.bulk.delete')}}";
+                let url = "{{route('dealer.group.bulk.delete')}}";
                 bulk_delete(ids,url,table,rows);
             }
         }
@@ -304,7 +308,7 @@
             let name   = $(this).data('name');
             let status = $(this).data('status');
             let row    = table.row($(this).parent('tr'));
-            let url    = "{{ route('customer.group.change.status') }}";
+            let url    = "{{ route('dealer.group.change.status') }}";
             change_status(id, url, table, row, name, status);
         });
     

@@ -5,7 +5,7 @@ namespace Modules\Setting\Http\Requests;
 use App\Http\Requests\FormRequest;
 
 
-class CustomerGroupFormRequest extends FormRequest
+class DealerGroupFormRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -15,11 +15,10 @@ class CustomerGroupFormRequest extends FormRequest
     public function rules()
     {
         $rules = [];
-        $rules['group_name'] = ['required','string','unique:customer_groups,group_name'];
-        $rules['percentage'] = ['nullable','numeric'];
+        $rules['group_name'] = ['required','string','unique:dealer_groups,group_name'];
         if(request()->update_id)
         {
-            $rules['group_name'][2] = 'unique:customer_groups,group_name,'.request()->update_id;
+            $rules['group_name'][2] = 'unique:dealer_groups,group_name,'.request()->update_id;
         }
         return $rules;
     }

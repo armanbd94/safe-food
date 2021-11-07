@@ -29,4 +29,5 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('ledger/datatable-data', 'DealerLedgerController@get_datatable_data')->name('ledger.datatable.data');
     });
     Route::get('area-wise-dealer-list/{area_id}', 'DealerController@area_wise_dealer_list');
+    Route::get('depo-wise-dealer-list/{depo_id}', 'DealerController@depo_wise_dealer_list');
 });

@@ -1,5 +1,5 @@
 <div class="modal fade" id="store_or_update_modal" tabindex="-1" role="dialog" aria-labelledby="model-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-md" role="document">
 
       <!-- Modal Content -->
       <div class="modal-content">
@@ -19,7 +19,6 @@
                 <div class="row">
                     <input type="hidden" name="update_id" id="update_id"/>
                     <x-form.textbox labelName="Group Name" name="group_name" required="required" col="col-md-12" placeholder="Enter group name"/>
-                    <x-form.textbox labelName="Percentage(%)" name="percentage" col="col-md-12" placeholder="0.00"/>
                 </div>
             </div>
             <!-- /modal body -->

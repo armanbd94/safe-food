@@ -35,6 +35,13 @@
                         <x-form.textbox labelName="Dealer Name" name="name" col="col-md-3" placeholder="Enter name" />
                         <x-form.textbox labelName="Mobile No." name="mobile_no" col="col-md-3" placeholder="Enter mobile number" />
                         <x-form.textbox labelName="Email" name="email" col="col-md-3" placeholder="Enter email" />
+                        <x-form.selectbox labelName="Depo" name="depo_id" col="col-md-3" class="selectpicker" onchange="getUpazilaList(this.value,1)">
+                            @if (!$depos->isEmpty())
+                                @foreach ($depos as $value)
+                                    <option value="{{ $value->id }}">{{ $value->name }}</option>
+                                @endforeach
+                            @endif
+                        </x-form.selectbox>
                         <x-form.selectbox labelName="District" name="district_id" col="col-md-3" class="selectpicker" onchange="getUpazilaList(this.value,1)">
                             @if (!$districts->isEmpty())
                                 @foreach ($districts as $id => $name)
@@ -45,13 +52,18 @@
                         <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-3" class="selectpicker" onchange="getAreaList(this.value,1)"/>
                         <x-form.selectbox labelName="Area" name="area_id" col="col-md-3" class="selectpicker"/>
 
+                        <x-form.selectbox labelName="Type" name="type" col="col-md-3" class="selectpicker">
+                            <option value="1">Depo Dealer</option>
+                            <option value="2">Direct Dealer</option>
+                        </x-form.selectbox>
+
                         <x-form.selectbox labelName="Status" name="status" col="col-md-3" class="selectpicker">
                             <option value="1">Active</option>
                             <option value="2">Inactive</option>
                         </x-form.selectbox>
 
                         
-                        <div class="col-md-3">
+                        <div class="col-md-9">
                             <div style="margin-top:28px;">     
                                     <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
                                     data-toggle="tooltip" data-theme="dark" title="Reset">
@@ -83,8 +95,10 @@
                                         @endif
                                         <th>Sl</th>
                                         <th>Dealer Name</th>
+                                        <th>Type</th>
                                         <th>Mobile No.</th>
                                         <th>Email</th>
+                                        <th>Depo</th>
                                         <th>District</th>
                                         <th>Upazila</th>
                                         <th>Area</th>
@@ -142,17 +156,19 @@ $(document).ready(function(){
                 data.mobile_no   = $("#form-filter #mobile_no").val();
                 data.email       = $("#form-filter #email").val();
                 data.area_id     = $("#form-filter #area_id").val();
+                data.depo_id = $("#form-filter #depo_id").val();
                 data.district_id = $("#form-filter #district_id").val();
                 data.upazila_id  = $("#form-filter #upazila_id").val();
+                data.type      = $("#form-filter #type").val();
                 data.status      = $("#form-filter #status").val();
                 data._token      = _token;
             }
         },
         "columnDefs": [{
             @if (permission('dealer-bulk-delete'))
-            "targets": [0,11],
+            "targets": [0,13],
             @else
-            "targets": [10],
+            "targets": [12],
             @endif
                 
                 "orderable": false,
@@ -160,25 +176,25 @@ $(document).ready(function(){
             },
             {
                 @if (permission('dealer-bulk-delete'))
-                "targets": [1,2,3,5,6,7,10],
+                "targets": [1,2,3,4,6,7,8,9,12],
                 @else
-                "targets": [0,1,2,4,5,6,9],
+                "targets": [0,1,2,3,5,6,7,8,11],
                 @endif
                 "className": "text-center"
             },
             {
                 @if (permission('dealer-bulk-delete'))
-                "targets": [8,9],
+                "targets": [10,11],
                 @else
-                "targets": [7,8],
+                "targets": [9,10],
                 @endif
                 "className": "text-right"
             },
             {
                 @if (permission('dealer-bulk-delete'))
-                "targets": [9],
+                "targets": [11],
                 @else 
-                "targets": [8],
+                "targets": [10],
                 @endif
                 "orderable": false,
             }
@@ -200,9 +216,9 @@ $(document).ready(function(){
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
                     @if (permission('dealer-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(11))' 
+                    columns: ':visible:not(:eq(0),:eq(13))' 
                     @else 
-                    columns: ':visible:not(:eq(10))' 
+                    columns: ':visible:not(:eq(12))' 
                     @endif
                 },
                 customize: function (win) {
@@ -217,9 +233,9 @@ $(document).ready(function(){
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
                     @if (permission('dealer-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(11))' 
+                    columns: ':visible:not(:eq(0),:eq(13))' 
                     @else 
-                    columns: ':visible:not(:eq(10))' 
+                    columns: ':visible:not(:eq(12))' 
                     @endif
                 }
             },
@@ -231,9 +247,9 @@ $(document).ready(function(){
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
                     @if (permission('dealer-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(11))' 
+                    columns: ':visible:not(:eq(0),:eq(13))' 
                     @else 
-                    columns: ':visible:not(:eq(10))' 
+                    columns: ':visible:not(:eq(12))' 
                     @endif
                 }
             },
@@ -247,9 +263,9 @@ $(document).ready(function(){
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
                     @if (permission('dealer-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(11))' 
+                    columns: ':visible:not(:eq(0),:eq(13))' 
                     @else 
-                    columns: ':visible:not(:eq(10))' 
+                    columns: ':visible:not(:eq(12))' 
                     @endif
                 },
             },
@@ -307,6 +323,8 @@ $(document).ready(function(){
                     if(data.status == 'error'){
                         notification(data.status,data.message)
                     }else{
+                        setDealerType(data.type);
+                        $('#store_or_update_form #type').val(data.type);
                         $('#store_or_update_form #update_id').val(data.id);
                         $('#store_or_update_form #name').val(data.name);
                         $('#store_or_update_form #mobile_no').val(data.mobile_no);
@@ -315,6 +333,7 @@ $(document).ready(function(){
                         $('#store_or_update_form #address').val(data.address);
                         $('#store_or_update_form #commission_rate').val(data.commission_rate);
                         $('#store_or_update_form .pbalance').addClass('d-none');
+                        $('#store_or_update_form #depo_id').val(data.depo_id);
                         $('#store_or_update_form .selectpicker').selectpicker('refresh');
 
                         getUpazilaList(data.district_id,2,data.upazila_id);
@@ -452,6 +471,18 @@ function getAreaList(upazila_id,selector,area_id=''){
       
         },
     });
+}
+
+function setDealerType(value)
+{
+    value == 1 ? $('#store_or_update_form .depo').removeClass('d-none') : $('#store_or_update_form .depo').addClass('d-none');
+}
+
+function setDistrictID(district_id)
+{
+    $('#store_or_update_form #district_id').val(district_id);
+    $('#store_or_update_form #district_id.selectpicker').selectpicker('refresh');
+    getUpazilaList(district_id,2);
 }
 
 function showDealerFormModal(modal_title, btn_text) {

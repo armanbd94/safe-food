@@ -4,9 +4,9 @@ namespace Modules\Setting\Entities;
 
 use App\Models\BaseModel;
 
-class CustomerGroup extends BaseModel
+class DealerGroup extends BaseModel
 {
-    protected $fillable = [ 'group_name', 'percentage', 'status', 'created_by', 'updated_by'];
+    protected $fillable = [ 'group_name', 'status', 'created_by', 'updated_by'];
 
     /******************************************
      * * * Begin :: Custom Datatable Code * * *
@@ -25,9 +25,9 @@ class CustomerGroup extends BaseModel
     {
         //set column sorting index table column name wise (should match with frontend table header)
         if (permission('customer-group-bulk-delete')){
-            $this->column_order = [null,'id','group_name', 'percentage','status',null];
+            $this->column_order = [null,'id','group_name', 'status',null];
         }else{
-            $this->column_order = ['id','group_name', 'percentage','status',null];
+            $this->column_order = ['id','group_name', 'status',null];
         }
         
         $query = self::toBase();

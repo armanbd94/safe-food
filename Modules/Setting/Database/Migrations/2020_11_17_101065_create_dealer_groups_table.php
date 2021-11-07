@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateCustomerGroupsTable extends Migration
+class CreateDealerGroupsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,9 @@ class CreateCustomerGroupsTable extends Migration
      */
     public function up()
     {
-        Schema::create('customer_groups', function (Blueprint $table) {
+        Schema::create('dealer_groups', function (Blueprint $table) {
             $table->id();
             $table->string('group_name')->unique();
-            $table->float('percentage')->nullable();
             $table->enum('status',['1','2'])->default('1')->comment="1=active,2=inactive";
             $table->string('created_by')->nullable();
             $table->string('modified_by')->nullable();
