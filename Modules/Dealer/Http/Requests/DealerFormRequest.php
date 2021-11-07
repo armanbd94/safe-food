@@ -18,6 +18,12 @@ class DealerFormRequest extends FormRequest
         $this->rules['district_id']      = ['required'];
         $this->rules['upazila_id']       = ['required'];
         $this->rules['area_id']          = ['required'];
+        $this->rules['type']             = ['required'];
+        if(request()->type == 1){
+            $this->rules['depo_id']          = ['required'];
+        }
+        
+        $this->rules['dealer_group_id']  = ['required'];
         $this->rules['commission_rate']  = ['nullable','gte:0'];
         $this->rules['previous_balance'] = ['nullable','gte:0'];
 
@@ -32,9 +38,10 @@ class DealerFormRequest extends FormRequest
     public function messages()
     {
         return [
-            'district_id.required' => 'The district name is required',
-            'upazila_id.required' => 'The upazila name is required',
-            'area_id.required' => 'The area name is required',
+            'district_id.required'     => 'The district name is required',
+            'upazila_id.required'      => 'The upazila name is required',
+            'area_id.required'         => 'The area name is required',
+            'dealer_group_id.required' => 'The dealer group is required',
         ];
     }
     /**

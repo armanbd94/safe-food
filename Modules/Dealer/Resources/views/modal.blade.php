@@ -18,16 +18,23 @@
             <div class="modal-body">
                 <div class="row">
                     <input type="hidden" name="update_id" id="update_id"/>
-                    <x-form.selectbox labelName="Type" name="type" col="col-md-6" onchange="setDealerType(this.value)" class="selectpicker">
+                    <x-form.selectbox labelName="Type" name="type" col="col-md-6" required="required" onchange="setDealerType(this.value)" class="selectpicker">
                       <option value="1">Depo Dealer</option>
                       <option value="2">Direct Dealer</option>
                     </x-form.selectbox>
                     <x-form.textbox labelName="Dealer Name" name="name" required="required" col="col-md-6" placeholder="Enter name"/>
                     <x-form.textbox labelName="Mobile No." name="mobile_no" required="required" col="col-md-6" placeholder="Enter mobile number"/>
                     <x-form.textbox labelName="Email" name="email" col="col-md-6" placeholder="Enter email"/>
-                    <x-form.textbox labelName="Commission Rate(%)" name="commission_rate" col="col-md-6" placeholder="Enter commission rate"/>
+                    <x-form.textbox labelName="Commission Rate(%)" name="commission_rate" col="col-md-6 commission_rate d-none" placeholder="Enter commission rate"/>
                     <x-form.textbox labelName="Previous Balance" name="previous_balance" col="col-md-6 pbalance d-none" class="text-right" placeholder="Previous balalnce"/>
-                    <x-form.selectbox labelName="Depo" name="depo_id" col="col-md-3 depo d-none" class="selectpicker" onchange="setDistrictID(this.value)">
+                    <x-form.selectbox labelName="Dealer Group" name="dealer_group_id" required="required" col="col-md-6" class="selectpicker">
+                      @if (!$dealer_groups->isEmpty())
+                          @foreach ($dealer_groups as $id => $group_name)
+                              <option value="{{ $id }}">{{ $group_name }}</option>
+                          @endforeach
+                      @endif
+                  </x-form.selectbox>
+                    <x-form.selectbox labelName="Depo" name="depo_id" col="col-md-6 depo d-none" required="required" class="selectpicker" onchange="setDistrictID()">
                       @if (!$depos->isEmpty())
                           @foreach ($depos as $value)
                               <option value="{{ $value->id }}" data-district="{{ $value->district_id }}">{{ $value->name }}</option>

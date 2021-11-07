@@ -4,6 +4,33 @@
 
 @push('styles')
 <link href="plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
+<style>
+    table#dataTable{
+        min-width: 1500px !important;
+    }
+    /* Works on Firefox */
+    *{
+    scrollbar-width: thin !important;
+    scrollbar-color: #034d97 #FA8C15 !important;
+    }
+
+
+    /* Works on Chrome, Edge, and Safari */
+    *::-webkit-scrollbar {
+    width: 12px !important;
+    }
+
+    *::-webkit-scrollbar-track {
+    background: #FA8C15 !important;
+    }
+
+    *::-webkit-scrollbar-thumb {
+    background-color: #034d97 !important;
+    border-radius: 20px !important;
+    border: 3px solid #FA8C15 !important;
+    }
+
+</style>
 @endpush
 
 @section('content')
@@ -51,7 +78,13 @@
                         </x-form.selectbox>
                         <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-3" class="selectpicker" onchange="getAreaList(this.value,1)"/>
                         <x-form.selectbox labelName="Area" name="area_id" col="col-md-3" class="selectpicker"/>
-
+                        <x-form.selectbox labelName="Dealer Group" name="dealer_group_id" col="col-md-3" class="selectpicker">
+                            @if (!$dealer_groups->isEmpty())
+                                @foreach ($dealer_groups as $id => $group_name)
+                                    <option value="{{ $id }}">{{ $group_name }}</option>
+                                @endforeach
+                            @endif
+                        </x-form.selectbox>
                         <x-form.selectbox labelName="Type" name="type" col="col-md-3" class="selectpicker">
                             <option value="1">Depo Dealer</option>
                             <option value="2">Direct Dealer</option>
@@ -63,7 +96,7 @@
                         </x-form.selectbox>
 
                         
-                        <div class="col-md-9">
+                        <div class="col-md-6">
                             <div style="margin-top:28px;">     
                                     <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
                                     data-toggle="tooltip" data-theme="dark" title="Reset">
@@ -81,7 +114,7 @@
                 <!--begin: Datatable-->
                 <div id="kt_datatable_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
                     <div class="row">
-                        <div class="col-sm-12">
+                        <div class="col-sm-12 table-responsive">
                             <table id="dataTable" class="table table-bordered table-hover">
                                 <thead class="bg-primary">
                                     <tr>
@@ -102,6 +135,7 @@
                                         <th>District</th>
                                         <th>Upazila</th>
                                         <th>Area</th>
+                                        <th>Group</th>
                                         <th>Commission Rate(%)</th>
                                         <th>Balance</th>
                                         <th>Status</th>
@@ -134,7 +168,7 @@ $(document).ready(function(){
         "processing": true, //Feature control the processing indicator
         "serverSide": true, //Feature control DataTable server side processing mode
         "order": [], //Initial no order
-        "responsive": true, //Make table responsive in mobile device
+        "responsive": false, //Make table responsive in mobile device
         "bInfo": true, //TO show the total number of data
         "bFilter": false, //For datatable default search box show/hide
         "lengthMenu": [
@@ -152,23 +186,24 @@ $(document).ready(function(){
             "url": "{{route('dealer.datatable.data')}}",
             "type": "POST",
             "data": function (data) {
-                data.name        = $("#form-filter #name").val();
-                data.mobile_no   = $("#form-filter #mobile_no").val();
-                data.email       = $("#form-filter #email").val();
-                data.area_id     = $("#form-filter #area_id").val();
-                data.depo_id = $("#form-filter #depo_id").val();
-                data.district_id = $("#form-filter #district_id").val();
-                data.upazila_id  = $("#form-filter #upazila_id").val();
-                data.type      = $("#form-filter #type").val();
-                data.status      = $("#form-filter #status").val();
-                data._token      = _token;
+                data.name            = $("#form-filter #name").val();
+                data.mobile_no       = $("#form-filter #mobile_no").val();
+                data.email           = $("#form-filter #email").val();
+                data.area_id         = $("#form-filter #area_id").val();
+                data.depo_id         = $("#form-filter #depo_id").val();
+                data.district_id     = $("#form-filter #district_id").val();
+                data.upazila_id      = $("#form-filter #upazila_id").val();
+                data.dealer_group_id = $("#form-filter #dealer_group_id").val();
+                data.type            = $("#form-filter #type").val();
+                data.status          = $("#form-filter #status").val();
+                data._token          = _token;
             }
         },
         "columnDefs": [{
             @if (permission('dealer-bulk-delete'))
-            "targets": [0,13],
+            "targets": [0,14],
             @else
-            "targets": [12],
+            "targets": [13],
             @endif
                 
                 "orderable": false,
@@ -176,25 +211,25 @@ $(document).ready(function(){
             },
             {
                 @if (permission('dealer-bulk-delete'))
-                "targets": [1,2,3,4,6,7,8,9,12],
+                "targets": [1,2,3,4,6,7,8,9,10,13],
                 @else
-                "targets": [0,1,2,3,5,6,7,8,11],
+                "targets": [0,1,2,3,5,6,7,8,9,12],
                 @endif
                 "className": "text-center"
             },
             {
                 @if (permission('dealer-bulk-delete'))
-                "targets": [10,11],
+                "targets": [11,12],
                 @else
-                "targets": [9,10],
+                "targets": [10,11],
                 @endif
                 "className": "text-right"
             },
             {
                 @if (permission('dealer-bulk-delete'))
-                "targets": [11],
+                "targets": [12],
                 @else 
-                "targets": [10],
+                "targets": [11],
                 @endif
                 "orderable": false,
             }
@@ -216,9 +251,9 @@ $(document).ready(function(){
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
                     @if (permission('dealer-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(13))' 
+                    columns: ':visible:not(:eq(0),:eq(14))' 
                     @else 
-                    columns: ':visible:not(:eq(12))' 
+                    columns: ':visible:not(:eq(13))' 
                     @endif
                 },
                 customize: function (win) {
@@ -233,9 +268,9 @@ $(document).ready(function(){
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
                     @if (permission('dealer-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(13))' 
+                    columns: ':visible:not(:eq(0),:eq(14))' 
                     @else 
-                    columns: ':visible:not(:eq(12))' 
+                    columns: ':visible:not(:eq(13))' 
                     @endif
                 }
             },
@@ -247,9 +282,9 @@ $(document).ready(function(){
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
                     @if (permission('dealer-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(13))' 
+                    columns: ':visible:not(:eq(0),:eq(14))' 
                     @else 
-                    columns: ':visible:not(:eq(12))' 
+                    columns: ':visible:not(:eq(13))' 
                     @endif
                 }
             },
@@ -263,9 +298,9 @@ $(document).ready(function(){
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
                     @if (permission('dealer-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(13))' 
+                    columns: ':visible:not(:eq(0),:eq(14))' 
                     @else 
-                    columns: ':visible:not(:eq(12))' 
+                    columns: ':visible:not(:eq(13))' 
                     @endif
                 },
             },
@@ -334,6 +369,7 @@ $(document).ready(function(){
                         $('#store_or_update_form #commission_rate').val(data.commission_rate);
                         $('#store_or_update_form .pbalance').addClass('d-none');
                         $('#store_or_update_form #depo_id').val(data.depo_id);
+                        $('#store_or_update_form #dealer_group_id').val(data.dealer_group_id);
                         $('#store_or_update_form .selectpicker').selectpicker('refresh');
 
                         getUpazilaList(data.district_id,2,data.upazila_id);
@@ -475,11 +511,18 @@ function getAreaList(upazila_id,selector,area_id=''){
 
 function setDealerType(value)
 {
-    value == 1 ? $('#store_or_update_form .depo').removeClass('d-none') : $('#store_or_update_form .depo').addClass('d-none');
+    if(value == 1){
+        $('#store_or_update_form .depo').removeClass('d-none');
+        $('#store_or_update_form .commission_rate').addClass('d-none');
+    }else{
+        $('#store_or_update_form .depo').addClass('d-none');
+        $('#store_or_update_form .commission_rate').removeClass('d-none');
+    }
 }
 
-function setDistrictID(district_id)
+function setDistrictID()
 {
+    const district_id = $('#store_or_update_form #depo_id option:selected').data('district');
     $('#store_or_update_form #district_id').val(district_id);
     $('#store_or_update_form #district_id.selectpicker').selectpicker('refresh');
     getUpazilaList(district_id,2);
@@ -491,6 +534,8 @@ function showDealerFormModal(modal_title, btn_text) {
     $('#store_or_update_form').find('.is-invalid').removeClass('is-invalid');
     $('#store_or_update_form').find('.error').remove();
     $('#store_or_update_form #upazila_id,#store_or_update_form #area_id').empty().append(`<option value="">Select Please</option>`);
+    $('#store_or_update_form .commission_rate').addClass('d-none');
+    $('#store_or_update_form .depo').addClass('d-none');
     $('#store_or_update_form .selectpicker').selectpicker('refresh');
     $('#store_or_update_form .pbalance').removeClass('d-none');
     $('#store_or_update_modal').modal({

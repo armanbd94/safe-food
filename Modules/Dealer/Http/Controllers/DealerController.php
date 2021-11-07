@@ -23,8 +23,9 @@ class DealerController extends BaseController
         if(permission('dealer-access')){
             $this->setPageData('Dealer','Dealer','fas fa-store',[['name' => 'Dealer']]);
             $depos     = DB::table('depos')->where('status',1)->get();
+            $dealer_groups     = DB::table('dealer_groups')->where('status',1)->pluck('group_name','id');
             $districts = DB::table('locations')->where([['type',1],['status',1]])->orderBy('id','asc')->pluck('name','id');
-            return view('dealer::index',compact('depos','districts'));
+            return view('dealer::index',compact('depos','districts','dealer_groups'));
         }else{
             return $this->access_blocked();
         }
@@ -59,6 +60,9 @@ class DealerController extends BaseController
                 if (!empty($request->area_id)) {
                     $this->model->setAreaID($request->area_id);
                 }
+                if (!empty($request->dealer_group_id)) {
+                    $this->model->setDealerGroupID($request->dealer_group_id);
+                }
                 if (!empty($request->type)) {
                     $this->model->setType($request->type);
                 }
@@ -89,14 +93,15 @@ class DealerController extends BaseController
                     }
                     $row[] = $no;
                     $row[] = $value->name;
-                    $row[] = $value->type == 1 ? 'Depo Dealer' : 'Direct Dealer';
+                    $row[] = $value->type == 1 ? '<span class="badge badge-success">Depo Dealer</span>' : '<span class="badge badge-primary">Direct Dealer</span>';
                     $row[] = $value->mobile_no;
                     $row[] = $value->email;
                     $row[] = $value->depo_name ?? 'N/A';
                     $row[] = $value->district_name;
                     $row[] = $value->upazila_name;
                     $row[] = $value->area_name;
-                    $row[] = $value->commission_rate;
+                    $row[] = $value->group_name;
+                    $row[] = $value->commission_rate ?? '0';
                     $row[] = number_format($value->balance,2,'.','').' Tk';
                     $row[] = permission('dealer-edit') ? change_status($value->id,$value->status, $value->name) : STATUS_LABEL[$value->status];
                     $row[] = action_button($action);//custom helper function for action button
@@ -203,7 +208,7 @@ class DealerController extends BaseController
     {
         if($request->ajax()){
             if(permission('dealer-delete')){
-                $result   = $this->model->with('areas')->find($request->id)->delete();
+                $result   = $this->model->find($request->id)->delete();
                 $output   = $this->delete_message($result);
             }else{
                 $output   = $this->unauthorized();
