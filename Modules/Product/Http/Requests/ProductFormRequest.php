@@ -32,22 +32,31 @@ class ProductFormRequest extends FormRequest
         $this->rules['base_unit_id']    = ['required'];
         $this->rules['unit_id']         = ['required'];
         $this->rules['alert_quantity']  = ['nullable','numeric','gte:0'];
-        $this->rules['base_unit_price'] = ['required','numeric','gt:0'];
-        $this->rules['unit_price']      = ['required','numeric','gt:0'];
+        // $this->rules['base_unit_price'] = ['required','numeric','gt:0'];
+        // $this->rules['unit_price']      = ['required','numeric','gt:0'];
         
         $this->messages['unit_id.required']      = 'The unit field is required';
         $this->messages['base_unit_id.required'] = 'The base unit field is required';
 
        
-        // $collection = collect(request());
-        // if($collection->has('materials')){
-        //     foreach (request()->materials as $key => $value) {
-        //         $this->rules   ['materials.'.$key.'.id']           = ['required','integer'];
+        $collection = collect(request());
+        if($collection->has('prices')){
+            foreach (request()->prices as $key => $value) {
+                $this->rules ['prices.'.$key.'.dealer_group_id'] = ['required'];
+                $this->rules ['prices.'.$key.'.base_unit_price'] = ['required','numeric','gt:0'];
+                $this->rules ['prices.'.$key.'.unit_price']      = ['required','numeric','gt:0'];
 
-        //         $this->messages['materials.'.$key.'.id.required']  = 'The material name field is required';
-        //         $this->messages['materials.'.$key.'.id.integer']   = 'The material name field value must be integer';
-        //     }
-        // }
+                $this->messages['prices.'.$key.'.dealer_group_id.required']  = 'This field is required';
+
+                $this->messages['prices.'.$key.'.base_unit_price.required'] = 'This filed value is required';
+                $this->messages['prices.'.$key.'.base_unit_price.numeric']  = 'This filed value must be numeric';
+                $this->messages['prices.'.$key.'.base_unit_price.gt']       = 'This filed value must be grater than 0';
+
+                $this->messages['prices.'.$key.'.unit_price.required'] = 'This filed value is required';
+                $this->messages['prices.'.$key.'.unit_price.numeric']  = 'This filed value must be numeric';
+                $this->messages['prices.'.$key.'.unit_price.gt']       = 'This filed value must be grater than 0';
+            }
+        }
         return $this->rules;
     }
 

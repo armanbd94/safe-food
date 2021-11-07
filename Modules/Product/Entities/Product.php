@@ -10,13 +10,13 @@ use Modules\Material\Entities\Material;
 use Modules\Product\Entities\Attribute;
 use Modules\Product\Entities\ProductVariant;
 use Modules\Product\Entities\ProductAttribute;
+use Modules\Setting\Entities\DealerGroup;
 
 class Product extends BaseModel
 {
     protected $fillable = [ 'category_id', 'name', 'code',  'product_type', 'barcode_symbology', 
-    'base_unit_id', 'unit_id', 'cost', 'base_unit_mrp', 'base_unit_price', 'unit_mrp', 'unit_price',
-    'base_unit_qty', 'unit_qty', 'alert_quantity', 'image', 'tax_id', 'tax_method', 'status', 
-    'description', 'created_by', 'modified_by'];
+    'base_unit_id', 'unit_id', 'cost', 'base_unit_qty', 'unit_qty', 'alert_quantity', 'image',
+    'tax_id', 'tax_method', 'status', 'description', 'created_by', 'modified_by'];
 
     public function category()
     {
@@ -41,6 +41,12 @@ class Product extends BaseModel
     public function product_material(){
         return $this->belongsToMany(Material::class,'product_material','product_id','material_id','id','id')
                     ->withTimestamps();
+    }
+
+    public function product_prices(){
+        return $this->belongsToMany(DealerGroup::class,'product_prices','product_id','dealer_group_id','id','id')
+        ->withPivot('id','base_unit_price', 'unit_price')        
+        ->withTimestamps();
     }
 
     public function warehouse_product()
@@ -85,9 +91,9 @@ class Product extends BaseModel
     {
         //set column sorting index table column name wise (should match with frontend table header)
         if (permission('product-bulk-delete')){
-            $this->column_order = [null,'id', 'id', 'name', 'category_id', 'cost', 'base_unit_price', 'unit_price', null, null, 'alert_quantity', 'status', null];
+            $this->column_order = [null,'id', 'id', 'name', 'category_id', 'cost', null, null, 'alert_quantity', 'status', null];
         }else{
-            $this->column_order = ['id', 'id', 'name', 'category_id', 'cost', 'base_unit_price', 'unit_price', null, null, 'alert_quantity', 'status', null];
+            $this->column_order = ['id', 'id', 'name', 'category_id', 'cost', null, null, 'alert_quantity', 'status', null];
         }
         
         $query = self::with('category:id,name','warehouse_product');

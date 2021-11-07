@@ -98,8 +98,8 @@ class ProductController extends BaseController
                     $row[] = number_format($value->cost,2,'.','');
                     $row[] = $value->base_unit->unit_name.' ('.$value->base_unit->unit_code.')';
                     $row[] = $value->unit->unit_name.' ('.$value->unit->unit_code.')';
-                    $row[] = number_format($value->base_unit_price,2,'.','');
-                    $row[] = number_format($value->unit_price,2,'.','');
+                    // $row[] = number_format($value->base_unit_price,2,'.','');
+                    // $row[] = number_format($value->unit_price,2,'.','');
                     $row[] = $base_unit_stock_qty;
                     $row[] = number_format($unit_stock_qty,2,'.','');
                     $row[] = $value->alert_quantity ?? 0;
@@ -124,6 +124,7 @@ class ProductController extends BaseController
                 'categories' => Category::allProductCategories(),
                 'units'      => Unit::all(),
                 'taxes'      => Tax::activeTaxes(),
+                'dealer_groups' => DB::table('dealer_groups')->where('status',1)->get()
             ];
             return view('product::create',$data);
         }else{
@@ -136,9 +137,10 @@ class ProductController extends BaseController
     {
         if($request->ajax()){
             if(permission('product-add')){
+                // dd($request->all());
                 DB::beginTransaction();
                 try {
-                    $collection = collect($request->validated())->except(['materials','image','product_id']);
+                    $collection = collect($request->validated())->except(['prices','image','product_id']);
                     $collection = $this->track_data($collection,$request->update_id);
                     $image      = $request->old_image;
                     if ($request->hasFile('image')) {
@@ -150,16 +152,19 @@ class ProductController extends BaseController
                     $tax_id     = $request->tax_id ? $request->tax_id : null;
                     $collection = $collection->merge(compact('tax_id','image'));
                     $result     = $this->model->updateOrCreate(['id'=>$request->update_id],$collection->all());
-                    $product    = $this->model->with('product_material')->find($result->id);
+                    $product    = $this->model->with('product_prices')->find($result->id);
 
-                    // $product_materials = [];
-                    // if($request->has('materials')){
-                    //     foreach($request->materials as $value)
-                    //     {
-                    //         array_push($product_materials,$value['id']);
-                    //     }
-                    // }
-                    // $product->product_material()->sync($product_materials);
+                    $product_prices = [];
+                    if($request->has('prices')){
+                        foreach($request->prices as $value)
+                        {
+                            $product_prices[$value['dealer_group_id']] = [
+                                'base_unit_price' => $value['base_unit_price'],
+                                'unit_price'      => $value['unit_price'],
+                            ];
+                        }
+                    }
+                    $product->product_prices()->sync($product_prices);
                     $output = $this->store_message($result, null);
                     DB::commit();
                 }catch (\Throwable $th) {
@@ -199,7 +204,7 @@ class ProductController extends BaseController
             if(permission('product-add')){
                 DB::beginTransaction();
                 try {
-                    $collection = collect($request->validated())->except(['materials','image','product_id']);
+                    $collection = collect($request->validated())->except(['prices','image','product_id']);
                     $collection = $this->track_data($collection,$request->update_id);
                     $image      = $request->old_image;
                     if ($request->hasFile('image')) {
@@ -211,7 +216,19 @@ class ProductController extends BaseController
                     $tax_id = $request->tax_id ? $request->tax_id : null;
                     $collection = $collection->merge(compact('tax_id','image'));
                     $result       = $this->model->updateOrCreate(['id'=>$request->update_id],$collection->all());
-                    $product = $this->model->with('product_material')->find($result->id);
+                    $product    = $this->model->with('product_prices')->find($result->id);
+
+                    $product_prices = [];
+                    if($request->has('prices')){
+                        foreach($request->prices as $value)
+                        {
+                            $product_prices[$value['dealer_group_id']] = [
+                                'base_unit_price' => $value['base_unit_price'],
+                                'unit_price'      => $value['unit_price'],
+                            ];
+                        }
+                    }
+                    $product->product_prices()->sync($product_prices);
 
                     $output = $this->store_message($result, $request->update_id);
                     DB::commit();

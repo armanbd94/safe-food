@@ -26,10 +26,7 @@ class CreateProductsTable extends Migration
             $table->unsignedBigInteger('unit_id')->nullable();
             $table->foreign('unit_id')->references('id')->on('units');
             $table->string('cost')->nullable()->comment('Base Unit wise cost');
-            $table->string('base_unit_mrp')->nullable()->comment('Base Unit wise MRP');
-            $table->string('base_unit_price')->nullable()->comment('Base Unit wise Price');
-            $table->string('unit_mrp')->nullable()->comment('Base Unit wise MRP');
-            $table->string('unit_price')->nullable()->comment('Base Unit wise Price');
+
             $table->double('base_unit_qty')->nullable();
             $table->double('unit_qty')->nullable();
             $table->double('alert_quantity')->nullable();

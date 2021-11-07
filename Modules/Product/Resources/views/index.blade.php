@@ -89,8 +89,8 @@
                                         <th>Cost</th>
                                         <th>Base Unit</th>
                                         <th>Unit</th>
-                                        <th>Base Unit Price</th>
-                                        <th>Unit Price</th>
+                                        {{-- <th>Base Unit Price</th>
+                                        <th>Unit Price</th> --}}
                                         <th>Base Unit Stock Qty</th>
                                         <th>Unit Stock Qty</th>
                                         <th>Alert Qty</th>
@@ -149,26 +149,26 @@
             },
             "columnDefs": [{
                     @if (permission('product-bulk-delete'))
-                    "targets": [0,14],
+                    "targets": [0,12],
                     @else 
-                    "targets": [13],
+                    "targets": [11],
                     @endif
                     "orderable": false,
                     "className": "text-center"
                 },
                 {
                     @if (permission('product-bulk-delete'))
-                    "targets": [1,2,4,6,7,10,11,12,13],
+                    "targets": [1,2,4,6,7,8,9,10,11],
                     @else 
-                    "targets": [0,1,3,5,6,9,10,11,12],
+                    "targets": [0,1,3,5,6,7,89,10],
                     @endif
                     "className": "text-center"
                 },
                 {
                     @if (permission('product-bulk-delete'))
-                    "targets": [5,8,9],
+                    "targets": [5],
                     @else 
-                    "targets": [4,7,8],
+                    "targets": [4],
                     @endif
                     "className": "text-right"
                 }
@@ -191,9 +191,9 @@
                     "pageSize": "A4", //A3,A5,A6,legal,letter
                     "exportOptions": {
                         @if (permission('product-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(14))' 
+                        columns: ':visible:not(:eq(0),:eq(12))' 
                         @else 
-                        columns: ':visible:not(:eq(13))' 
+                        columns: ':visible:not(:eq(11))' 
                         @endif
                     },
                     customize: function (win) {
@@ -213,9 +213,9 @@
                     "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                     "exportOptions": {
                         @if (permission('product-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(14))' 
+                        columns: ':visible:not(:eq(0),:eq(12))' 
                         @else 
-                        columns: ':visible:not(:eq(13))' 
+                        columns: ':visible:not(:eq(11))' 
                         @endif
                     }
                 },
@@ -227,9 +227,9 @@
                     "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                     "exportOptions": {
                         @if (permission('product-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(14))' 
+                        columns: ':visible:not(:eq(0),:eq(12))' 
                         @else 
-                        columns: ':visible:not(:eq(13))' 
+                        columns: ':visible:not(:eq(11))' 
                         @endif
                     },
                 },
@@ -243,9 +243,9 @@
                     "pageSize": "A4", //A3,A5,A6,legal,letter
                     "exportOptions": {
                         @if (permission('product-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(14))' 
+                        columns: ':visible:not(:eq(0),:eq(12))' 
                         @else 
-                        columns: ':visible:not(:eq(13))' 
+                        columns: ':visible:not(:eq(11))' 
                         @endif
                     },
                     customize: function(doc) {
