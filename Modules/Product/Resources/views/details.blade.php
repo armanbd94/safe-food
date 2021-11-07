@@ -49,17 +49,12 @@
                                 <td><b>Cost</b></td> <td class="text-center"><b>:</b></td> <td>BDT {{ number_format($product->cost,2) }}</td>
                             </tr>
                             <tr>
-                                <td><b>Unit</b></td> <td class="text-center"><b>:</b></td> <td>{{ $product->base_unit->unit_name.'('.$product->base_unit->unit_code.')' }}</td>
-                                {{-- <td><b>Unit</b></td> <td class="text-center"><b>:</b></td> <td>{{ $product->unit->unit_name.'('.$product->unit->unit_name.')' }}</td> --}}
-
-                                <td><b>Price</b></td> <td class="text-center"><b>:</b></td> <td>BDT {{ number_format($product->base_unit_price,2) }}</td>
-                                {{-- <td><b>Unit Price</b></td> <td class="text-center"><b>:</b></td> <td>BDT {{ number_format($product->unit_price,2) }}</td> --}}
+                                <td><b>Base Unit</b></td> <td class="text-center"><b>:</b></td> <td>{{ $product->base_unit->unit_name }}</td>
+                                <td><b>Unit</b></td> <td class="text-center"><b>:</b></td> <td>{{ $product->unit->unit_name }}</td>
                             </tr>
                             <tr>
                                 <td><b>Stock Qunatity Base Unit</b></td> <td class="text-center"><b>:</b></td> <td>{{ number_format($product->base_unit_qty,2) }}</td>
-                                {{-- <td><b>Stock Qunatity Unit</b></td> <td class="text-center"><b>:</b></td> <td>{{ number_format($product->unit_qty,2) }}</td> --}}
-                                <td><b>Alert Quantity</b></td> <td class="text-center"><b>:</b></td> <td>{{ $product->alert_quantity }}</td>
-                                
+                                <td><b>Stock Qunatity Unit</b></td> <td class="text-center"><b>:</b></td> <td>{{ number_format($product->unit_qty,2) }}</td>
                             </tr>
                             <tr>
                                 <td><b>Tax</b></td> <td class="text-center"><b>:</b></td> <td>{{ $product->tax->rate }}%</td>
@@ -77,14 +72,14 @@
                             </tr>
                         </table>
                     </div>
-                {{-- </div>
+                </div>
                 <div class="card card-custom mt-5">
                     <div class="card-header">
                         <div class="card-toolbar">
                             <ul class="nav nav-bold nav-pills">
                                 
                                 <li class="nav-item">
-                                    <a class="nav-link active" data-toggle="tab" href="#materials">Materials</a>
+                                    <a class="nav-link active" data-toggle="tab" href="#prices">Prices</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" data-toggle="tab" href="#description">Description</a>
@@ -96,15 +91,26 @@
                     <div class="card-body">
                         <div class="tab-content">
                             
-                            <div class="tab-pane fade show active" id="materials" role="tabpanel" aria-labelledby="materials">
-                                @if (!$product->product_material->isEmpty())
-                                <ol>
-                                    @foreach ($product->product_material as $item)
-                                        <li>{{ $item->material_name }}</li>
-                                    @endforeach
-                                </ol>
+                            <div class="tab-pane fade show active" id="prices" role="tabpanel" aria-labelledby="prices">
+                                @if (!$product->product_prices->isEmpty())
+                                <table class="table table-bordered">
+                                    <thead class="bg-primary">
+                                        <th>Group Name</th>
+                                        <th class="text-right">Base Unit Price</th>
+                                        <th class="text-right">Unit Price</th>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($product->product_prices as $value)
+                                        <tr>
+                                            <td>{{ $value->group_name }}</td>
+                                            <td class="text-right">{{ number_format($value->pivot->base_unit_price,2,'.',',') }}</td>
+                                            <td class="text-right">{{ number_format($value->pivot->unit_price,2,'.',',') }}</td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                                 @endif
-                            </div> --}}
+                            </div>
                             <div class="col-md-12 pt-5 table-responsive">
                                 @if (!empty($prduct->description))
                                     <div class="padding-top-10px text-justify">
@@ -112,8 +118,8 @@
                                     </div>
                                 @endif
                             </div>
-                        {{-- </div>
-                    </div> --}}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -190,7 +190,8 @@ class ProductController extends BaseController
                 'categories' => Category::allProductCategories(),
                 'units'      => Unit::all(),
                 'taxes'      => Tax::activeTaxes(),
-                'product' => Product::with('product_material')->find($id)
+                'product' => Product::with('product_prices')->find($id),
+                'dealer_groups' => DB::table('dealer_groups')->where('status',1)->get()
             ];
             return view('product::edit',$data);
         }else{
@@ -250,7 +251,7 @@ class ProductController extends BaseController
 
         if(permission('product-view')){
             $this->setPageData('Product Details','Product Details','fas fa-paste',[['name'=>'Product','link'=> route('product')],['name' => 'Product Details']]);
-            $product = $this->model->with('category','tax','base_unit','product_material')->findOrFail($id);
+            $product = $this->model->with('category','tax','base_unit','product_prices')->findOrFail($id);
             return view('product::details',compact('product'));
         }else{
             return $this->access_blocked();
@@ -269,8 +270,12 @@ class ProductController extends BaseController
                         $output = ['status'=>'error','message'=>'Cannot delete because this product is realted with sale and purchase data'];
                     }else{
        
-                        $product  = $this->model->find($request->id);
+                        $product  = $this->model->with('product_prices')->find($request->id);
                         $old_image = $product ? $product->image : '';
+                        if(!$product->product_prices->isEmpty())
+                        {
+                            $product->product_prices()->detach();
+                        }
                         $result    = $product->delete();
                         if($result && $old_image != ''){
                             $this->delete_file($old_image, PRODUCT_IMAGE_PATH);
@@ -300,8 +305,12 @@ class ProductController extends BaseController
                     foreach ($request->ids as $id) {
                         $sale_product = SaleProduct::where('product_id',$id)->get()->count();
                         if($sale_product == 0){
-                            $product  = $this->model->find($id);
+                            $product  = $this->model->with('product_prices')->find($id);
                             $old_image = $product ? $product->image : '';
+                            if(!$product->product_prices->isEmpty())
+                            {
+                                $product->product_prices()->detach();
+                            }
                             $result    = $product->delete();
                             if($result && $old_image != ''){
                                 $this->delete_file($old_image, PRODUCT_IMAGE_PATH);
