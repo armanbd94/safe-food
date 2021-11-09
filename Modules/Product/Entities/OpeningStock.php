@@ -9,8 +9,7 @@ use Modules\Setting\Entities\Warehouse;
 
 class OpeningStock extends BaseModel
 {
-    protected $fillable = [ 'opening_no', 'warehouse_id', 'item', 'total_qty', 'total_tax', 
-    'grand_total', 'date','note', 'created_by', 'modified_by'];
+    protected $fillable = [ 'opening_no', 'warehouse_id', 'item', 'total_qty', 'date','note', 'created_by', 'modified_by'];
 
     public function warehouse()
     {
@@ -19,7 +18,7 @@ class OpeningStock extends BaseModel
 
     public function products(){
         return $this->belongsToMany(Product::class,'opening_stock_products','opening_stock_id','product_id','id','id')
-                    ->withPivot('id', 'base_unit_id', 'base_unit_qty','base_unit_price', 'tax_rate', 'tax', 'total')
+                    ->withPivot('id', 'base_unit_id', 'base_unit_qty')
                     ->withTimestamps();
     }
 
@@ -28,7 +27,6 @@ class OpeningStock extends BaseModel
     *******************************************/
     //custom search column property
     protected $_opening_no; 
-    protected $_warehouse_id; 
     protected $_from_date; 
     protected $_to_date; 
 
@@ -36,10 +34,6 @@ class OpeningStock extends BaseModel
     public function setOpeningNo($opening_no)
     {
         $this->_opening_no = $opening_no;
-    }
-    public function setWarehouseID($warehouse_id)
-    {
-        $this->_warehouse_id = $warehouse_id;
     }
 
     public function setFromDate($from_date)
@@ -55,21 +49,17 @@ class OpeningStock extends BaseModel
     private function get_datatable_query()
     {
         if (permission('opening-stock-bulk-delete')){
-            $this->column_order = [null,'id','opening_no','warehouse_id', 'item',null,'total_qty','grand_total','created_by','created_at', null];
+            $this->column_order = [null,'id','opening_no','item',null,'total_qty','created_by','created_at', null];
         }else{
-            $this->column_order = ['id','opening_no','warehouse_id', 'item',null,'total_qty','grand_total','created_by','created_at', null];
+            $this->column_order = ['id','opening_no','item',null,'total_qty','created_by','created_at', null];
         }
         
-        $query = self::with(['warehouse:id,name','products']);
+        $query = self::with('products');
 
         //search query
         if (!empty($this->_opening_no)) {
             $query->where('opening_no', 'like', '%' . $this->_opening_no . '%');
         }
-        if (!empty($this->_warehouse_id)) {
-            $query->where('warehouse_id', $this->_warehouse_id);
-        }
-
         if (!empty($this->_from_date)) {
             $query->whereDate('created_at', '>=',$this->_from_date);
         }

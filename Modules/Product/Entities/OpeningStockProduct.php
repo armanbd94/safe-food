@@ -8,8 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class OpeningStockProduct extends Model
 {
     protected $table = 'opening_stock_products';
-    protected $fillable = ['opening_stock_id', 'product_id', 'base_unit_id', 'base_unit_qty',
-     'base_unit_price', 'tax_rate', 'tax', 'total'];
+    protected $fillable = ['opening_stock_id', 'product_id', 'base_unit_id', 'base_unit_qty'];
     
     public function product()
     {

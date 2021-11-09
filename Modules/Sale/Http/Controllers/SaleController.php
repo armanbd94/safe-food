@@ -3,29 +3,21 @@
 namespace Modules\Sale\Http\Controllers;
 
 use Exception;
-use App\Models\Tax;
 use App\Models\Unit;
-use App\Traits\UploadAble;
 use Illuminate\Http\Request;
 use Modules\Sale\Entities\Sale;
 use Illuminate\Support\Facades\DB;
 use Modules\Product\Entities\Product;
 use Modules\Sale\Entities\SaleProduct;
-use Modules\Customer\Entities\Customer;
-use Modules\SalesMen\Entities\Salesmen;
 use App\Http\Controllers\BaseController;
 use Modules\Account\Entities\Transaction;
 use Modules\Dealer\Entities\Dealer;
 use Modules\Depo\Entities\Depo;
-use Modules\Setting\Entities\CustomerGroup;
-use Modules\Product\Entities\WarehouseProduct;
 use Modules\Sale\Http\Requests\SaleFormRequest;
-use Modules\Sale\Http\Requests\SaleDeliveryFormRequest;
 
 
 class SaleController extends BaseController
 {
-    use UploadAble;
     public function __construct(Sale $model)
     {
         $this->model = $model;
@@ -76,13 +68,6 @@ class SaleController extends BaseController
                     $this->model->setUpazilaID($request->upazila_id);
                 }
 
-                if (!empty($request->payment_status)) {
-                    $this->model->setPaymentStatus($request->payment_status);
-                }
-                if (!empty($request->delivery_status)) {
-                    $this->model->setDeliveryStatus($request->delivery_status);
-                }
-
 
                 $this->set_datatable_default_properties($request);//set datatable default properties
                 $list = $this->model->getDatatableList();//get table data
@@ -91,24 +76,17 @@ class SaleController extends BaseController
                 foreach ($list as $value) {
                     $no++;
                     $action = '';
-                    if (permission('sale-edit') && ($value->delivery_status == 1)) {
+                    if (permission('sale-edit')) {
                         $action .= ' <a class="dropdown-item" href="'.route("sale.edit",$value->id).'">'.self::ACTION_BUTTON['Edit'].'</a>';
                     }
                     if (permission('sale-view')) {
                         $action .= ' <a class="dropdown-item view_data" href="'.route("sale.show",$value->id).'">'.self::ACTION_BUTTON['View'].'</a>';
                     }
- 					if($value->document)
-                    {
-                        $action .= '<a class="dropdown-item" href="'.asset('storage/'.SALE_DOCUMENT_PATH.$value->document).'" download><i class="fas fa-download mr-2"></i> Document</a>';
-                    }
-                    if (permission('sale-delete') && ($value->delivery_status == 1)) {
+
+                    if (permission('sale-delete')) {
                         $action .= ' <a class="dropdown-item delete_data"  data-id="' . $value->id . '" data-name="' . $value->memo_no . '">'.self::ACTION_BUTTON['Delete'].'</a>';
                     }
-                    if (permission('sale-edit') && ($value->delivery_status == 1)) {
-                        $delivery_text = $value->delivery_status ? 'Update Delivery' : 'Add Delivery';
-                        $action .= ' <a class="dropdown-item add_delivery" data-id="'.$value->id.'" data-status="'.$value->delivery_status.'" data-date="'.$value->delivery_date.'" 
-                        ><i class="fas fa-truck text-info mr-2"></i> '.$delivery_text.'</a>';
-                    }
+
                     $row = [];
                     if(permission('sale-bulk-delete')){
                         $row[] = row_checkbox($value->id);//custom helper function to show the table each row checkbox
@@ -117,23 +95,17 @@ class SaleController extends BaseController
                     $row[] = $no;
                     $row[] = $value->memo_no;
                     $row[] = ORDER_FROM_STATUS_LABEL[$value->order_from];
-                    $row[] = $value->order_from == 1 ? $value->depo_name : $value->dealer_name;
+                    $row[] = $value->dealer_name;
+                    $row[] = $value->depo_name;
                     $row[] = $value->area_name;
                     $row[] = $value->upazila_name;
                     $row[] = $value->district_name;
-                    $row[] = $value->item.'('.$value->total_qty.')';
+                    $row[] = $value->item.'('.$value->total_qty+($value->total_free_qty ?? 0).')';
                     $row[] = number_format($value->grand_total,2,'.','');
-                    $row[] = number_format($value->previous_due,2,'.','');
-                    $row[] = number_format($value->net_total,2,'.','');
                     $row[] = number_format($value->commission_rate,2,'.','');
                     $row[] = number_format($value->total_commission,2,'.','');
-                    $row[] = number_format($value->payable_amount,2,'.','');
-                    $row[] = number_format($value->paid_amount,2,'.','');
-                    $row[] = number_format($value->due_amount,2,'.','');
+                    $row[] = number_format($value->net_total,2,'.','');
                     $row[] = date('d-M-Y',strtotime($value->sale_date));
-                    $row[] = PAYMENT_STATUS_LABEL[$value->payment_status];
-                    $row[] = $value->payment_method ? SALE_PAYMENT_METHOD[$value->payment_method] : '<span class="label label-danger label-pill label-inline" style="min-width:70px !important;">N/A</span>';
-                    $row[] = DELIVERY_STATUS[$value->delivery_status];
                     $row[] = $value->delivery_date ? date('d-M-Y',strtotime($value->delivery_date)) : '';
                     $row[] = action_button($action);//custom helper function for action button
                     $data[] = $row;
@@ -150,19 +122,14 @@ class SaleController extends BaseController
     {
         if(permission('sale-add')){
             $this->setPageData('Add Sale','Add Sale','fas fa-shopping-cart',[['name' => 'Add Sale']]);
-
-            $products = DB::table('products as p')
-            ->leftjoin('units as u','p.base_unit_id','=','u.id')
-            ->leftjoin('warehouse_product as wp','p.id','=','wp.product_id')
-            ->selectRaw('p.id,p.name,p.base_unit_id,p.base_unit_price,u.unit_name,sum(wp.qty) as qty')
-            ->groupBy('p.id')
-            ->orderBy('p.id','asc')
-            ->get();
-
             $data = [
-                'products'  => $products,
-                'depos'     => DB::table('depos as d')->leftJoin('locations as a','d.area_id','=','a.id')->select('d.*','a.name as area_name')->get(),
-                'dealers'   => DB::table('dealers as d')->leftJoin('locations as a','d.area_id','=','a.id')->select('d.*','a.name as area_name')->get(),
+                'products'  => Product::with(['base_unit','unit','product_prices'])->get(),
+                'dealers'   => DB::table('dealers as de')
+                ->leftJoin('locations as d','de.district_id','=','d.id')
+                ->leftJoin('locations as a','de.area_id','=','a.id')
+                ->leftJoin('depos as dp','de.depo_id','=','dp.id')
+                ->select('de.*','d.name as district_name','a.name as area_name','dp.commission_rate as depo_commission_rate')
+                ->get(),
                 'memo_no'   => 'SINV-'.date('ymd').rand(1,999),
             ];
             return view('sale::create',$data);
@@ -183,30 +150,15 @@ class SaleController extends BaseController
                     $sale_data = [
                         'memo_no'            => $request->memo_no,
                         'warehouse_id'       => $warehouse_id,
+                        'order_from'         => $request->order_from,
                         'item'               => $request->item,
-                        'total_qty'          => $request->total_qty+$request->total_free_qty,
+                        'total_unit_qty'     => $request->total_unit_qty,
+                        'total_qty'          => $request->total_qty,
                         'total_free_qty'     => $request->total_free_qty,
-                        'total_discount'     => $request->total_discount ? $request->total_discount : 0,
-                        'total_tax'          => $request->total_tax ? $request->total_tax : 0,
-                        'total_price'        => $request->total_price,
-                        'order_tax_rate'     => $request->order_tax_rate,
-                        'order_tax'          => $request->order_tax,
-                        'order_discount'     => $request->order_discount ? $request->order_discount : 0,
-                        'shipping_cost'      => $request->shipping_cost ? $request->shipping_cost : 0,
-                        'labor_cost'         => $request->labor_cost ? $request->labor_cost : 0,
                         'grand_total'        => $request->grand_total,
-                        'previous_due'       => $request->previous_due ? $request->previous_due : 0,
-                        'net_total'          => $request->net_total,
-                        'payable_amount'     => $request->payable_amount,
-                        'paid_amount'        => $request->paid_amount ? $request->paid_amount : 0,
-                        'due_amount'         => $request->due_amount ? $request->due_amount : 0,
                         'commission_rate'    => $request->commission_rate,
                         'total_commission'   => $request->total_commission,
-                        'payment_status'     => $request->payment_status,
-                        'payment_method'     => $request->payment_method ? $request->payment_method : null,
-                        'account_id'         => $request->account_id ? $request->account_id : null,
-                        'reference_no'       => $request->reference_no ? $request->reference_no : null,
-                        'note'               => $request->note,
+                        'net_total'          => $request->net_total,
                         'sale_date'          => $request->sale_date,
                         'delivery_date'      => $request->delivery_date,
                         'created_by'         => auth()->user()->name
@@ -214,25 +166,17 @@ class SaleController extends BaseController
 
                     if($request->order_from == 1){
                         $depo  = Depo::with('coa')->find($request->depo_id);
-                        $sale_data['depo_id']    = $depo->id;
+                        $dealer = Dealer::find($request->depo_dealer_id);
+                        $sale_data['depo_id']    = $request->depo_id;
+                        $sale_data['dealer_id']    = $request->depo_dealer_id;
                     }elseif ($request->order_from == 2) {
-                        $dealer  = Dealer::with('coa')->find($request->dealer_id);
-                        $sale_data['dealer_id']    = $dealer->id;
+                        $dealer  = Dealer::with('coa')->find($request->direct_dealer_id);
+                        $sale_data['dealer_id']    = $request->direct_dealer_id;
                     }
-                    $sale_data['district_id']    = $request->order_from == 1 ? $depo->district_id : $dealer->district_id;
-                    $sale_data['upazila_id']     = $request->order_from == 1 ? $depo->upazila_id : $dealer->upazila_id;
-                    $sale_data['area_id' ]       = $request->order_from == 1 ? $depo->area_id : $dealer->area_id;
+                    $sale_data['district_id']    = $dealer->district_id;
+                    $sale_data['upazila_id']     = $dealer->upazila_id;
+                    $sale_data['area_id' ]       = $dealer->area_id;
 
-                    //payment data for account transaction
-                    $payment_data = [
-                        'payment_method' => $request->payment_method ? $request->payment_method : null,
-                        'account_id'     => $request->account_id ? $request->account_id : null,
-                        'paid_amount'    => $request->paid_amount ? $request->paid_amount : 0,
-                    ];
-
-                    if($request->hasFile('document')){
-                        $sale_data['document'] = $this->upload_file($request->file('document'),SALE_DOCUMENT_PATH);
-                    }
                     $sale  = $this->model->create($sale_data);
 
                     $saleData = $this->model->with('sale_products')->find($sale->id);
@@ -243,10 +187,13 @@ class SaleController extends BaseController
                     {
                         foreach ($request->products as $key => $value) {
                             $products[$value['id']] = [
-                                'qty'              => $value['qty'],
-                                'sale_unit_id'     => $value['sale_unit_id'],
-                                'net_unit_price'   => $value['net_unit_price'],
-                                'total'            => $value['subtotal']
+                                'unit_qty'       => $value['unit_qty'],
+                                'qty'            => $value['qty'],
+                                'free_qty'       => $value['free_qty'],
+                                'base_unit_id'   => $value['base_unit_id'],
+                                'unit_id'        => $value['unit_id'],
+                                'net_unit_price' => $value['net_unit_price'],
+                                'total'          => $value['subtotal']
                             ];
                             
                             $product = DB::table('products')
@@ -255,16 +202,6 @@ class SaleController extends BaseController
                             if($product){
                                 $direct_cost[] = $value['qty'] * ($product ? $product->cost : 0);
                             }
-
-                            // $warehouse_product = WarehouseProduct::where([
-                            //     ['warehouse_id', $warehouse_id],
-                            //     ['product_id',$value['id']],['qty','>',0],
-                            // ])->first();
-                            // if($warehouse_product)
-                            // {
-                            //     $warehouse_product->qty -= $qty;
-                            //     $warehouse_product->update();
-                            // }
                         }
                         if(count($products) > 0)
                         {
@@ -272,16 +209,11 @@ class SaleController extends BaseController
                         }
                     }
                     $sum_direct_cost = array_sum($direct_cost);
-                    $total_tax = 0;
-                    
-                    if(empty($sale))
-                    {
-                        if($request->hasFile('document')){
-                            $this->delete_file($sale_data['document'], SALE_DOCUMENT_PATH);
-                        }
-                    }        
-                    $this->sale_balance_add($sale->id,$request->memo_no,$request->grand_total,$total_tax,
-                    $sum_direct_cost,$saleData->order_from == 1 ? $depo->coa->id : $dealer->coa->id,$saleData->order_from == 1 ? $depo->name : $dealer->name,$request->sale_date,$payment_data, $warehouse_id);
+
+  
+                    Transaction::insert($this->sale_transaction_data($request->memo_no,$request->net_total,
+                    $sum_direct_cost,$saleData->order_from == 1 ? $depo->coa->id : $dealer->coa->id,
+                    $saleData->order_from == 1 ? $depo->name : $dealer->name,$request->sale_date,$warehouse_id));
                     if($sale)
                     {
                         $output = ['status'=>'success','message'=>'Data has been saved successfully','sale_id'=>$sale->id];
@@ -303,7 +235,7 @@ class SaleController extends BaseController
     }
 
  
-    private function sale_balance_add(int $sale_id, $invoice_no, $grand_total, $total_tax,$sum_direct_cost, int $coa_id, string $name, $sale_date, array $payment_data,int $warehouse_id) {
+    private function sale_transaction_data($invoice_no, $grand_total, $sum_direct_cost, int $coa_id, string $name, $sale_date, int $warehouse_id) {
 
         //Inventory Credit
         $coscr = array(
@@ -312,7 +244,7 @@ class SaleController extends BaseController
             'voucher_no'          => $invoice_no,
             'voucher_type'        => 'INVOICE',
             'voucher_date'        => $sale_date,
-            'description'         => 'Inventory Credit For Invoice No '.$invoice_no,
+            'description'         => 'Inventory credit for Memo No. - '.$invoice_no,
             'debit'               => 0,
             'credit'              => $sum_direct_cost,
             'posted'              => 1,
@@ -328,7 +260,7 @@ class SaleController extends BaseController
             'voucher_no'          => $invoice_no,
             'voucher_type'        => 'INVOICE',
             'voucher_date'        => $sale_date,
-            'description'         => 'Debit Amount '.$grand_total.'Tk For Sale Memo No. -  ' . $invoice_no . ' From ' .$name,
+            'description'         => 'Debit amount '.$grand_total.'Tk for sale Memo No. -  ' . $invoice_no . ' from ' .$name,
             'debit'               => $grand_total,
             'credit'              => 0,
             'posted'              => 1,
@@ -343,7 +275,7 @@ class SaleController extends BaseController
             'voucher_no'          => $invoice_no,
             'voucher_type'        => 'INVOICE',
             'voucher_date'        => $sale_date,
-            'description'         => 'Sale Income For Memo No. - ' . $invoice_no . ' From ' .$name,
+            'description'         => 'Sale income for Memo No. - ' . $invoice_no . ' from ' .$name,
             'debit'               => 0,
             'credit'              => $grand_total,
             'posted'              => 1,
@@ -352,80 +284,11 @@ class SaleController extends BaseController
             'created_at'          => date('Y-m-d H:i:s')
         ); 
 
-        Transaction::insert([
+        return [
             $coscr, $sale_coa_transaction, $product_sale_income
-        ]);
+        ];
 
-        if($total_tax){
-            $tax_info = array(
-                'chart_of_account_id' => DB::table('chart_of_accounts')->where('code', $this->coa_head_code('tax'))->value('id'),
-                'warehouse_id'        => $warehouse_id,
-                'voucher_no'          => $invoice_no,
-                'voucher_type'        => 'INVOICE',
-                'voucher_date'        => $sale_date,
-                'description'         => 'Sale Total Tax For Memo No. - ' . $invoice_no . ' From ' .$name,
-                'debit'               => $total_tax,
-                'credit'              => 0,
-                'posted'              => 1,
-                'approve'             => 1,
-                'created_by'          => auth()->user()->name,
-                'created_at'          => date('Y-m-d H:i:s')
-            ); 
-            Transaction::create($tax_info);
-        }
 
-        if(!empty($payment_data['paid_amount']))
-        {
-            $customer_credit = array(
-                'chart_of_account_id' => $coa_id,
-                'warehouse_id'        => $warehouse_id,
-                'voucher_no'          => $invoice_no,
-                'voucher_type'        => 'INVOICE',
-                'voucher_date'        => $sale_date,
-                'description'         => 'Credit Amount '.$payment_data['paid_amount'].'Tk For Sale Memo No. - ' . $invoice_no . ' From ' . $name,
-                'debit'               => 0,
-                'credit'              => $payment_data['paid_amount'],
-                'posted'              => 1,
-                'approve'             => 1,
-                'created_by'          => auth()->user()->name,
-                'created_at'          => date('Y-m-d H:i:s')
-            );
-
-            if($payment_data['payment_method'] == 1){
-                //Cah In Hand debit
-                $payment = array(
-                    'chart_of_account_id' => $payment_data['account_id'],
-                    'warehouse_id'        => $warehouse_id,
-                    'voucher_no'          => $invoice_no,
-                    'voucher_type'        => 'INVOICE',
-                    'voucher_date'        => $sale_date,
-                    'description'         => 'Cash Amount '.$payment_data['paid_amount'].'Tk For Sale Memo No. - ' . $invoice_no . ' From ' .$name,
-                    'debit'               => $payment_data['paid_amount'],
-                    'credit'              => 0,
-                    'posted'              => 1,
-                    'approve'             => 1,
-                    'created_by'          => auth()->user()->name,
-                    'created_at'          => date('Y-m-d H:i:s')
-                );
-            }else{
-                // Bank Ledger
-                $payment = array(
-                    'chart_of_account_id' => $payment_data['account_id'],
-                    'warehouse_id'        => $warehouse_id,
-                    'voucher_no'          => $invoice_no,
-                    'voucher_type'        => 'INVOICE',
-                    'voucher_date'        => $sale_date,
-                    'description'         => 'Paid Amount '.$payment_data['paid_amount'].'Tk For Sale Memo No. - ' . $invoice_no . ' From ' . $name,
-                    'debit'               => $payment_data['paid_amount'],
-                    'credit'              => 0,
-                    'posted'              => 1,
-                    'approve'             => 1,
-                    'created_by'          => auth()->user()->name,
-                    'created_at'          => date('Y-m-d H:i:s')
-                );
-            }
-            Transaction::insert([$customer_credit,$payment]);
-        }
     }
 
 
@@ -433,7 +296,7 @@ class SaleController extends BaseController
     {
         if(permission('sale-view')){
             $this->setPageData('Sale Details','Sale Details','fas fa-file',[['name'=>'Sale','link' => route('sale')],['name' => 'Sale Details']]);
-            $sale = $this->model->with('sale_products','area')->find($id);
+            $sale = $this->model->with('sale_products','dealer')->find($id);
             return view('sale::details',compact('sale'));
         }else{
             return $this->access_blocked();
@@ -455,7 +318,6 @@ class SaleController extends BaseController
             $data = [
                 'products'       => $products,
                 'sale'      => $this->model->with('sale_products','customer','salesmen','route','area')->find($id),
-                'taxes'      => Tax::activeTaxes(),
                 'warehouses'   => DB::table('warehouses')->where('status', 1)->pluck('name','id'),
             ];
             return view('sale::edit',$data);
@@ -473,140 +335,7 @@ class SaleController extends BaseController
                 DB::beginTransaction();
                 try {
                     
-                    $sale_data = [
-                        'item'           => $request->item,
-                        'total_qty'      => $request->total_qty+$request->total_free_qty,
-                        'total_free_qty'      => $request->total_free_qty,
-                        'total_discount' => $request->total_discount ? $request->total_discount : 0,
-                        'total_tax'      => $request->total_tax ? $request->total_tax : 0,
-                        'total_price'    => $request->total_price,
-                        'order_tax_rate' => $request->order_tax_rate,
-                        'order_tax'      => $request->order_tax,
-                        'order_discount' => $request->order_discount ? $request->order_discount : 0,
-                        'shipping_cost'  => $request->shipping_cost ? $request->shipping_cost : 0,
-                        'labor_cost'     => $request->labor_cost ? $request->labor_cost : 0,
-                        'grand_total'    => $request->grand_total,
-                        'previous_due'   => $request->previous_due ? $request->previous_due : 0,
-                        'net_total'      => $request->grand_total + ($request->previous_due ? $request->previous_due : 0),
-                        'paid_amount'    => $request->paid_amount ? $request->paid_amount : 0,
-                        'due_amount'     => (($request->grand_total + ($request->previous_due ? $request->previous_due : 0)) - ($request->paid_amount ? $request->paid_amount : 0)),
-                        'sr_commission_rate' => $request->sr_commission_rate,
-                        'total_commission' => $request->total_commission,
-                        'payment_status' => $request->payment_status,
-                        'payment_method' => $request->payment_method ? $request->payment_method : null,
-                        'account_id'     => $request->account_id ? $request->account_id : null,
-                        'reference_no'   => $request->reference_no ? $request->reference_no : null,
-                        'note'           => $request->note,
-                        'sale_date'      => $request->sale_date,
-                        'updated_by'     => auth()->user()->name
-                    ];
-
-                    $payment_data = [
-                        'payment_method' => $request->payment_method ? $request->payment_method : null,
-                        'account_id'     => $request->account_id ? $request->account_id : null,
-                        'paid_amount'    => $request->paid_amount ? $request->paid_amount : 0,
-                    ];
-
-                    if($request->hasFile('document')){
-                        $sale_data['document'] = $this->upload_file($request->file('document'),SALE_DOCUMENT_PATH);
-                    }
-                    $saleData = $this->model->with('sale_products')->find($request->sale_id);
-                    $warehouse_id = $saleData->warehouse_id;
-                    $old_document = $saleData ? $saleData->document : '';
-
-                    if(!$saleData->sale_products->isEmpty())
-                    {
-                        foreach ($saleData->sale_products as  $sale_product) {
-                            $sold_qty = $sale_product->pivot->qty ? $sale_product->pivot->qty : 0;
-                            $sale_unit = Unit::find($sale_product->pivot->sale_unit_id);
-                            if($sale_unit->operator == '*'){
-                                $sold_qty = $sold_qty * $sale_unit->operation_value;
-                            }else{
-                                $sold_qty = $sold_qty / $sale_unit->operation_value;
-                            }
-
-                            $warehouse_product = WarehouseProduct::where([
-                                ['warehouse_id', $saleData->warehouse_id],
-                                ['product_id',$sale_product->pivot->product_id]
-                            ])->first();
-                            if($warehouse_product)
-                            {
-                                $warehouse_product->qty += $sold_qty;
-                                $warehouse_product->update();
-                            }
-                        }
-                        SaleProduct::where('sale_id',$request->sale_id)->delete();
-                    }
-                    
-                    $products = [];
-                    $direct_cost  = [];
-                    if($request->has('products'))
-                    {
-                        foreach ($request->products as $key => $value) {
-                            $unit = Unit::where('unit_name',$value['unit'])->first();
-                            if($unit->operator == '*'){
-                                $qty = $value['qty'] * $unit->operation_value;
-                            }else{
-                                $qty = $value['qty'] / $unit->operation_value;
-                            }
-                            $products[] = [
-                                'sale_id'          => $saleData->id,
-                                'product_id'       => $value['id'],
-                                'qty'              => $value['qty'],
-                                'free_qty'         => $value['free_qty'],
-                                'sale_unit_id'     => $unit ? $unit->id : null,
-                                'net_unit_price'   => $value['net_unit_price'],
-                                'discount'         => 0,
-                                'tax_rate'         => $value['tax_rate'],
-                                'tax'              => $value['tax'],
-                                'total'            => $value['subtotal']
-                            ];
-                            
-                            $product = DB::table('production_products as pp')
-                            ->selectRaw('pp.*')
-                            ->join('productions as p','pp.production_id','=','p.id')
-                            ->where([
-                                ['p.warehouse_id', $warehouse_id],
-                                ['pp.product_id',$value['id']],
-                            ])
-                            ->first();
-                            if($product){
-                                $direct_cost[] = $qty * ($product ? $product->per_unit_cost : 0);
-                            }
-
-                            $warehouse_product = WarehouseProduct::where([
-                                ['warehouse_id', $warehouse_id],
-                                ['product_id',$value['id']],['qty','>',0],
-                            ])->first();
-                            if($warehouse_product)
-                            {
-                                $warehouse_product->qty -= $qty;
-                                $warehouse_product->update();
-                            }
-                            
-                        }
-                        if(count($products) > 0)
-                        {
-                            SaleProduct::insert($products);
-                        }
-                    }
-                    $customer = Customer::with('coa')->find( $saleData->customer_id);
-                    $salesmen  = Salesmen::with('coa')->find($saleData->salesmen_id);
-                    $sale = $saleData->update($sale_data);
-                    $sum_direct_cost = array_sum($direct_cost);
-                    $total_tax = ($request->total_tax ? $request->total_tax : 0) + ($request->order_tax ? $request->order_tax : 0);
-                    
-                    if($sale && $old_document != '')
-                    {
-                        $this->delete_file($old_document,SALE_DOCUMENT_PATH);
-                    }
-                    
-
-                    Transaction::where(['voucher_no'=>$request->memo_no,'voucher_type'=>'INVOICE'])->delete();
-                    
-                    $this->sale_balance_add($request->sale_id,$request->memo_no,$request->grand_total,$total_tax,$sum_direct_cost,
-                    $customer->coa->id,$customer->name,$request->sale_date,$payment_data,$warehouse_id);
-                    $output  = $this->store_message($sale, $request->sale_id);
+  
                     DB::commit();
                 } catch (Exception $e) {
                     DB::rollback();
@@ -638,15 +367,6 @@ class SaleController extends BaseController
                             foreach ($saleData->sale_products as  $sale_product) {
                                 $sold_qty = $sale_product->pivot->qty ? $sale_product->pivot->qty : 0;
 
-                                $warehouse_product = WarehouseProduct::where([
-                                    ['warehouse_id', $saleData->warehouse_id],
-                                    ['product_id',$sale_product->pivot->product_id]
-                                ])->first();
-                                if($warehouse_product)
-                                {
-                                    $warehouse_product->qty += $sold_qty;
-                                    $warehouse_product->update();
-                                }
                             }
                         }
                         $saleData->sale_products()->detach();
@@ -695,15 +415,6 @@ class SaleController extends BaseController
                                 foreach ($saleData->sale_products as  $sale_product) {
                                     $sold_qty = $sale_product->pivot->qty ? $sale_product->pivot->qty : 0;
 
-                                    $warehouse_product = WarehouseProduct::where([
-                                        ['warehouse_id', $saleData->warehouse_id],
-                                        ['product_id',$sale_product->pivot->product_id]
-                                    ])->first();
-                                    if($warehouse_product)
-                                    {
-                                        $warehouse_product->qty += $sold_qty;
-                                        $warehouse_product->update();
-                                    }
                                     
                                 }
                             }
@@ -736,74 +447,4 @@ class SaleController extends BaseController
             return response()->json($this->unauthorized());
         }
     }
-
-    public function delivery_status_update(SaleDeliveryFormRequest $request)
-    {
-        DB::beginTransaction();
-        try {
-            $saleData = $this->model->with('sale_products')->find($request->sale_id);
-            if(!$saleData->sale_products->isEmpty())
-            {
-                if($request->delivery_status == 2){
-                    foreach ($saleData->sale_products as  $sale_product) {
-                        $sold_qty = $sale_product->pivot->qty ? $sale_product->pivot->qty : 0;
-
-                        $warehouse_product = WarehouseProduct::where([
-                            ['warehouse_id', $saleData->warehouse_id],
-                            ['product_id',$sale_product->pivot->product_id]
-                        ])->first();
-                        if($warehouse_product)
-                        {
-                            $warehouse_product->qty -= $sold_qty;
-                            $warehouse_product->update();
-                        }
-                        
-                    }
-                } 
-            }
-            $result = $saleData->update([
-                'delivery_status' => $request->delivery_status,
-                'delivery_date'   => $request->delivery_date,
-            ]);
-            $output  = $this->store_message($result, $request->sale_id);
-            DB::commit();
-        } catch (Exception $e) {
-            DB::rollback();
-            $output = ['status' => 'error','message' => $e->getMessage()];
-        }
-        return response()->json($output);
-    } 
-
-
-    public function invoice_report()
-    {
-        if(permission('invoice-report-access')){
-            $this->setPageData('Invoice Report','Invoice Report','far fa-money-bill-alt',[['name'=>'Sale','link'=>'javascript::void(0);'],['name'=>'Sale','link'=>'javascript::void(0);'],['name'=>'Invoice Report']]);
-            
-            $data = [
-                'salesmen'    => DB::table('salesmen')->where([['status',1]])->select('name','id','phone')->get()                
-            ];
-            return view('sale::invoice-report.index',$data);
-        }else{
-            return $this->access_blocked();
-        }
-    }
-
-    public function invoice_report_details(Request $request)
-    {
-        if ($request->ajax()) {
-
-            $start_date = $request->start_date ? $request->start_date : date('Y-m-d');
-            $end_date = $request->end_date ? $request->end_date : date('Y-m-d');
-            $sales = $this->model->with('sale_products','customer','salesmen')->where('salesmen_id',$request->salesmen_id)->whereBetween('sale_date',[$start_date,$end_date])->get();
-//dd($sales);
-            $data = [
-                'sales'   => $sales,
-                'start_date'   => $start_date,
-                'end_date'   => $end_date,
-            ];
-            return view('sale::invoice-report.report',$data)->render();
-        }
-    }
-
 }

@@ -6,19 +6,15 @@ use App\Models\BaseModel;
 use Modules\Depo\Entities\Depo;
 use Illuminate\Support\Facades\DB;
 use Modules\Dealer\Entities\Dealer;
-use Modules\Location\Entities\Area;
 use Modules\Product\Entities\Product;
-use Modules\Location\Entities\Upazila;
-use Modules\Location\Entities\District;
-use Modules\Setting\Entities\Warehouse;
 
 
 class Sale extends BaseModel
 {
-    protected $fillable = [ 'memo_no', 'order_from', 'warehouse_id','depo_id', 'dealer_id', 'district_id', 'upazila_id', 'area_id',
-    'item', 'total_qty', 'total_price', 'grand_total', 'previous_due', 'net_total', 'payable_amount','paid_amount', 'due_amount',
-    'commission_rate', 'total_commission', 'payment_status', 'payment_method', 'account_id', 'reference_no',
-    'document', 'note', 'sale_date', 'delivery_status', 'delivery_date', 'created_by', 'modified_by'];
+    protected $fillable = [ 'memo_no', 'order_from', 'warehouse_id','depo_id', 'dealer_id', 'district_id','upazila_id','area_id',
+    'item', 'total_unit_qty','total_qty', 'total_free_qty', 'grand_total', 'commission_rate', 'total_commission', 'net_total', 
+    'payment_status', 'payment_method', 'account_id', 'reference_no',
+    'sale_date', 'delivery_date', 'created_by', 'modified_by'];
 
     public function depo()
     {
@@ -30,30 +26,10 @@ class Sale extends BaseModel
         return $this->belongsTo(Dealer::class,'dealer_id','id')->withDefault(['name'=>'','mobile_no'=>'','address'=>'']);
     }
 
-    public function warehouse()
-    {
-        return $this->belongsTo(Warehouse::class,'warehouse_id','id');
-    }
-    public function district()
-    {
-        return $this->belongsTo(District::class,'district_id','id');
-    }
-
-    public function upazila()
-    {
-        return $this->belongsTo(Upazila::class,'upazila_id','id');
-    }
-
-    public function area()
-    {
-        return $this->belongsTo(Area::class,'area_id','id');
-    }
-
-
     public function sale_products()
     {
         return $this->belongsToMany(Product::class,'sale_products','sale_id','product_id','id','id')
-        ->withPivot('id', 'qty', 'sale_unit_id', 'net_unit_price', 'total')
+        ->withPivot('id', 'unit_qty','qty', 'free_qty', 'base_unit_id', 'unit_id','net_unit_price', 'total')
         ->withTimestamps(); 
     }
 

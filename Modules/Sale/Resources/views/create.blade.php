@@ -6,11 +6,11 @@
 <link rel="stylesheet" href="css/jquery-ui.css" />
 <link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet" type="text/css" />
 <style>
-    .customer.table td{
-        vertical-align: top !important;
-        padding: 0 !important;
-    }
     .product-select-box .bootstrap-select{width:300px !important;}
+    .table.table-bordered tfoot th, .table.table-bordered tfoot td{
+        border: 1px solid #EBEDF3 !important;
+    }
+    .custom-input{width: 100px;};
 </style>
 @endpush
 
@@ -42,6 +42,7 @@
                         <div class="row">
                             <input type="hidden" name="sale_id" id="sale_id" >
                             <input type="hidden" name="warehouse_id" id="warehouse_id" value="1">
+                            <input type="hidden" name="depo_id" id="depo_id" >
                             <div class="form-group col-md-4 required">
                                 <label for="memo_no">Memo No.</label>
                                 <input type="text" class="fcs form-control" name="memo_no" id="memo_no" value="{{  $memo_no }}"/>
@@ -55,42 +56,45 @@
                                 <input type="text" class="fcs form-control date" name="delivery_date" id="delivery_date" value="{{ date('Y-m-d') }}" readonly />
                             </div>
                             <div class="form-group col-md-4 required">
-                                <label for="">Ordered By</label>
+                                <label for="">Order Received From</label>
                                 <select name="order_from" id="order_from" onchange="orderFrom(this.value)" class="form-control selectpicker">
                                     <option value="">Select Please</option>
-                                    <option value="1">Depo</option>
+                                    <option value="1">Depo Dealer</option>
                                     <option value="2">Direct Dealer</option>
                                 </select>
                             </div>
-                            <x-form.selectbox labelName="Depo" name="depo_id" col="col-md-4 depo d-none" required="required" class="fcs selectpicker">
-                                @if (!$depos->isEmpty())
-                                @foreach ($depos as $value)
-                                <option value="{{ $value->id }}" data-commission="{{ $value->commission_rate }}">{{ $value->name.' - '.$value->mobile_no.' ('.$value->area_name.')' }}</option>
+                            <x-form.selectbox labelName="Dealer" name="depo_dealer_id" col="col-md-4 depo_dealer d-none" required="required" class="fcs selectpicker">
+                                @if (!$dealers->isEmpty())
+                                @foreach ($dealers as $value)
+                                @if($value->type == 1)
+                                <option value="{{ $value->id }}" data-commission="{{ $value->depo_commission_rate }}" data-depoid="{{ $value->depo_id }}" data-groupid="{{ $value->dealer_group_id }}">{{ $value->name.' - '.$value->mobile_no.' ('.$value->district_name.' - '.$value->area_name.')'  }}</option>
+                                @endif
                                 @endforeach
                                 @endif
                             </x-form.selectbox>
 
-                            <x-form.selectbox labelName="Dealer" name="dealer_id" col="col-md-4 dealer d-none" class="fcs selectpicker" onchange="getAreaList(this.value)">
+                            <x-form.selectbox labelName="Dealer" name="direct_dealer_id" col="col-md-4 direct_dealer d-none" class="fcs selectpicker" required="required">
                                 @if (!$dealers->isEmpty())
                                 @foreach ($dealers as $value)
-                                <option value="{{ $value->id }}" data-commission="{{ $value->commission_rate }}">{{ $value->name.' - '.$value->mobile_no.' ('.$value->area_name.')'  }}</option>
+                                @if($value->type == 2)
+                                <option value="{{ $value->id }}" data-commission="{{ $value->commission_rate }}" data-groupid="{{ $value->dealer_group_id }}">{{ $value->name.' - '.$value->mobile_no.' ('.$value->district_name.' - '.$value->area_name.')'  }}</option>
+                                @endif
                                 @endforeach
                                 @endif
                             </x-form.selectbox>
                             
-                            <div class="form-group col-md-4">
-                                <label for="document">Attach Document <i class="fas fa-info-circle" data-toggle="tooltip" data-theme="dark" title="Maximum Allowed File Size 5MB and Format (png,jpg,jpeg,svg,webp,pdf,csv,xlxs)"></i></label>
-                                <input type="file" class="form-control fcs" name="document" id="document">
-                            </div>
 
-                            <div class="col-md-12">
+                            <div class="col-md-12 table-responsive">
                                 <table class="table table-bordered" id="product_table">
                                     <thead class="bg-primary">
                                         <th>Name</th>
                                         <th class="text-center">Sale Unit</th>
                                         <th class="text-center">Available Qty</th>
-                                        <th class="text-center">Qty</th>
-                                        <th class="text-right">Price</th>
+                                        <th class="text-center">Carton Qty</th>
+                                        <th class="text-center">Piece Qty</th>
+                                        <th class="text-center">Free Qty</th>
+                                        <th class="text-center">Carton Size</th>
+                                        <th class="text-right">Per Piece Price</th>
                                         <th class="text-right">Subtotal</th>
                                         <th class="text-center"><i class="fas fa-trash text-white"></i></th>
                                     </thead>
@@ -101,18 +105,43 @@
                                                 @if (!$products->isEmpty())
                                                 <option value="0">Please Select</option>
                                                 @foreach ($products as $product)
-                                                    <option value="{{ $product->id }}" data-stockqty="{{ $product->qty ?? 0 }}" data-price="{{ $product->base_unit_price }}" data-unitid={{ $product->base_unit_id }}  data-unitname="{{ $product->unit_name }}" >{{ $product->name }}</option>
+                                                    <option value="{{ $product->id }}" data-stockqty="{{ $product->base_unit_qty ?? 0 }}" 
+                                                        data-baseunitid={{ $product->base_unit_id }}  data-baseunitname="{{ $product->base_unit->unit_name }}" 
+                                                        data-unitid={{ $product->unit_id }}  data-unitname="{{ $product->unit->unit_name }}" 
+                                                        data-unitoperator={{ $product->unit->operator }}  data-unitoperationvalue="{{ $product->unit->operation_value }}" 
+                                                        @if (!$product->product_prices->isEmpty())
+                                                            @foreach ($product->product_prices as $item)
+                                                                {{ 'data-group'.$item->pivot->dealer_group_id.'baseunitprice='.$item->pivot->base_unit_price.' ' }}
+                                                            @endforeach
+                                                        @endif
+                                                        >{{ $product->name }}</option>
                                                 @endforeach
                                                 @endif
                                                 </select>
                                             </td>
-                                            <td class="unit_name_1 text-center" data-row="1"></td>
+                                            <td class="base_unit_name_1 text-center" data-row="1"></td>
                                             <td class="stock_qty_1 text-center" data-row="1"></td>
-                                            <td><input type="text" class="fcs form-control qty text-center" onkeyup="calculateRowTotal(this.value,1)" name="products[1][qty]" id="products_1_qty" data-row="1"></td>
+                                            <td>
+                                                <div class="d-flex justify-content-center">
+                                                <input type="text" class="fcs form-control unit_qty text-center custom-input" onkeyup="calculateRowTotal(this.value,1,1)" name="products[1][unit_qty]" id="products_1_unit_qty" data-row="1">
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex justify-content-center">
+                                                <input type="text" class="fcs form-control qty text-center custom-input" onkeyup="calculateRowTotal(this.value,1,2)" name="products[1][qty]" id="products_1_qty" data-row="1">
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex justify-content-center">
+                                                <input type="text" class="fcs form-control free_qty text-center custom-input" name="products[1][free_qty]" id="products_1_free_qty" data-row="1">
+                                                </div>
+                                            </td>
+                                            <td class="unit_name_1 text-center" data-row="1"></td>
                                             <td class="net_unit_price_1 text-right" data-row="1"></td>
                                             <td class="subtotal_1 text-right" data-row="1"></td>
                                             <td class="text-center"></td>
-                                            <input type="hidden" class="sale_unit_id" name="products[1][sale_unit_id]"  id="products_1_sale_unit_id" data-row="1">
+                                            <input type="hidden" class="base_unit_id" name="products[1][base_unit_id]"  id="products_1_base_unit_id" data-row="1">
+                                            <input type="hidden" class="unit_id" name="products[1][unit_id]"  id="products_1_unit_id" data-row="1">
                                             <input type="hidden" class="stock_qty" name="products[1][stock_qty]" id="products_1_stock_qty"  data-row="1">
                                             <input type="hidden" class="net_unit_price" name="products[1][net_unit_price]" id="products_1_net_unit_price" data-row="1">
                                             <input type="hidden" class="subtotal" name="products[1][subtotal]" id="products_1_subtotal" data-row="1">
@@ -120,123 +149,39 @@
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <td colspan="3" class="font-weight-bolder">Total</td>
+                                            <td colspan="3" class="font-weight-bolder"></td>
+                                            <td id="total-unit-qty" class="text-center font-weight-bolder">0.00</td>
                                             <td id="total-qty" class="text-center font-weight-bolder">0.00</td>
-                                            <td></td>
-                                            <td id="total" class="text-right font-weight-bolder">0.00</td>
+                                            <td id="total-free-qty" class="text-center font-weight-bolder">0.00</td>
+                                            <td colspan="2" class="text-right font-weight-bolder">Grand Total</td>
+                                            <td id="grand-total"  class="text-right font-weight-bolder">0.00</td>
                                             <td class="text-center"><button type="button" class="btn btn-success btn-md add-product"><i class="fas fa-plus"></i></button></td>
                                         </tr>
-                                        <tr>
-                                            <td colspan="4" rowspan="2">
-                                                <div class="form-group col-md-12 mb-0">
-                                                    <label for="shipping_cost">Note</label>
-                                                    <textarea  class="fcs form-control" name="note" id="note" cols="30" rows="3"></textarea>
-                                                </div>
-                                            </td>
-                                            <td class="text-right font-weight-bolder">Previous Due</td>
-                                            <td><input type="text" class="fcs form-control text-right bg-secondary" name="previous_due" id="previous_due" placeholder="0.00" readonly></td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-right font-weight-bolder">Net Total</td>
-                                            <td><input type="text" class="fcs form-control text-right bg-secondary" name="net_total" id="net_total" placeholder="0.00" readonly></td>
-                                        </tr>
                                         <tr class="commission_row d-none">
-                                            <td colspan="5" class="text-right font-weight-bolder">Commission <span id="commission"></span></td>
-                                            <td>
-                                                <input type="text" class="fcs form-control text-right bg-secondary" name="total_commission" id="total_commission" placeholder="0.00" readonly>
-                                                <input type="hidden" class="fcs form-control" name="commission_rate" id="commission_rate" value="0" readonly>
-                                            </td>
+                                            <td colspan="7" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">Commission <span id="commission"></span></td>
+                                            <td id="total-commission" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">0.00</td>
+                                            <td></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="4">
-                                                <div class="row">
-                                                    <x-form.selectbox labelName="Payment Status" name="payment_status" required="required"  col="col-md-6 mb-0" class="fcs selectpicker">
-                                                        @foreach (PAYMENT_STATUS as $key => $value)
-                                                        <option value="{{ $key }}">{{ $value }}</option>
-                                                        @endforeach
-                                                    </x-form.selectbox>
-                                                    <x-form.selectbox labelName="Payment Method" name="payment_method" onchange="account_list(this.value)" required="required"  col="col-md-6 payment_row d-none" class="selectpicker">
-                                                        @foreach (SALE_PAYMENT_METHOD as $key => $value)
-                                                        <option value="{{ $key }}">{{ $value }}</option>
-                                                        @endforeach
-                                                    </x-form.selectbox>
-                                                </div>
-                                            </td>
-                                            <td class="text-right font-weight-bolder">Payable Amount</td>
-                                            <td><input type="text" class="fcs form-control text-right bg-secondary" name="payable_amount" id="payable_amount" placeholder="0.00" readonly></td>
-                                        </tr>
-                                        <tr class="payment_row d-none">
-                                            <td colspan="4" rowspan="2">
-                                                <div class="row">
-                                                    <x-form.selectbox labelName="Account" name="account_id" required="required"  col="col-md-6" class="fcs selectpicker"/>
-                                                    <div class="form-group col-md-6 d-none reference_no">
-                                                        <label for="reference_no">Reference No</label>
-                                                        <input type="text" class="fcs form-control" name="reference_no" id="reference_no">
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="text-right font-weight-bolder">Paid Amount</td>
-                                            <td>
-                                                <div class="form-group mb-0">
-                                                <input type="text" class="fcs form-control text-right" name="paid_amount" id="paid_amount" placeholder="0.00">
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr class="payment_row d-none">
-                                            <td class="text-right font-weight-bolder">Due Amount</td>
-                                            <td><input type="text" class="fcs form-control bg-secondary text-right" name="due_amount" id="due_amount" placeholder="0.00" readonly></td>
+                                            <td colspan="7" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">Balance</td>
+                                            <td id="net-total" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">0.00</td>
+                                            <td></td>
                                         </tr>
                                     </tfoot>
                                 </table>
                             </div>
                             
-                            
-                            {{-- <div class="col-md-12">
-                                <table class="table table-bordered">
-                                    <thead class="bg-primary">
-                                        <th><strong>Items</strong><span class="float-right" id="item">0(0)</span></th>
-                                        <th><strong>Total</strong><span class="float-right" id="subtotal">0.00</span></th>
-                                        <th><strong>Grand Total</strong><span class="float-right" id="grand_total">0.00</span></th>
-                                        <th><strong>SR Commission</strong><span class="float-right" id="sr_commission">0.00</span></th>
-                                    </thead>
-                                </table>
-                            </div> --}}
+
                             <div class="col-md-12">
-                                <input type="hidden" name="total_qty">
-                                <input type="hidden" name="total_price">
-                                <input type="hidden" name="item">
-                                <input type="hidden" name="grand_total">
+                                <input type="hidden" name="item" id="item">
+                                <input type="hidden" name="total_unit_qty" id="total_unit_qty">
+                                <input type="hidden" name="total_qty" id="total_qty">
+                                <input type="hidden" name="total_free_qty" id="total_free_qty">
+                                <input type="hidden" name="grand_total" id="grand_total">
+                                <input type="hidden" name="total_commission" id="total_commission">
+                                <input type="hidden" name="commission_rate" id="commission_rate" value="0">
+                                <input type="hidden" name="net_total" id="net_total">
                             </div>
-                            {{-- <div class="payment col-md-12 d-none">
-                                <div class="row">
-                                    <div class="form-group col-md-4 required">
-                                        <label for="previous_due">Previous Due</label>
-                                        <input type="text" class="fcs form-control" name="previous_due" id="previous_due" readonly>
-                                    </div>
-                                    <div class="form-group col-md-4 required">
-                                        <label for="net_total">Net Total</label>
-                                        <input type="text" class="fcs form-control" name="net_total" id="net_total" readonly>
-                                    </div>
-                                    <div class="form-group col-md-4 required">
-                                        <label for="paid_amount">Paid Amount</label>
-                                        <input type="text" class="fcs form-control" name="paid_amount" id="paid_amount">
-                                    </div>
-                                    <div class="form-group col-md-4">
-                                        <label for="due_amount">Due Amount</label>
-                                        <input type="text" class="fcs form-control" name="due_amount" id="due_amount" readonly>
-                                    </div>
-                                    <x-form.selectbox labelName="Payment Method" name="payment_method" onchange="account_list(this.value)" required="required"  col="col-md-4" class="selectpicker">
-                                        @foreach (SALE_PAYMENT_METHOD as $key => $value)
-                                        <option value="{{ $key }}">{{ $value }}</option>
-                                        @endforeach
-                                    </x-form.selectbox>
-                                    <x-form.selectbox labelName="Account" name="account_id" required="required"  col="col-md-4" class="fcs selectpicker"/>
-                                    <div class="form-group required col-md-4 d-none reference_no">
-                                        <label for="reference_no">Reference No</label>
-                                        <input type="text" class="fcs form-control" name="reference_no" id="reference_no">
-                                    </div>
-                                </div>
-                            </div> --}}
 
                             <div class="form-grou col-md-12 text-center pt-5">
                                 <button type="button" class="btn btn-danger btn-sm mr-3" onclick="window.location.replace('{{ route("sale.add") }}');"><i class="fas fa-sync-alt"></i> Reset</button>
@@ -279,19 +224,19 @@ $(document).ready(function () {
         {
             if(order_from == 1)
             {
-                let depo_id = document.getElementById('depo_id').value;
-                if(depo_id)
+                let depo_dealer_id = document.getElementById('depo_dealer_id').value;
+                if(depo_dealer_id)
                 {
                     setProductDetails(1);
                 }else{
                     $('#products_1_id').val('');
                     $('#products_1_id.selectpicker').selectpicker('refresh');
-                    notification('error','Please at first select depo!');
+                    notification('error','Please at first select dealer!');
                 }
             }else if(order_from == 2)
             {
-                let dealer_id = document.getElementById('dealer_id').value;
-                if(dealer_id)
+                let direct_dealer_id = document.getElementById('direct_dealer_id').value;
+                if(direct_dealer_id)
                 {
                     setProductDetails(1);
                 }else{
@@ -303,7 +248,7 @@ $(document).ready(function () {
         }else{
             $('#products_1_id').val('');
             $('#products_1_id.selectpicker').selectpicker('refresh');
-            notification('error','Please at first select order from!');
+            notification('error','Please at first select order received from!');
         }
     });
 
@@ -332,18 +277,43 @@ $(document).ready(function () {
                             @if (!$products->isEmpty())
                             <option value="0">Please Select</option>
                             @foreach ($products as $product)
-                                <option value="{{ $product->id }}" data-stockqty="{{ $product->qty ?? 0 }}" data-price="{{ $product->base_unit_price }}" data-unitid={{ $product->base_unit_id }}  data-unitname="{{ $product->unit_name }}" >{{ $product->name }}</option>
+                            <option value="{{ $product->id }}" data-stockqty="{{ $product->base_unit_qty ?? 0 }}" 
+                                                        data-baseunitid={{ $product->base_unit_id }}  data-baseunitname="{{ $product->base_unit->unit_name }}" 
+                                                        data-unitid={{ $product->unit_id }}  data-unitname="{{ $product->unit->unit_name }}" 
+                                                        data-unitoperator={{ $product->unit->operator }}  data-unitoperationvalue="{{ $product->unit->operation_value }}" 
+                                                        @if (!$product->product_prices->isEmpty())
+                                                            @foreach ($product->product_prices as $item)
+                                                                {{ 'data-group'.$item->pivot->dealer_group_id.'baseunitprice='.$item->pivot->base_unit_price.' ' }}
+                                                            @endforeach
+                                                        @endif
+                                                        >{{ $product->name }}</option>
                             @endforeach
                             @endif
                             </select>
                         </td>
-                        <td class="unit_name_${count} text-center" data-row="${count}"></td>
+                        <td class="base_unit_name_${count} text-center" data-row="${count}"></td>
                         <td class="stock_qty_${count} text-center" data-row="${count}"></td>
-                        <td><input type="text" class="fcs form-control qty text-center" onkeyup="calculateRowTotal(this.value,${count})" name="products[${count}][qty]" id="products_${count}_qty" data-row="${count}"></td>
+                        <td>
+                            <div class="d-flex justify-content-center">
+                            <input type="text" class="fcs form-control unit_qty text-center custom-input" onkeyup="calculateRowTotal(this.value,${count},1)" name="products[${count}][unit_qty]" id="products_${count}_unit_qty" data-row="${count}">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-center">
+                            <input type="text" class="fcs form-control qty text-center custom-input" onkeyup="calculateRowTotal(this.value,${count},2)" name="products[${count}][qty]" id="products_${count}_qty" data-row="${count}">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-center">
+                            <input type="text" class="fcs form-control free_qty text-center custom-input" name="products[${count}][free_qty]" id="products_${count}_free_qty" data-row="${count}">
+                            </div>
+                        </td>
+                        <td class="unit_name_${count} text-center" data-row="${count}"></td>
                         <td class="net_unit_price_${count} text-right" data-row="${count}"></td>
                         <td class="subtotal_${count} text-right" data-row="${count}"></td>
                         <td class="text-center" data-row="${count}"><button type="button" class="btn btn-danger btn-md remove-product"><i class="fas fa-trash"></i></button></td>
-                        <input type="hidden" class="sale_unit_id" name="products[${count}][sale_unit_id]"  id="products_${count}_sale_unit_id" data-row="${count}">
+                        <input type="hidden" class="base_unit_id" name="products[${count}][base_unit_id]"  id="products_${count}_base_unit_id" data-row="${count}">
+                        <input type="hidden" class="unit_id" name="products[${count}][unit_id]"  id="products_${count}_unit_id" data-row="${count}">
                         <input type="hidden" class="stock_qty" name="products[${count}][stock_qty]" id="products_${count}_stock_qty"  data-row="${count}">
                         <input type="hidden" class="net_unit_price" name="products[${count}][net_unit_price]" id="products_${count}_net_unit_price" data-row="${count}">
                         <input type="hidden" class="subtotal" name="products[${count}][subtotal]" id="products_${count}_subtotal" data-row="${count}">
@@ -352,8 +322,9 @@ $(document).ready(function () {
         $('#product_table .selectpicker').selectpicker();
     } 
 
-    $('#depo_id').on('change',function(){
-        let commission_rate = $('#depo_id option:selected').data('commission');
+    $('#depo_dealer_id').on('change',function(){
+        let commission_rate = $('#depo_dealer_id option:selected').data('commission');
+        $('#depo_id').val($('#depo_dealer_id option:selected').data('depoid'));
         if (commission_rate) {
             $('.commission_row').removeClass('d-none');
             $('#commission').text(`(${commission_rate}%)`);
@@ -363,13 +334,10 @@ $(document).ready(function () {
             $('#commission_rate').val(0);
             $('#commission').text('');
         }
-        $.get('{{ url("depo/previous-balance") }}/'+$('#depo_id option:selected').val(),function(data){
-            console.log(data);
-            $('#previous_due').val(parseFloat(data).toFixed(2));
-        });
     });
-    $('#deaaler_id').on('change',function(){
-        let commission_rate = $('#deaaler_id option:selected').data('commission');
+    $('#direct_dealer_id').on('change',function(){
+        let commission_rate = $('#direct_dealer_id option:selected').data('commission');
+        $('#depo_id').val('');
         if (commission_rate) {
             $('.commission_row').removeClass('d-none');
             $('#commission').text(`(${commission_rate}%)`);
@@ -379,78 +347,95 @@ $(document).ready(function () {
             $('#commission_rate').val(0);
             $('#commission').text('');
         }
-        $.get('{{ url("dealer/previous-balance") }}/'+$('#deaaler_id option:selected').val(),function(data){
-            $('#previous_due').val(parseFloat(data).toFixed(2));
+    });
+
+    $(document).on('keyup','.free_qty',function(){
+        var total_free_qty = 0;
+        $('.free_qty').each(function() {
+            if($(this).val() == ''){
+                total_free_qty += 0;
+            }else{
+                total_free_qty += parseFloat($(this).val());
+            }
         });
-    });
-    $('#payment_status').on('change',function(){
-        if($(this).val() != 3){
-            $('.payment_row').removeClass('d-none');
-        }else{
-            $('#paid_amount').val(0);
-            $('.payment_row').addClass('d-none');
-        }
+        $('#total-free-qty').text(total_free_qty);
+        $('input[name="total_free_qty"]').val(total_free_qty);
     });
 
-    $('#payment_method').on('change',function(){
-        if($(this).val() != 1){
-            $('.reference_no').removeClass('d-none');
-        }else{
-            $('.reference_no').addClass('d-none');
-        }
-    });
-
-    $('#paid_amount').on('input',function(){
-        var payable_amount = parseFloat($('#payable_amount').val());
-        var paid_amount = parseFloat($(this).val());
-        
-        if(paid_amount > payable_amount){
-            $('#paid_amount').val(payable_amount.toFixed(2));
-            paid_amount = payable_amount;
-            notification('error','Paid amount cannot be bigger than payable amount');
-        }
-        $('#due_amount').val(parseFloat(payable_amount - paid_amount).toFixed(2));
-        
-    });
 });
 
 function setProductDetails(row)
 {
+    let base_unit_id = $(`#products_${row}_id option:selected`).data('baseunitid');
     let unit_id = $(`#products_${row}_id option:selected`).data('unitid');
+    let base_unit_name = $(`#products_${row}_id option:selected`).data('baseunitname');
     let unit_name = $(`#products_${row}_id option:selected`).data('unitname');
-    let price = $(`#products_${row}_id option:selected`).data('price');
+    let price = 0;
+    let group_id = '';
+    if($('#order_from option:selected').val() == 1)
+    {
+        group_id = $('#depo_dealer_id option:selected').data('groupid');
+    }else{
+        group_id = $('#direct_dealer_id option:selected').data('groupid');
+    }
+    price = parseFloat($(`#products_${row}_id option:selected`).data(`group${group_id}baseunitprice`));
     let stock_qty = $(`#products_${row}_id option:selected`).data('stockqty');
 
+    $(`.base_unit_name_${row}`).text(base_unit_name);
     $(`.unit_name_${row}`).text(unit_name);
     $(`.stock_qty_${row}`).text(stock_qty);
     $(`.net_unit_price_${row}`).text(parseFloat(price));
-    $(`#products_${row}_sale_unit_id`).val(unit_id);
+    $(`#products_${row}_base_unit_id`).val(base_unit_id);
+    $(`#products_${row}_unit_id`).val(unit_id);
     $(`#products_${row}_stock_qty`).val(stock_qty);
     $(`#products_${row}_net_unit_price`).val(price);
 }
 
-function calculateRowTotal(qty,row)
+function calculateRowTotal(qty,row,field)
 {
     let price = parseFloat($(`#products_${row}_net_unit_price`).val());
     let stock_qty = $(`#products_${row}_stock_qty`).val() ? parseFloat($(`#products_${row}_stock_qty`).val()) : 0;
-    if(parseFloat(qty) < 1 || parseFloat(qty) == ''){
-        qty = 1;
-        $(`#products_${row}_qty`).val(qty);
-        $(`.subtotal_${row}`).text(qty * price);
-        $(`#products_${row}_subtotal`).val(qty * price);
-        notification('error','Qunatity can\'t be less than 1');
+    let operator = $(`#products_${row}_id option:selected`).data('unitoperator');
+    let operation_value =  parseFloat($(`#products_${row}_id option:selected`).data('unitoperationvalue'));
+    let unit_qty = 0;
+    let base_unit_qty = 0;
+    
+   
+    if(field == 1)
+    {
+        if(parseFloat(qty) < 1 || parseFloat(qty) == ''){
+            qty = 1;
+            $(`#products_${row}_unit_qty`).val(qty);
+            calculateRowTotal(qty,row,1)
+            notification('error','Carton Qunatity can\'t be less than 1');
+        }
+        if(operator == '*')
+        {
+            base_unit_qty = qty * operation_value;
+        }else{
+            base_unit_qty = qty / operation_value;
+        }
+        unit_qty = qty;
+        $(`#products_${row}_qty`).val(base_unit_qty);
+    }else{
+        if(parseFloat(qty) < 1 || parseFloat(qty) == ''){
+            qty = 1;
+            $(`#products_${row}_qty`).val(qty);
+            calculateRowTotal(qty,row,2)
+            notification('error','Qunatity can\'t be less than 1');
+        }
+        if(operator == '*')
+        {
+            unit_qty = qty / operation_value;
+        }else{
+            unit_qty = qty * operation_value;
+        }
+        base_unit_qty = qty;
+        $(`#products_${row}_unit_qty`).val(unit_qty.toFixed(2));
     }
-    // else if(parseFloat(qty) > stock_qty)
-    //     qty = stock_qty;
-    //     $(`#products_${row}_qty`).val(qty);
-    //     $(`.subtotal_${row}`).text(qty * price);
-    //     $(`#products_${row}_subtotal`).val(qty * price);
-    //     notification('error','Qunatity must be less than or equal to stock available quantity');
-    // }
-    else{
-        $(`.subtotal_${row}`).text(qty * price);
-        $(`#products_${row}_subtotal`).val(qty * price);
-    }
+    
+    $(`.subtotal_${row}`).text(base_unit_qty * price);
+    $(`#products_${row}_subtotal`).val(base_unit_qty * price);
     calculateTotal();
 }
 
@@ -468,83 +453,71 @@ function calculateTotal()
     $('#total-qty').text(total_qty);
     $('input[name="total_qty"]').val(total_qty);
 
+    var total_unit_qty = 0;
+    $('.unit_qty').each(function() {
+        if($(this).val() == ''){
+            total_unit_qty += 0;
+        }else{
+            total_unit_qty += parseFloat($(this).val());
+        }
+    });
+    $('#total-unit-qty').text(total_unit_qty);
+    $('input[name="total_unit_qty"]').val(total_unit_qty);
+
+    var total_free_qty = 0;
+    $('.free_qty').each(function() {
+        if($(this).val() == ''){
+            total_free_qty += 0;
+        }else{
+            total_free_qty += parseFloat($(this).val());
+        }
+    });
+    $('#total-free-qty').text(total_free_qty);
+    $('input[name="total_free_qty"]').val(total_free_qty);
+
     //sum of subtotal
     var total = 0;
     $('.subtotal').each(function() {
         total += parseFloat($(this).val());
     });
-    $('#total').text(total.toFixed(2));
-    $('input[name="total_price"]').val(total.toFixed(2));
+    $('#grand-total').text(total.toFixed(2));
+    $('input[name="grand_total"]').val(total.toFixed(2));
 
     var item           = $('#product_table tbody tr:last').index()+1;
-    $('#item').text(item + '(' + total_qty + ')');
     $('input[name="item"]').val(item);
     calculateNetTotal();
 }
 function calculateNetTotal()
 {
     
-    var grand_total  = parseFloat($('#total').text());
-    var previous_due = parseFloat($('#previous_due').val());
-    var net_total = grand_total + previous_due;
+    var grand_total  = parseFloat($('#grand_total').val());
     
     var commission_rate = $('#commission_rate').val();
     if(!commission_rate){
         commission_rate = 0;
     }
     var total_commission = grand_total * (commission_rate/100);
-    var payable_amount = net_total - total_commission;
+    var net_total = grand_total - total_commission;
 
-   
-    $('input[name="grand_total"]').val(grand_total.toFixed(2));
-    $('input[name="net_total"]').val(net_total.toFixed(2));
+    $('#total-commission').text(total_commission.toFixed(2));
+    $('#net-total').text(net_total.toFixed(2));
+
     $('input[name="total_commission"]').val(total_commission.toFixed(2));
-    $('#payable_amount').val(payable_amount.toFixed(2));
-
-    var paid_amount =parseFloat($('#paid_amount').val());
-    if(!paid_amount)
-    {
-        paid_amount = 0;
-    }
-    // if($('#payment_status option:selected').val() == 1)
-    // {
-    //     $('#paid_amount').val(net_total.toFixed(2));
-    //     $('#due_amount').val(parseFloat(0).toFixed(2));
-    // }else if($('#payment_status option:selected').val() == 2){
-    //     var paid_amount = $('#paid_amount').val();
-    //     $('#due_amount').val(parseFloat(net_total-paid_amount).toFixed(2));
-    // }else{
-        $('#due_amount').val(parseFloat(payable_amount - paid_amount).toFixed(2));
-    // }
+    $('input[name="net_total"]').val(net_total.toFixed(2));
 }
 
-function account_list(payment_method)
-{
-    $.ajax({
-        url: "{{route('account.list')}}",
-        type: "POST",
-        data: { payment_method: payment_method,_token: _token},
-        success: function (data) {
-            $('#sale_store_form #account_id').empty().html(data);
-            $('#sale_store_form #account_id.selectpicker').selectpicker('refresh');
-        },
-        error: function (xhr, ajaxOption, thrownError) {
-            console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
-        }
-    });
-}
 function orderFrom(value)
 {
     if(value == 1){
-        $('.depo').removeClass('d-none');
-        $('.dealer').addClass('d-none');
-        $('#dealer_id').val('');
-        $('#dealer_id.selectpicker').selectpicker('refresh');
+        $('.depo_dealer').removeClass('d-none');
+        $('.direct_dealer').addClass('d-none');
+        $('#direct_dealer_id').val('');
+        $('#direct_dealer_id.selectpicker').selectpicker('refresh');
     }else{
-        $('.depo').addClass('d-none');
-        $('#depo_id').val('');
-        $('#depo_id.selectpicker').selectpicker('refresh');
-        $('.dealer').removeClass('d-none');
+        $('.depo_dealer').addClass('d-none');
+        $('#depo_dealer_id').val('');
+        $('#depo_dealer_id.selectpicker').selectpicker('refresh');
+        $('.direct_dealer').removeClass('d-none');
     }
     $('.commission_row').addClass('d-none');
     $('#commission_rate').val(0);
