@@ -33,6 +33,7 @@
                     <form action="" id="store_form" method="post" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="update_id" value="{{ $adjustment->id }}">
+                        <input type="hidden" name="warehouse_id" value="{{ $adjustment->warehouse_id }}">
                         <div class="row">
                             <div class="form-group col-md-4 required">
                                 <label for="adjustment_no">Adjustment No.</label>
@@ -44,23 +45,6 @@
                                 <input type="text" class="form-control date" name="date" id="date" value="{{ $adjustment->date }}"  readonly />
                             </div>
 
-                            <x-form.selectbox labelName="Depo" name="warehouse_id" col="col-md-4" required="required" class="selectpicker">
-                                @if (!$warehouses->isEmpty())
-                                @foreach ($warehouses as $id => $name)
-                                    <option value="{{ $id }}" {{ $adjustment->warehouse_id == $id ? 'selected' : '' }}>{{ $name }}</option>
-                                @endforeach
-                                @endif
-                            </x-form.selectbox>
-
-                            <div class="form-group col-md-12">
-                                <label for="product_code_name">Select Product</label>
-                                <div class="input-group mb-3">
-                                    <div class="input-group-prepend">
-                                    <span class="input-group-text" id="basic-addon1"><i class="fas fa-barcode"></i></span>
-                                    </div>
-                                    <input type="text" class="form-control" name="product_code_name" id="product_code_name" placeholder="Please type product code and select...">
-                                </div>
-                            </div>
                             <div class="col-md-12">
                                 <table class="table table-bordered" id="product_table">
                                     <thead class="bg-primary">
@@ -76,20 +60,31 @@
                                             @foreach ($adjustment->products as $key => $adjustment_product)
                                             <tr>
                                                 @php
-                                                    $base_unit = DB::table('units')->find($adjustment_product->pivot->base_unit_id);
-                                                    $unit_name = $base_unit ? $base_unit->unit_name.' ('.$base_unit->unit_code.')' : '';
+                                                    // $base_unit = DB::table('units')->find($adjustment_product->pivot->base_unit_id);
+                                                    // $unit_name = $base_unit ? $base_unit->unit_name.' ('.$base_unit->unit_code.')' : '';
                                                 @endphp
-                                                <td>{{  $adjustment_product->name.' - ('.$adjustment_product->code.')' }}</td>
-                                                <td class="text-center">{{ $unit_name }}</td>
-                                                <td><input type="text" class="form-control base_unit_qty base_unit_qty_{{ $key + 1 }} text-center" onkeyup="calculateRowTotal('{{ $key + 1 }}')" value="{{ $adjustment_product->pivot->base_unit_qty }}" name="products[`+count+`][base_unit_qty]" id="products_`+count+`_base_unit_qty" data-row="{{ $key + 1 }}"></td>
-                                                <td><input type="text" class="form-control base_unit_cost base_unit_cost_{{ $key + 1 }} text-center" onkeyup="calculateRowTotal('{{ $key + 1 }}')" value="{{ $adjustment_product->pivot->base_unit_cost }}" name="products[`+count+`][base_unit_cost]" id="products_`+count+`_base_unit_cost" data-row="{{ $key + 1 }}"></td>
-                                                <td class="sub-total sub-total_{{ $key + 1 }} text-right" data-row="{{ $key + 1 }}">{{ number_format($adjustment_product->pivot->total_cost,2,'.','') }}</td>
-                                                <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-product small-btn"><i class="fas fa-trash"></i></button></td>
-                                                <input type="hidden" class="product-id product-id_{{ $key + 1 }}" name="products[`+count+`][id]" value="{{ $adjustment_product->id }}" data-row="{{ $key + 1 }}">
-                                                <input type="hidden"  name="products[`+count+`][name]" value="{{ $adjustment_product->name }}" data-row="{{ $key + 1 }}">
-                                                <input type="hidden" class="product-code product-code_{{ $key + 1 }}" name="products[`+count+`][code]" value="{{ $adjustment_product->code }}" data-row="{{ $key + 1 }}">
-                                                <input type="hidden" class="product-unit product-unit_{{ $key + 1 }}" name="products[`+count+`][base_unit_id]" value="{{ $adjustment_product->pivot->base_unit_id }}" data-row="{{ $key + 1 }}">
-                                                <input type="hidden" class="subtotal-value subtotal-value_{{ $key + 1 }}" name="products[`+count+`][subtotal]" data-row="{{ $key + 1 }}" value="{{ number_format($adjustment_product->pivot->total_cost,2,'.','') }}">
+                                                <td class="col-md-3">                                                
+                                                    <select name="products[{{ $key+1 }}][id]" id="products_{{ $key+1 }}_id" class="fcs col-md-12 form-control selectpicker" onchange="setProductDetails({{ $key+1 }})"  data-live-search="true" data-row="{{ $key+1 }}">
+                                                    @if (!$products->isEmpty())
+                                                    <option value="">Please Select</option>
+                                                    @foreach ($products as $product)
+                                                        <option {{ $adjustment_product->id != $product->id ?: 'selected' }} value="{{ $product->id }}" data-unitid={{ $product->base_unit_id }}  data-unitname="{{ $product->unit_name }}" >{{ $product->name }}</option>
+                                                    @endforeach
+                                                    @endif
+                                                    </select>
+                                                </td>
+                                                <td class="unit_name_{{ $key+1 }} text-center" data-row="{{ $key+1 }}">{{ $adjustment_product->base_unit->unit_name }}</td>
+                                                <td><input type="text" class="fcs form-control base_unit_qty base_unit_qty_{{ $key+1 }} text-center" onkeyup="calculateRowTotal({{ $key+1 }})" value="{{ $adjustment_product->pivot->base_unit_qty }}" name="products[{{ $key+1 }}][base_unit_qty]" id="products_{{ $key+1 }}_base_unit_qty" data-row="{{ $key+1 }}"></td>
+                                                <td><input type="text" class="form-control base_unit_cost base_unit_cost_{{ $key+1 }} text-center" onkeyup="calculateRowTotal({{ $key+1 }})" value="{{ $adjustment_product->pivot->base_unit_cost }}" name="products[{{ $key+1 }}][base_unit_cost]" id="products_{{ $key+1 }}_base_unit_cost" data-row="{{ $key+1 }}"></td>
+                                                <td class="subtotal_{{ $key+1 }} text-right" data-row="{{ $key+1 }}">{{ number_format($adjustment_product->pivot->total_cost,2,'.','') }}</td>
+                                                <td class="text-center">
+                                                    @if ($key != 0)
+                                                    <button type="button" class="btn btn-danger btn-md remove-product"><i class="fas fa-trash"></i></button>   
+                                                    @endif
+                                                </td>
+                                                <input type="hidden" class="base_unit_id" name="products[{{ $key+1 }}][base_unit_id]"  id="products_{{ $key+1 }}_base_unit_id" data-row="{{ $key+1 }}"  value="{{ $adjustment_product->pivot->base_unit_id }}">
+                                                <input type="hidden" class="subtotal" name="products[{{ $key+1 }}][subtotal]" id="products_{{ $key+1 }}_subtotal" data-row="{{ $key+1 }}" value="{{ number_format($adjustment_product->pivot->total_cost,2,'.','') }}">
+
                                             </tr>
                                             @endforeach 
                                         @endif
@@ -99,7 +94,7 @@
                                         <th id="total-qty" class="text-center font-weight-bolder">{{ $adjustment->total_qty }}</th>
                                         <th></th>
                                         <th id="total" class="text-right font-weight-bolder">{{ number_format($adjustment->total_cost,2,'.','') }}</th>
-                                        <th></th>
+                                        <th class="text-center"><button type="button" class="btn btn-success btn-md add-product"><i class="fas fa-plus"></i></button></th>
                                     </tfoot>
                                 </table>
                             </div>
@@ -114,7 +109,7 @@
                                 <table class="table table-bordered">
                                     <thead class="bg-primary">
                                         <th width="50%"><strong>Items</strong><span class="float-right" id="item">{{ $adjustment->item.'('.$adjustment->total_qty.')' }}</span></th>
-                                        <th width="50%"><strong>Grand Total</strong><span class="float-right" id="total-cost">{{ number_format($adjustment->grand_total,2,'.','') }}</span></th>
+                                        <th width="50%"><strong>Grand Total</strong><span class="float-right" id="total-cost">{{ number_format($adjustment->total_cost,2,'.','') }}</span></th>
                                     </thead>
                                 </table>
                             </div>
@@ -125,7 +120,7 @@
                             </div>
                             <div class="form-group col-md-12 text-center pt-5">
                                 <button type="button" class="btn btn-danger btn-sm mr-3"><i class="fas fa-sync-alt"></i> Reset</button>
-                                <button type="button" class="btn btn-primary btn-sm mr-3" id="save-btn" onclick="store_data()"><i class="fas fa-save"></i> Submit</button>
+                                <button type="button" class="btn btn-primary btn-sm mr-3" id="save-btn" onclick="store_data()"><i class="fas fa-save"></i> Update</button>
                             </div>
                         </div>
                     </form>
@@ -146,158 +141,113 @@
 <script>
 $(document).ready(function () {
     $('.date').datetimepicker({format: 'YYYY-MM-DD',ignoreReadonly: true});
-
-    $('#product_code_name').autocomplete({
-        // source: "{{url('product-autocomplete-search')}}",
-        source: function( request, response ) {
-          // Fetch data
-          $.ajax({
-            url:"{{url('barcode/product-autocomplete-search')}}",
-            type: 'post',
-            dataType: "json",
-            data: {
-               _token: _token,
-               search: request.term
-            },
-            success: function( data ) {
-               response( data );
-            }
-          });
-        },
-        minLength: 3,
-        response: function(event, ui) {
-            if (ui.content.length == 1) {
-                var data = ui.content[0].code;
-                $(this).autocomplete( "close" );
-                productSearch(data);
-            };
-        },
-        select: function (event, ui) {
-            // $('.product_search').val(ui.item.value);
-            // $('.product_id').val(ui.item.id);
-            var data = ui.item.code;
-            productSearch(data);
-        },
-    }).data('ui-autocomplete')._renderItem = function (ul, item) {
-        return $("<li class='ui-autocomplete-row'></li>")
-            .data("item.autocomplete", item)
-            .append(item.label)
-            .appendTo(ul);
-    };
-
+    var count = 1;
+    @if (!$adjustment->products->isEmpty())
+        count = "{{ count($adjustment->products) + 1 }}";
+    @endif
+    
+    $('#product_table').on('click','.add-product',function(){
+        if($('#products_1_id option:selected').val()){
+            count++;
+            product_row_add(count);
+        }else{
+            notification('error','Please select first row product!');
+        }
+    });   
     $('#product_table').on('click','.remove-product',function(){
         $(this).closest('tr').remove();
         calculateGrandTotal();
     });
-
-    @if (!$adjustment->products->isEmpty())
-    var count = "{{ count($adjustment->products) + 1 }}";
-    @else
-    var count = 1;
-    @endif
-    
-
-    function productSearch(data) {
-        $.ajax({
-            url: '{{ route("barcode.search.product") }}',
-            type: 'POST',
-            data: {
-                data: data,_token:_token
-            },
-            success: function(data) {
-                var flag = 1;
-                $('.product-code').each(function(i){
-                    if($(this).val() == data.code){
-                        notification('error','This product already added in table!');
-                        flag = 0;
-                    }
-                });
-                $('#product_code_name').val('');
-                if(flag)
-                {
-                    var newRow = $(`<tr>`);
-                    var cols = '';
-                    cols += `<td>`+data.name+` (`+data.code+`)</td>`;
-                    cols += `<td class="text-center">${data.base_unit_name}</td>`;
-                    cols += `<td><input type="text" class="form-control base_unit_qty base_unit_qty_${count} text-center" onkeyup="calculateRowTotal(${count})" value="1" name="products[`+count+`][base_unit_qty]" id="products_`+count+`_base_unit_qty" data-row="${count}"></td>`;
-                    cols += `<td><input type="text" class="form-control base_unit_cost base_unit_cost_${count} text-center" onkeyup="calculateRowTotal(${count})" value="0" name="products[`+count+`][base_unit_cost]" id="products_`+count+`_base_unit_cost" data-row="${count}"></td>`;
-                    cols += `<td class="sub-total sub-total_${count} text-right" data-row="${count}"></td>`;
-                    cols += `<td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-product small-btn"><i class="fas fa-trash"></i></button></td>`;
-                    
-                    cols += `<input type="hidden" class="product-id product-id_${count}" name="products[`+count+`][id]" value="`+data.id+`" data-row="${count}">`;
-                    cols += `<input type="hidden"  name="products[`+count+`][name]" value="`+data.name+`" data-row="${count}">`;
-                    cols += `<input type="hidden" class="product-code product-code_${count}" name="products[`+count+`][code]" value="`+data.code+`" data-row="${count}">`;
-                    cols += `<input type="hidden" class="product-unit product-unit_${count}" name="products[`+count+`][base_unit_id]" value="`+data.base_unit_id+`" data-row="${count}">`;
-                    cols += `<input type="hidden" class="subtotal-value subtotal-value_${count}" name="products[`+count+`][subtotal]" data-row="${count}">`;
-                    newRow.append(cols);
-                    $('#product_table tbody').append(newRow);
-                    calculateRowTotal(count);
-                    count++;
-                }
-                
-            }
-        });
+    function product_row_add(count){
+        var html =  `<tr>
+                        <td class="col-md-3">                                                
+                            <select name="products[${count}][id]" id="products_${count}_id" class="fcs col-md-12 form-control selectpicker" onchange="setProductDetails(${count})"  data-live-search="true" data-row="${count}">
+                            @if (!$products->isEmpty())
+                            <option value="">Please Select</option>
+                            @foreach ($products as $product)
+                                <option value="{{ $product->id }}" data-unitid={{ $product->base_unit_id }}  data-unitname="{{ $product->unit_name }}" >{{ $product->name }}</option>
+                            @endforeach
+                            @endif
+                            </select>
+                        </td>
+                        <td class="unit_name_${count} text-center" data-row="${count}"></td>
+                        <td><input type="text" class="fcs form-control base_unit_qty base_unit_qty_${count} text-center" onkeyup="calculateRowTotal(${count})" name="products[${count}][base_unit_qty]" id="products_${count}_base_unit_qty" data-row="${count}"></td>
+                        <td><input type="text" class="form-control base_unit_cost base_unit_cost_${count} text-center" onkeyup="calculateRowTotal(${count})" name="products[${count}][base_unit_cost]" id="products_${count}_base_unit_cost" data-row="${count}"></td>
+                        <td class="subtotal_${count} text-right" data-row="${count}"></td>
+                        <td class="text-center" data-row="${count}"><button type="button" class="btn btn-danger btn-md remove-product"><i class="fas fa-trash"></i></button></td>
+                        <input type="hidden" class="base_unit_id" name="products[${count}][base_unit_id]"  id="products_${count}_base_unit_id" data-row="${count}">
+                        <input type="hidden" class="subtotal" name="products[${count}][subtotal]" id="products_${count}_subtotal" data-row="${count}">
+                    </tr>`
+        $('#product_table tbody').append(html);
+        $('#product_table .selectpicker').selectpicker();
     }
 });
 
 function calculateRowTotal(row){ 
 
-    let qty = parseFloat($(`#product_table .base_unit_qty_${row}`).val());
-    let cost = parseFloat($(`#product_table .base_unit_cost_${row}`).val());
-    if(qty == ''){qty = 0};
-    if(cost == ''){cost = 0};
-    if(qty < 0)
-    {
-        notification('error','Quantity must be greater than 0');
-        $(`#product_table .base_unit_qty_${row}`).val('');
-        qty = 0;
-    }
-    if(cost < 0)
-    {
-        notification('error','Quantity must be greater than 0');
-        $(`#product_table .base_unit_cost_${row}`).val('');
-        cost = 0;
-    }
-    console.log(qty,cost);
-    let subtotal = qty * cost;
-    console.log(subtotal);
-    $(`#product_table .sub-total_${row}`).text(parseFloat(subtotal).toFixed(2));
-    $(`#product_table .subtotal-value_${row}`).val(subtotal);
-    calculateGrandTotal();
+let qty = parseFloat($(`#product_table .base_unit_qty_${row}`).val());
+let cost = parseFloat($(`#product_table .base_unit_cost_${row}`).val());
+if(!qty){qty = 0};
+if(!cost){cost = 0};
+if(qty < 0)
+{
+    notification('error','Quantity must be greater than 0');
+    $(`#product_table .base_unit_qty_${row}`).val('');
+    qty = 0;
+}
+if(cost < 0)
+{
+    notification('error','Quantity must be greater than 0');
+    $(`#product_table .base_unit_cost_${row}`).val('');
+    cost = 0;
+}
+console.log(qty,cost);
+let subtotal = qty * cost;
+console.log(subtotal);
+$(`#product_table .subtotal_${row}`).text(parseFloat(subtotal).toFixed(2));
+$(`#product_table #products_${row}_subtotal`).val(subtotal);
+calculateGrandTotal();
 }
 
 function calculateGrandTotal()
 {
-    //sum of qty
-    var total_qty = 0;
-    $('.base_unit_qty').each(function() {
-        if($(this).val() == ''){
-            total_qty += 0;
-        }else{
-            total_qty += parseFloat($(this).val());
-        }
-    });
-    $('#total-qty').text(total_qty);
-    $('input[name="total_qty"]').val(total_qty);
+//sum of qty
+var total_qty = 0;
+$('.base_unit_qty').each(function() {
+    if($(this).val() == ''){
+        total_qty += 0;
+    }else{
+        total_qty += parseFloat($(this).val());
+    }
+});
+$('#total-qty').text(total_qty);
+$('input[name="total_qty"]').val(total_qty);
 
-    //sum of subtotal
-    var total = 0;
-    $('.subtotal-value').each(function() {
-        total += parseFloat($(this).val());
-    });
-    $('#total').text(total.toFixed(2));
-    $('#total-cost').text(total.toFixed(2));
-    $('input[name="total_cost"]').val(total.toFixed(2));
+//sum of subtotal
+var total = 0;
+$('.subtotal').each(function() {
+    total += parseFloat($(this).val());
+});
+$('#total').text(total.toFixed(2));
+$('#total-cost').text(total.toFixed(2));
+$('input[name="total_cost"]').val(total.toFixed(2));
 
-    var item           = $('#product_table tbody tr:last').index();
-    var total_qty      = parseFloat($('#total-qty').text());
-    $('input[name="item"]').val(item);
-    item = ++item + '(' + total_qty + ')';
-    $('#item').text(item);
-    
+var item           = $('#product_table tbody tr:last').index();
+item = ++item + '(' + total_qty + ')';
+var total_qty      = parseFloat($('#total-qty').text());
+$('#item').text(item);
+$('input[name="item"]').val($('#product_table tbody tr:last').index()+1);
+
 
 }
+function setProductDetails(row)
+{
+let unit_id = $(`#products_${row}_id option:selected`).data('unitid');
+let unit_name = $(`#products_${row}_id option:selected`).data('unitname');
 
+$(`.unit_name_${row}`).text(unit_name);
+$(`#products_${row}_base_unit_id`).val(unit_id);
+}
 
 function store_data(){
     var rownumber = $('table#product_table tbody tr:last').index();

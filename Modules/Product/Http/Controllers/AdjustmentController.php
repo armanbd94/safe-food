@@ -213,7 +213,10 @@ class AdjustmentController extends BaseController
             $this->setPageData('Edit Finish Goods Stock','Edit Finish Goods Stock','fas fa-edit',[['name'=>'Finish Goods Stock','link' => route('finish.goods.stock')],['name' => 'Edit Finish Goods Stock']]);
             $data = [
                 'adjustment'   => $this->model->with('products')->find($id),
-                'warehouses'    => DB::table('warehouses')->where('status',1)->pluck('name','id')
+                'products'   => DB::table('products as p')
+                                ->leftjoin('units as bu','p.base_unit_id','=','bu.id')
+                                ->selectRaw('p.id,p.name,p.base_unit_id,bu.unit_name')
+                                ->get()
             ];
             return view('product::finish-goods-stock.edit',$data);
         }else{
@@ -225,7 +228,7 @@ class AdjustmentController extends BaseController
     {
         if($request->ajax()){
             if(permission('finish-goods-stock-edit')){
-                dd($request->all());
+                // dd($request->all());
                 DB::beginTransaction();
                 try {
                     $adjustmentData = $this->model->with('products')->find($request->update_id);
@@ -244,6 +247,12 @@ class AdjustmentController extends BaseController
                     if(!$adjustmentData->products->isEmpty())
                     {
                         foreach ($adjustmentData->products as  $adjustment_product) {
+                            $product = Product::find($adjustment_product->id);
+                            if($product)
+                            {
+                                $product->base_unit_qty -= $adjustment_product->pivot->base_unit_qty;
+                                $product->update();
+                            }
                             $warehouse_product = WarehouseProduct::where([
                                 ['warehouse_id', $adjustmentData->warehouse_id],
                                 ['product_id', $adjustment_product->id],
@@ -265,6 +274,13 @@ class AdjustmentController extends BaseController
                                 'base_unit_cost' => $value['base_unit_cost'],
                                 'total_cost'     => $value['subtotal']
                             ];
+
+                            $product = Product::find($value['id']);
+                            if($product)
+                            {
+                                $product->base_unit_qty += $value['base_unit_qty'];
+                                $product->update();
+                            }
 
                             $warehouse_product = WarehouseProduct::where([
                                 ['warehouse_id', $request->warehouse_id],
@@ -313,6 +329,13 @@ class AdjustmentController extends BaseController
                     if(!$adjustmentData->products->isEmpty())
                     {
                         foreach ($adjustmentData->products as  $adjustment_product) {
+                            $product = Product::find($adjustment_product->id);
+                            if($product)
+                            {
+                                $product->base_unit_qty -= $adjustment_product->pivot->base_unit_qty;
+                                $product->update();
+                            }
+
                             $warehouse_product = WarehouseProduct::where([
                                 ['warehouse_id', $adjustmentData->warehouse_id],
                                 ['product_id', $adjustment_product->id],
@@ -352,6 +375,13 @@ class AdjustmentController extends BaseController
                         if(!$adjustmentData->products->isEmpty())
                         {
                             foreach ($adjustmentData->products as  $adjustment_product) {
+                                $product = Product::find($adjustment_product->id);
+                                if($product)
+                                {
+                                    $product->base_unit_qty -= $adjustment_product->pivot->base_unit_qty;
+                                    $product->update();
+                                }
+
                                 $warehouse_product = WarehouseProduct::where([
                                     ['warehouse_id', $adjustmentData->warehouse_id],
                                     ['product_id', $adjustment_product->id],
