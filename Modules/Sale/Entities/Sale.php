@@ -17,7 +17,7 @@ class Sale extends BaseModel
     protected $fillable = [ 'memo_no', 'order_from', 'warehouse_id','depo_id', 'dealer_id', 'district_id','upazila_id','area_id',
     'item', 'total_unit_qty','total_qty', 'total_free_qty', 'grand_total', 'commission_rate', 'total_commission', 'net_total', 
     'payment_status', 'payment_method', 'account_id', 'reference_no',
-    'sale_date', 'delivery_date', 'created_by', 'modified_by'];
+    'sale_date', 'delivery_date', 'delivery_status','created_by', 'modified_by'];
 
     public function depo()
     {
@@ -114,11 +114,11 @@ class Sale extends BaseModel
         {
             $this->column_order = ['s.id','s.id','s.memo_no', 's.order_from','s.dealer_id','s.depo_id', 's.area_id','s.upazila_id','d.district_id','s.item',
             's.grand_total','s.commission_rate','s.total_commission','s.net_total', 's.payable_amount','s.paid_amount', 's.due_amount',
-            's.sale_date','s.delivery_date', null];
+            's.sale_date','s.delivery_date','s.delivery_status', null];
         }else{
             $this->column_order = ['s.id','s.memo_no', 's.order_from','s.dealer_id','s.depo_id', 's.area_id','s.upazila_id','d.district_id','s.item',
             's.grand_total','s.commission_rate','s.total_commission','s.net_total', 's.payable_amount','s.paid_amount', 's.due_amount',
-            's.sale_date','s.delivery_date', null];
+            's.sale_date','s.delivery_date','s.delivery_status', null];
         }
 
         $query = DB::table('sales as s')

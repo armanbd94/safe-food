@@ -63,7 +63,7 @@
                                     <option value="2">Direct Dealer</option>
                                 </select>
                             </div>
-                            <x-form.selectbox labelName="Dealer" name="depo_dealer_id" col="col-md-4 depo_dealer d-none" required="required" class="fcs selectpicker">
+                            <x-form.selectbox labelName="Dealer" name="depo_dealer_id" col="col-md-8 depo_dealer d-none" required="required" class="fcs selectpicker">
                                 @if (!$dealers->isEmpty())
                                 @foreach ($dealers as $value)
                                 @if($value->type == 1)
@@ -73,7 +73,7 @@
                                 @endif
                             </x-form.selectbox>
 
-                            <x-form.selectbox labelName="Dealer" name="direct_dealer_id" col="col-md-4 direct_dealer d-none" class="fcs selectpicker" required="required">
+                            <x-form.selectbox labelName="Dealer" name="direct_dealer_id" col="col-md-8 direct_dealer d-none" class="fcs selectpicker" required="required">
                                 @if (!$dealers->isEmpty())
                                 @foreach ($dealers as $value)
                                 @if($value->type == 2)
@@ -89,7 +89,6 @@
                                     <thead class="bg-primary">
                                         <th>Name</th>
                                         <th class="text-center">Sale Unit</th>
-                                        <th class="text-center">Available Qty</th>
                                         <th class="text-center">Carton Qty</th>
                                         <th class="text-center">Piece Qty</th>
                                         <th class="text-center">Free Qty</th>
@@ -105,8 +104,7 @@
                                                 @if (!$products->isEmpty())
                                                 <option value="0">Please Select</option>
                                                 @foreach ($products as $product)
-                                                    <option value="{{ $product->id }}" data-stockqty="{{ $product->base_unit_qty ?? 0 }}" 
-                                                        data-baseunitid={{ $product->base_unit_id }}  data-baseunitname="{{ $product->base_unit->unit_name }}" 
+                                                    <option value="{{ $product->id }}" data-baseunitid={{ $product->base_unit_id }}  data-baseunitname="{{ $product->base_unit->unit_name }}" 
                                                         data-unitid={{ $product->unit_id }}  data-unitname="{{ $product->unit->unit_name }}" 
                                                         data-unitoperator={{ $product->unit->operator }}  data-unitoperationvalue="{{ $product->unit->operation_value }}" 
                                                         @if (!$product->product_prices->isEmpty())
@@ -120,7 +118,6 @@
                                                 </select>
                                             </td>
                                             <td class="base_unit_name_1 text-center" data-row="1"></td>
-                                            <td class="stock_qty_1 text-center" data-row="1"></td>
                                             <td>
                                                 <div class="d-flex justify-content-center">
                                                 <input type="text" class="fcs form-control unit_qty text-center custom-input" onkeyup="calculateRowTotal(this.value,1,1)" name="products[1][unit_qty]" id="products_1_unit_qty" data-row="1">
@@ -142,14 +139,13 @@
                                             <td class="text-center"></td>
                                             <input type="hidden" class="base_unit_id" name="products[1][base_unit_id]"  id="products_1_base_unit_id" data-row="1">
                                             <input type="hidden" class="unit_id" name="products[1][unit_id]"  id="products_1_unit_id" data-row="1">
-                                            <input type="hidden" class="stock_qty" name="products[1][stock_qty]" id="products_1_stock_qty"  data-row="1">
                                             <input type="hidden" class="net_unit_price" name="products[1][net_unit_price]" id="products_1_net_unit_price" data-row="1">
                                             <input type="hidden" class="subtotal" name="products[1][subtotal]" id="products_1_subtotal" data-row="1">
                                         </tr>
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <td colspan="3" class="font-weight-bolder"></td>
+                                            <td colspan="2" class="font-weight-bolder"></td>
                                             <td id="total-unit-qty" class="text-center font-weight-bolder">0.00</td>
                                             <td id="total-qty" class="text-center font-weight-bolder">0.00</td>
                                             <td id="total-free-qty" class="text-center font-weight-bolder">0.00</td>
@@ -158,12 +154,12 @@
                                             <td class="text-center"><button type="button" class="btn btn-success btn-md add-product"><i class="fas fa-plus"></i></button></td>
                                         </tr>
                                         <tr class="commission_row d-none">
-                                            <td colspan="8" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">Commission <span id="commission"></span></td>
+                                            <td colspan="7" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">Commission <span id="commission"></span></td>
                                             <td id="total-commission" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">0.00</td>
                                             <td></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="8" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">Net Total</td>
+                                            <td colspan="7" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">Net Total</td>
                                             <td id="net-total" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">0.00</td>
                                             <td></td>
                                         </tr>
@@ -277,7 +273,7 @@ $(document).ready(function () {
                             @if (!$products->isEmpty())
                             <option value="0">Please Select</option>
                             @foreach ($products as $product)
-                            <option value="{{ $product->id }}" data-stockqty="{{ $product->base_unit_qty ?? 0 }}" 
+                            <option value="{{ $product->id }}"
                                                         data-baseunitid={{ $product->base_unit_id }}  data-baseunitname="{{ $product->base_unit->unit_name }}" 
                                                         data-unitid={{ $product->unit_id }}  data-unitname="{{ $product->unit->unit_name }}" 
                                                         data-unitoperator={{ $product->unit->operator }}  data-unitoperationvalue="{{ $product->unit->operation_value }}" 
@@ -292,7 +288,6 @@ $(document).ready(function () {
                             </select>
                         </td>
                         <td class="base_unit_name_${count} text-center" data-row="${count}"></td>
-                        <td class="stock_qty_${count} text-center" data-row="${count}"></td>
                         <td>
                             <div class="d-flex justify-content-center">
                             <input type="text" class="fcs form-control unit_qty text-center custom-input" onkeyup="calculateRowTotal(this.value,${count},1)" name="products[${count}][unit_qty]" id="products_${count}_unit_qty" data-row="${count}">
@@ -379,22 +374,18 @@ function setProductDetails(row)
         group_id = $('#direct_dealer_id option:selected').data('groupid');
     }
     price = parseFloat($(`#products_${row}_id option:selected`).data(`group${group_id}baseunitprice`));
-    let stock_qty = $(`#products_${row}_id option:selected`).data('stockqty');
 
     $(`.base_unit_name_${row}`).text(base_unit_name);
     $(`.unit_name_${row}`).text(unit_name);
-    $(`.stock_qty_${row}`).text(stock_qty);
     $(`.net_unit_price_${row}`).text(parseFloat(price));
     $(`#products_${row}_base_unit_id`).val(base_unit_id);
     $(`#products_${row}_unit_id`).val(unit_id);
-    $(`#products_${row}_stock_qty`).val(stock_qty);
     $(`#products_${row}_net_unit_price`).val(price);
 }
 
 function calculateRowTotal(qty,row,field)
 {
     let price = parseFloat($(`#products_${row}_net_unit_price`).val());
-    let stock_qty = $(`#products_${row}_stock_qty`).val() ? parseFloat($(`#products_${row}_stock_qty`).val()) : 0;
     let operator = $(`#products_${row}_id option:selected`).data('unitoperator');
     let operation_value =  parseFloat($(`#products_${row}_id option:selected`).data('unitoperationvalue'));
     let unit_qty = 0;
@@ -450,8 +441,8 @@ function calculateTotal()
             total_qty += parseFloat($(this).val());
         }
     });
-    $('#total-qty').text(total_qty);
-    $('input[name="total_qty"]').val(total_qty);
+    $('#total-qty').text(total_qty.toFixed(2));
+    $('input[name="total_qty"]').val(total_qty.toFixed(2));
 
     var total_unit_qty = 0;
     $('.unit_qty').each(function() {
@@ -461,8 +452,8 @@ function calculateTotal()
             total_unit_qty += parseFloat($(this).val());
         }
     });
-    $('#total-unit-qty').text(total_unit_qty);
-    $('input[name="total_unit_qty"]').val(total_unit_qty);
+    $('#total-unit-qty').text(total_unit_qty.toFixed(2));
+    $('input[name="total_unit_qty"]').val(total_unit_qty.toFixed(2));
 
     var total_free_qty = 0;
     $('.free_qty').each(function() {
@@ -472,8 +463,8 @@ function calculateTotal()
             total_free_qty += parseFloat($(this).val());
         }
     });
-    $('#total-free-qty').text(total_free_qty);
-    $('input[name="total_free_qty"]').val(total_free_qty);
+    $('#total-free-qty').text(total_free_qty.toFixed(2));
+    $('input[name="total_free_qty"]').val(total_free_qty.toFixed(2));
 
     //sum of subtotal
     var total = 0;

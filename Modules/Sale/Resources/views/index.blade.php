@@ -123,6 +123,7 @@
                                         <th>Net Total</th>
                                         <th>Sale Date</th>
                                         <th>Delivery Date</th>
+                                        <th>Delivery Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -194,18 +195,18 @@ $(document).ready(function(){
         },
         "columnDefs": [{
                 @if (permission('sale-bulk-delete'))
-                "targets": [0,16],
+                "targets": [0,17],
                 @else
-                "targets": [15],
+                "targets": [16],
                 @endif
                 "orderable": false,
                 "className": "text-center"
             },
             {
                 @if (permission('sale-bulk-delete'))
-                "targets": [1,2,3,4,5,6,7,8,9,11,14,15],
+                "targets": [1,2,3,4,5,6,7,8,9,11,14,15,16],
                 @else
-                "targets": [0,1,2,3,4,5,6,7,8,10,13,14],
+                "targets": [0,1,2,3,4,5,6,7,8,10,13,14,15],
                 @endif
                 "className": "text-center"
             },
@@ -236,9 +237,9 @@ $(document).ready(function(){
                 "pageSize": "legal", //A3,A5,A6,legal,letter
                 "exportOptions": {
                     @if (permission('sale-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(16))' 
+                    columns: ':visible:not(:eq(0),:eq(17))' 
                     @else 
-                    columns: ':visible:not(:eq(15))' 
+                    columns: ':visible:not(:eq(16))' 
                     @endif
                 },
                 customize: function (win) {
@@ -258,9 +259,9 @@ $(document).ready(function(){
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
                     @if (permission('sale-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(16))' 
+                    columns: ':visible:not(:eq(0),:eq(17))' 
                     @else 
-                    columns: ':visible:not(:eq(15))' 
+                    columns: ':visible:not(:eq(16))' 
                     @endif
                 }
             },
@@ -272,9 +273,9 @@ $(document).ready(function(){
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
                     @if (permission('sale-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(16))' 
+                    columns: ':visible:not(:eq(0),:eq(17))' 
                     @else 
-                    columns: ':visible:not(:eq(15))' 
+                    columns: ':visible:not(:eq(16))' 
                     @endif
                 }
             },
@@ -288,9 +289,9 @@ $(document).ready(function(){
                 "pageSize": "legal", //A3,A5,A6,legal,letter
                 "exportOptions": {
                     @if (permission('sale-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(16))' 
+                    columns: ':visible:not(:eq(0),:eq(17))' 
                     @else 
-                    columns: ':visible:not(:eq(15))' 
+                    columns: ':visible:not(:eq(16))' 
                     @endif
                 },
                 customize: function(doc) {

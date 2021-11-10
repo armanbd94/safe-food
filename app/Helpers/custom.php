@@ -147,7 +147,7 @@ define('PAYMENT_STATUS_LABEL',[
 define('PERSONAL_LOAN_TYPE',['1'=>'Short Term','2'=>'Long Term']);
 define('PAYMENT_METHOD',['1'=>'Cash','2'=>'Cheque','3'=>'Mobile Bank']);
 define('SALE_PAYMENT_METHOD',['1'=>'Cash','2'=>'Bank','3'=>'Mobile Bank']);
-define('DELIVERY_STATUS',['1'=>'Pending','2'=>'Delivered']);
+define('DELIVERY_STATUS',['1'=>'Delivered','2'=>'Pending']);
 define('MAIL_MAILER',(['smtp','sendmail','mail']));
 define('MAIL_ENCRYPTION',(['none' => 'null','tls' => 'tls','ssl' => 'ssl']));
 

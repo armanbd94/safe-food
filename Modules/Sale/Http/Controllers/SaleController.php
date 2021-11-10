@@ -107,6 +107,7 @@ class SaleController extends BaseController
                     $row[] = number_format($value->net_total,2,'.','');
                     $row[] = date('d-M-Y',strtotime($value->sale_date));
                     $row[] = $value->delivery_date ? date('d-M-Y',strtotime($value->delivery_date)) : '';
+                    $row[] = DELIVERY_STATUS[$value->delivery_status];
                     $row[] = action_button($action);//custom helper function for action button
                     $data[] = $row;
                 }
@@ -329,11 +330,76 @@ class SaleController extends BaseController
     {
         if($request->ajax()){
             if(permission('sale-edit')){
-                //  dd($request->all());
+                // dd($request->all());
                 DB::beginTransaction();
                 try {
-                    
-  
+                    $saleData = $this->model->with('sale_products')->find($request->sale_id);
+                    $warehouse_id = 1;
+                    $sale_data = [
+                        'memo_no'            => $request->memo_no,
+                        'warehouse_id'       => $warehouse_id,
+                        'order_from'         => $request->order_from,
+                        'item'               => $request->item,
+                        'total_unit_qty'     => $request->total_unit_qty,
+                        'total_qty'          => $request->total_qty,
+                        'total_free_qty'     => $request->total_free_qty,
+                        'grand_total'        => $request->grand_total,
+                        'commission_rate'    => $request->commission_rate,
+                        'total_commission'   => $request->total_commission,
+                        'net_total'          => $request->net_total,
+                        'sale_date'          => $request->sale_date,
+                        'delivery_date'      => $request->delivery_date,
+                        'modified_by'         => auth()->user()->name
+                    ];
+
+                    if($request->order_from == 1){
+                        $depo  = Depo::with('coa')->find($request->depo_id);
+                        $dealer = Dealer::find($request->depo_dealer_id);
+                        $sale_data['depo_id']    = $request->depo_id;
+                        $sale_data['dealer_id']    = $request->depo_dealer_id;
+                    }elseif ($request->order_from == 2) {
+                        $dealer  = Dealer::with('coa')->find($request->direct_dealer_id);
+                        $sale_data['dealer_id']    = $request->direct_dealer_id;
+                    }
+                    $sale_data['district_id']    = $dealer->district_id;
+                    $sale_data['upazila_id']     = $dealer->upazila_id;
+                    $sale_data['area_id' ]       = $dealer->area_id;
+
+                    $products = [];
+                    $direct_cost = [];
+                    if($request->has('products'))
+                    {
+                        foreach ($request->products as $key => $value) {
+                            $products[$value['id']] = [
+                                'unit_qty'       => $value['unit_qty'],
+                                'qty'            => $value['qty'],
+                                'free_qty'       => $value['free_qty'],
+                                'base_unit_id'   => $value['base_unit_id'],
+                                'unit_id'        => $value['unit_id'],
+                                'net_unit_price' => $value['net_unit_price'],
+                                'total'          => $value['subtotal']
+                            ];
+                            
+                            $product = DB::table('products')
+                            ->where('id',$value['id'])
+                            ->first();
+                            if($product){
+                                $direct_cost[] = $value['qty'] * ($product ? $product->cost : 0);
+                            }
+                        }
+                        if(count($products) > 0)
+                        {
+                            $saleData->sale_products()->sync($products);
+                        }
+                    }
+                    $sum_direct_cost = array_sum($direct_cost);
+
+                    $sale  = $saleData->update($sale_data);
+                    Transaction::where(['voucher_no'=>$request->memo_no,'voucher_type'=>'INVOICE'])->delete();
+                    Transaction::insert($this->sale_transaction_data($request->memo_no,$request->net_total,
+                    $sum_direct_cost,$saleData->order_from == 1 ? $depo->coa->id : $dealer->coa->id,
+                    $saleData->order_from == 1 ? $depo->name : $dealer->name,$request->sale_date,$warehouse_id));
+                    $output  = $this->store_message($sale, $request->sale_id);
                     DB::commit();
                 } catch (Exception $e) {
                     DB::rollback();
@@ -357,27 +423,17 @@ class SaleController extends BaseController
                 try {
     
                     $saleData = $this->model->with('sale_products')->find($request->id);
-                    $old_document = $saleData ? $saleData->document : '';
     
-                    if(!$saleData->sale_products->isEmpty())
+                    if(!$saleData->sale_products->isEmpty() && $saleData->delivery_status == 2)
                     {
-                        if($saleData->delivery_status == 2){
-                            foreach ($saleData->sale_products as  $sale_product) {
-                                $sold_qty = $sale_product->pivot->qty ? $sale_product->pivot->qty : 0;
-
-                            }
-                        }
                         $saleData->sale_products()->detach();
+                        
                     }
                     Transaction::where(['voucher_no'=>$saleData->memo_no,'voucher_type'=>'INVOICE'])->delete();
     
                     $result = $saleData->delete();
                     if($result)
                     {
-                        if($old_document != '')
-                        {
-                            $this->delete_file($old_document,SALE_DOCUMENT_PATH);
-                        }
                         $output = ['status' => 'success','message' => 'Data has been deleted successfully'];
                     }else{
                         $output = ['status' => 'error','message' => 'Failed to delete data'];
@@ -405,17 +461,9 @@ class SaleController extends BaseController
                 try {
                     foreach ($request->ids as $id) {
                         $saleData = $this->model->with('sale_products')->find($id);
-                        $old_document = $saleData ? $saleData->document : '';
         
-                        if(!$saleData->sale_products->isEmpty())
+                        if(!$saleData->sale_products->isEmpty() && $saleData->delivery_status == 2)
                         {
-                            if($saleData->delivery_status == 2){
-                                foreach ($saleData->sale_products as  $sale_product) {
-                                    $sold_qty = $sale_product->pivot->qty ? $sale_product->pivot->qty : 0;
-
-                                    
-                                }
-                            }
                             $saleData->sale_products()->detach(); 
                         }
                         Transaction::where(['voucher_no'=>$saleData->memo_no,'voucher_type'=>'INVOICE'])->delete();
@@ -423,10 +471,6 @@ class SaleController extends BaseController
                         $result = $saleData->delete();
                         if($result)
                         {
-                            if($old_document != '')
-                            {
-                                $this->delete_file($old_document,SALE_DOCUMENT_PATH);
-                            }
                             $output = ['status' => 'success','message' => 'Data has been deleted successfully'];
                         }else{
                             $output = ['status' => 'error','message' => 'Failed to delete data'];
