@@ -158,12 +158,12 @@
                                             <td class="text-center"><button type="button" class="btn btn-success btn-md add-product"><i class="fas fa-plus"></i></button></td>
                                         </tr>
                                         <tr class="commission_row d-none">
-                                            <td colspan="7" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">Commission <span id="commission"></span></td>
+                                            <td colspan="8" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">Commission <span id="commission"></span></td>
                                             <td id="total-commission" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">0.00</td>
                                             <td></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="7" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">Balance</td>
+                                            <td colspan="8" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">Net Total</td>
                                             <td id="net-total" class="text-right font-weight-bolder" style="padding: 1rem 0.5rem !important;">0.00</td>
                                             <td></td>
                                         </tr>
@@ -204,14 +204,14 @@
 <script src="js/moment.js"></script>
 <script src="js/bootstrap-datetimepicker.min.js"></script>
 <script>    
-    $("input,select,textarea").bind("keydown", function (e) {
-        var keyCode = e.keyCode || e.which;
-        if(keyCode == 13) {
-            e.preventDefault();
-            $('input, select, textarea')
-            [$('input,select,textarea').index(this)+1].focus();
-        }
-    });
+$("input,select,textarea").bind("keydown", function (e) {
+    var keyCode = e.keyCode || e.which;
+    if(keyCode == 13) {
+        e.preventDefault();
+        $('input, select, textarea')
+        [$('input,select,textarea').index(this)+1].focus();
+    }
+});
    
 
 $(document).ready(function () {

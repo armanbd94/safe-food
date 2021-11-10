@@ -307,19 +307,17 @@ class SaleController extends BaseController
         if(permission('sale-edit')){
             $this->setPageData('Edit Sale','Edit Sale','fas fa-edit',[['name'=>'Sale','link' => route('sale')],['name' => 'Edit Sale']]);
 
-            $products = DB::table('warehouse_product as wp')
-                ->join('products as p','wp.product_id','=','p.id')
-                ->leftjoin('taxes as t','p.tax_id','=','t.id')
-                ->leftjoin('units as u','p.base_unit_id','=','u.id')
-                ->selectRaw('wp.*,p.name,p.code,p.image,p.base_unit_id,p.base_unit_price as price,p.tax_method,t.name as tax_name,t.rate as tax_rate,u.unit_name,u.unit_code')
-                ->where([['wp.warehouse_id',1],['wp.qty','>',0]])
-                ->orderBy('p.name','asc')
-                ->get();
             $data = [
-                'products'       => $products,
-                'sale'      => $this->model->with('sale_products','customer','salesmen','route','area')->find($id),
-                'warehouses'   => DB::table('warehouses')->where('status', 1)->pluck('name','id'),
+                'products'  => Product::with(['base_unit','unit','product_prices'])->get(),
+                'sale'      => $this->model->with('sale_products')->find($id),
+                'dealers'   => DB::table('dealers as de')
+                ->leftJoin('locations as d','de.district_id','=','d.id')
+                ->leftJoin('locations as a','de.area_id','=','a.id')
+                ->leftJoin('depos as dp','de.depo_id','=','dp.id')
+                ->select('de.*','d.name as district_name','a.name as area_name','dp.commission_rate as depo_commission_rate')
+                ->get(),
             ];
+            // dd($data['sale']);
             return view('sale::edit',$data);
         }else{
             return $this->access_blocked();
