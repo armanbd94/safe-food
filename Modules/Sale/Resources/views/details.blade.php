@@ -36,6 +36,7 @@
                             body,html {
                                 background: #fff !important;
                                 -webkit-print-color-adjust: exact !important;
+  
                             }
 
                             .invoice {
@@ -114,7 +115,12 @@
                                 padding: 5px;
                                 border-bottom: 1px solid #fff
                             }
-
+                            .invoice #product_table td{
+                                border: 1px solid #036 !important;
+                            }
+                            .invoice #product_table tbody tr:last-child td {
+                                border: 1px solid #036 !important;
+                            }
                             #info-table td{padding:0px !important;}
 
                             .invoice table th {
@@ -242,7 +248,12 @@
                                     /* font-size: 12px !important; */
                                     margin-bottom: 100px !important;
                                 }
-
+                                html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend,  {
+           font-size: 10pt !important;
+	  }
+      #product_table tbody td{
+        font-size: 9pt !important;
+      }
                                 .m-0 {
                                     margin: 0 !important;
                                 }
@@ -331,10 +342,10 @@
                                     <tr>
                                         <td class="text-center">
                                             @if (config('settings.logo'))
-            <a href="{{ url('dashboard') }}">
-                <img src="{{ asset('storage/'.LOGO_PATH.config('settings.logo'))}}" style="max-width: 60px;" alt="Logo" />
-            </a>
-            @endif
+                                            <a href="{{ url('dashboard') }}">
+                                                <img src="{{ asset('storage/'.LOGO_PATH.config('settings.logo'))}}" style="max-width: 60px;" alt="Logo" />
+                                            </a>
+                                            @endif
                                             <h2 class="name m-0" style="text-transform: uppercase;"><b>{{ config('settings.title') ? config('settings.title') : env('APP_NAME') }}</b></h2>
                                             {{-- @if(config('settings.contact_no'))<p style="font-weight: normal;margin:0;"><b>Contact No.: </b>{{ config('settings.contact_no') }}, @if(config('settings.email'))<b>Email: </b>{{ config('settings.email') }}@endif</p>@endif --}}
                                             @if(config('settings.address'))<p style="font-weight: normal;margin:0;">{{ config('settings.address') }}</p>@endif
@@ -347,34 +358,23 @@
                                         <td width="40%">
                                             <table>
                                                 <tr>
-                                                    <td colspan="2"><b>Memo To</b></td>
-                                                </tr>
-                                                <tr>
-                                                    <td>@if($sale->order_from == 1)<b>Depo Name</b>@else<b>Dealer Name</b>@endif</td>
-                                                    <td><b>: </b> @if($sale->order_from == 1)<b>{{ $sale->depo->name }}</b>@else<b>{{ $sale->dealer->name }}</b>@endif</td>
+                                                    <td><b>Dealer Name</b></td>
+                                                    <td><b>: {{ $sale->dealer->name }}</b></td>
                                                 </tr>
                                                 <tr>
                                                     <td><b>Mobile No.</b></td>
-                                                    <td><b>: </b> @if($sale->order_from == 1){{ $sale->depo->mobile_no }}@else{{ $sale->dealer->mobile_no }}@endif</td>
+                                                    <td><b>: </b>{{ $sale->dealer->mobile_no }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><b>Area Name</b></td>
-                                                    <td><b>: </b> {{ $sale->area->name }}</td>
+                                                    <td><b>: </b> {{ $sale->area->name.', '.$sale->district->name }}</td>
                                                 </tr>
-                                                @if ($sale->order_from == 1)
-                                                    @if($sale->depo->address)
-                                                    <tr>
-                                                        <td><b>Address</b></td>
-                                                        <td><b>: </b>{{ $sale->depo->address }}</td>
-                                                    </tr>
-                                                    @endif
-                                                @else 
-                                                    @if($sale->dealer->address)
-                                                    <tr>
-                                                        <td><b>Address</b></td>
-                                                        <td><b>: </b>{{ $sale->dealer->address }}</td>
-                                                    </tr>
-                                                    @endif
+
+                                                @if($sale->dealer->address)
+                                                <tr>
+                                                    <td><b>Address</b></td>
+                                                    <td><b>: </b>{{ $sale->dealer->address }}</td>
+                                                </tr>
                                                 @endif
                                             </table>
                                         </td>
@@ -398,137 +398,73 @@
                                                     <td><b>: </b> {{ date('d-M-Y',strtotime($sale->delivery_date)) }}</td>
                                                 </tr>
                                                 @endif
-                                                <tr>
-                                                    <td><b>Payment Status</b></td>
-                                                    <td><b>: </b>{{ $sale->payment_status ? PAYMENT_STATUS[$sale->payment_status] : 'N/A' }}</td>
-                                                </tr>
                                             </table>
                                         </td>
                                     </tr>
                                 </table>
-                                <table border="0" cellspacing="0" cellpadding="0">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center">SL</th>
-                                            <th class="text-left">NAME</th>
-                                            <th class="text-center">QUANTITY</th>
-                                            <th class="text-center">CARTON SIZE</th>
-                                            <th class="text-right">PRICE</th>
-                                            <th class="text-center">DAMAGE</th>
-                                            <th class="text-right">SUBTOTAL</th>
-                                        </tr>
-                                    </thead>
+                                <table cellspacing="0" cellpadding="0" id="product_table">
                                     <tbody>
+                                        <tr>
+                                            <td rowspan="2" class="text-center font-weight-bolder">SL.</td>
+                                            <td rowspan="2" class="text-left font-weight-bolder">NAME</td>
+                                            <td colspan="3" class="text-center font-weight-bolder">ORDER</td>
+                                            <td rowspan="2" class="text-center font-weight-bolder">CARTON SIZE</td>
+                                            <td rowspan="2" class="text-right font-weight-bolder">PRICE</td>
+                                            <td rowspan="2" class="text-right font-weight-bolder">SUBTOTAL</td>
+                                            <td rowspan="2" class="text-center font-weight-bolder">DAMAGE</td>
+                                            <td rowspan="2" class="text-right font-weight-bolder">TOTAL</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center font-weight-bolder">CARTON</td>
+                                            <td class="text-center font-weight-bolder">PIECE</td>
+                                            <td class="text-center font-weight-bolder">FREE PIECE</td>
+                                        </tr>
                                         @if (!$sale->sale_products->isEmpty())
-                                            @foreach ($sale->sale_products as $key => $item)
-                                                @php
-                                                    $unit_name = '';
-                                                    if($item->pivot->sale_unit_id)
-                                                    {
-                                                        $unit_name = DB::table('units')->where('id',$item->pivot->sale_unit_id)->value('unit_name');
-                                                    }
-                                                @endphp
+                                            @foreach ($sale->sale_products as $key =>  $item)
                                                 <tr>
-                                                    <td class="text-center no">{{ $key+1 }}</td>
-                                                    <td class="text-left">{{ $item->name }}</td>
-                                                    <td class="text-center qty">{{ $item->pivot->qty.' '.$unit_name }}</td>
-                                                    <td class="text-center qty">{{ $item->unit->unit_name }}</td>
-                                                    <td class="text-right price">{{ number_format($item->pivot->net_unit_price,2,'.',',') }}</td>
-                                                    {{-- <td class="text-right discount">{{ number_format($item->pivot->discount,2,'.','') }}</td> --}}
-                                                    {{-- <td class="text-right tax">{{ number_format($item->pivot->tax,2,'.','') }}</td> --}}
+                                                    <td class="text-center">{{ $key+1 }}</td>
+                                                    <td>{{ $item->name }}</td>
+                                                    <td class="text-center">{{ $item->pivot->unit_qty }}</td>
+                                                    <td class="text-center">{{ $item->pivot->qty }}</td>
+                                                    <td class="text-center">{{ $item->pivot->free_qty ?? 0 }}</td>
+                                                    <td class="text-center">{{ $item->unit->unit_name }}</td>
+                                                    <td class="text-right">{{ $item->pivot->net_unit_price }}</td>
+                                                    <td class="text-right">{{ $item->pivot->total }}</td>
                                                     <td></td>
-                                                    <td class="text-right total">
-                                                        @if (config('settings.currency_position') == 2)
-                                                            {{ number_format($item->pivot->total,2,'.',',') }} {{ config('settings.currency_symbol') }}
-                                                        @else 
-                                                            {{ config('settings.currency_symbol') }} {{ number_format($item->pivot->total,2,'.',',') }}
-                                                        @endif
-                                                    </td>
+                                                    <td class="text-right">{{ $item->pivot->total }}</td>
                                                 </tr>
                                             @endforeach
                                         @endif
                                         <tr>
-                                            <td colspan="2" class="text-left no pl-3 font-weight-bolder">TOTAL</td>
-                                            <td class="text-center no font-weight-bolder">{{ number_format($sale->total_qty,2,'.',',') }}</td>
-                                            <td class="no"></td>
-                                            <td class="no"></td>
-                                            <td class="no"></td>
-                                            <td class="text-right no font-weight-bolder">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format($sale->grand_total,2,'.','') }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format($sale->grand_total,2,'.','') }}
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="5"></td>
-                                            <td  class="text-right no font-weight-bolder">PREVIOUS DUE</td>
-                                            <td class="text-right no font-weight-bolder">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format($sale->previous_due,2,'.','') }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format($sale->previous_due,2,'.','') }}
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="5"></td>
-                                            <td  class="text-right no font-weight-bolder">NET TOTAL</td>
-                                            <td class="text-right no font-weight-bolder">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format($sale->net_total,2,'.','') }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format($sale->net_total,2,'.','') }}
-                                                @endif
-                                            </td>
+                                            <td colspan="2" class="text-left  pl-3 font-weight-bolder">TOTAL</td>
+                                            <td class="text-center  font-weight-bolder">{{ number_format($sale->total_unit_qty,2,'.',',') }}</td>
+                                            <td class="text-center  font-weight-bolder">{{ number_format($sale->total_qty,2,'.',',') }}</td>
+                                            <td class="text-center  font-weight-bolder">{{ number_format($sale->total_free_qty,2,'.',',') }}</td>
+                                            <td class=""></td>
+                                            <td class=""></td>
+                                            <td class="text-right  font-weight-bolder">{{ number_format($sale->grand_total,2,'.',',') }} </td>
+                                            <td class=""></td>
+                                            <td class="text-right  font-weight-bolder">{{ number_format($sale->grand_total,2,'.',',') }} </td>
                                         </tr>
                                         @if($sale->total_commission)
                                         <tr>
-                                            <td colspan="5"></td>
-                                            <td  class="text-right no font-weight-bolder">COMMISSION ({{ $sale->commission_rate }}%)</td>
-                                            <td class="text-right no font-weight-bolder">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format($sale->total_commission,2,'.','') }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format($sale->total_commission,2,'.','') }}
-                                                @endif
-                                            </td>
+                                            <td colspan="7" style="border: none !important;"></td>
+                                            <td colspan="2"  class="text-left  font-weight-bolder">COMMISSION ({{ $sale->commission_rate }}%)</td>
+                                            <td class="text-right  font-weight-bolder"> {{ number_format($sale->total_commission,2,'.',',') }}</td>
                                         </tr>
                                         @endif
                                         <tr>
-                                            <td colspan="5"></td>
-                                            <td  class="text-right no font-weight-bolder">PAYABLE AMOUNT</td>
-                                            <td class="text-right no font-weight-bolder">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format($sale->payable_amount,2,'.','') }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format($sale->payable_amount,2,'.','') }}
-                                                @endif
-                                            </td>
+                                            <td colspan="7" style="border: none !important;"></td>
+                                            <td colspan="2"  class="text-left  font-weight-bolder">NET TOTAL</td> 
+                                            <td class="text-right  font-weight-bolder">{{ number_format($sale->net_total,2,'.',',') }}</td>
                                         </tr>
                                         <tr>
-                                            <td colspan="5"></td>
-                                            <td  class="text-right no font-weight-bolder">PAID AMOUNT</td>
-                                            <td class="text-right no font-weight-bolder">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format($sale->paid_amount,2,'.','') }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format($sale->paid_amount,2,'.','') }}
-                                                @endif
-                                            </td>
+                                            <td colspan="7" style="border: none !important;"></td>
+                                            <td colspan="2"  class="text-left  font-weight-bolder">BALANCE</td> 
+                                            <td class="text-right  font-weight-bolder">{{ number_format($sale->net_total,2,'.',',') }}</td>
                                         </tr>
-                                        <tr>
-                                            <td colspan="5"></td>
-                                            <td  class="text-right no font-weight-bolder">DUE AMOUNT</td>
-                                            <td class="text-right no font-weight-bolder">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format($sale->due_amount,2,'.','') }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format($sale->due_amount,2,'.','') }}
-                                                @endif
-                                            </td>
-                                        </tr>
+                                       
+                                       
                                     </tbody>
                                 </table>
                             
@@ -565,13 +501,15 @@
                                         </td>
                                     </tr>
                                 </table>
+                                <table style="width: 100%;margin-top:10px;">
+                                    <tr>
+                                        <td class="text-center">
+                                            <b>ক্যারেট প্রতি পিচ ১২০টাকা। এই চালানের ক্যারেটের সংখ্যা &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;পিচ ১২০টাকা = &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;মোট টাকা</b> 
+                                        </td>
+                                    </tr>
+                                </table>
                             </div>
                         </div>
-
-                        <!--***********************-->
-
-                        
-                       
 
                     </div>
                 </div>

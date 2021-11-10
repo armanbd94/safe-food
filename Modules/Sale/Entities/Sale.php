@@ -6,7 +6,10 @@ use App\Models\BaseModel;
 use Modules\Depo\Entities\Depo;
 use Illuminate\Support\Facades\DB;
 use Modules\Dealer\Entities\Dealer;
+use Modules\Location\Entities\Area;
 use Modules\Product\Entities\Product;
+use Modules\Location\Entities\Upazila;
+use Modules\Location\Entities\District;
 
 
 class Sale extends BaseModel
@@ -24,6 +27,21 @@ class Sale extends BaseModel
     public function dealer()
     {
         return $this->belongsTo(Dealer::class,'dealer_id','id')->withDefault(['name'=>'','mobile_no'=>'','address'=>'']);
+    }
+
+    public function district()
+    {
+        return $this->belongsTo(District::class,'district_id','id');
+    }
+
+    public function upazila()
+    {
+        return $this->belongsTo(Upazila::class,'upazila_id','id');
+    }
+
+    public function area()
+    {
+        return $this->belongsTo(Area::class,'area_id','id');
     }
 
     public function sale_products()
@@ -47,8 +65,6 @@ class Sale extends BaseModel
     protected $_district_id; 
     protected $_upazila_id; 
     protected $_area_id; 
-    protected $_payment_status; 
-    protected $_delivery_status; 
 
     //methods to set custom search property value
     public function setInvoiceNo($memo_no)
@@ -91,31 +107,22 @@ class Sale extends BaseModel
         $this->_area_id = $area_id;
     }
 
-    public function setPaymentStatus($payment_status)
-    {
-        $this->_payment_status = $payment_status;
-    }
-
-    public function setDeliveryStatus($delivery_status)
-    {
-        $this->_delivery_status = $delivery_status;
-    }
 
     private function get_datatable_query()
     {
         if(permission('sale-bulk-delete'))
         {
-            $this->column_order = ['s.id','s.id','s.memo_no', 's.order_from',null, 's.area_id','s.upazila_id','d.district_id','s.item',
-            's.grand_total','s.previous_due','s.net_total', 's.commission_rate','s.total_commission','s.payable_amount','s.paid_amount', 's.due_amount',
-            's.sale_date','s.payment_status','s.payment_method','s,delivery_status','s.delivery_date', null];
+            $this->column_order = ['s.id','s.id','s.memo_no', 's.order_from','s.dealer_id','s.depo_id', 's.area_id','s.upazila_id','d.district_id','s.item',
+            's.grand_total','s.commission_rate','s.total_commission','s.net_total', 's.payable_amount','s.paid_amount', 's.due_amount',
+            's.sale_date','s.delivery_date', null];
         }else{
-            $this->column_order = ['s.id','s.memo_no', 's.order_from',null, 's.area_id','s.upazila_id','d.district_id','s.item',
-            's.grand_total','s.previous_due','s.net_total', 's.commission_rate','s.total_commission','s.payable_amount','s.paid_amount', 's.due_amount',
-            's.sale_date','s.payment_status','s.payment_method','s,delivery_status','s.delivery_date', null];
+            $this->column_order = ['s.id','s.memo_no', 's.order_from','s.dealer_id','s.depo_id', 's.area_id','s.upazila_id','d.district_id','s.item',
+            's.grand_total','s.commission_rate','s.total_commission','s.net_total', 's.payable_amount','s.paid_amount', 's.due_amount',
+            's.sale_date','s.delivery_date', null];
         }
 
         $query = DB::table('sales as s')
-        ->selectRaw('s.*,dp.name as depo_name,dp.mobile_no as depo_mobile_no,dl.name as dealer_name,dl.mobile_no as dealer_mobile_no,
+        ->selectRaw('s.*,dp.name as depo_name,dl.name as dealer_name,
         d.name as district_name,u.name as upazila_name,a.name as area_name')
         ->leftJoin('depos as dp','s.depo_id','=','dp.id')
         ->leftJoin('dealers as dl','s.dealer_id','=','dl.id')
@@ -150,12 +157,6 @@ class Sale extends BaseModel
 
         if (!empty($this->_area_id)) {
             $query->where('s.area_id', $this->_area_id);
-        }
-        if (!empty($this->_payment_status)) {
-            $query->where('s.payment_status', $this->_payment_status);
-        }
-        if (!empty($this->_delivery_status)) {
-            $query->where('s.delivery_status', $this->_delivery_status);
         }
 
         //order by data fetching code

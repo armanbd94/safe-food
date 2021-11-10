@@ -50,14 +50,14 @@
                         <x-form.selectbox labelName="Depo" name="depo_id" col="col-md-3" class="selectpicker">
                             @if (!$depos->isEmpty())
                             @foreach ($depos as $value)
-                            <option value="{{ $value->id }}" data-commission="{{ $value->commission_rate }}">{{ $value->name.' - '.$value->mobile_no.' ('.$value->area_name.')' }}</option>
+                            <option value="{{ $value->id }}">{{ $value->name.' - '.$value->mobile_no }}</option>
                             @endforeach
                             @endif
                         </x-form.selectbox>
                         <x-form.selectbox labelName="Dealer" name="dealer_id" col="col-md-3" class="selectpicker">
                             @if (!$dealers->isEmpty())
                             @foreach ($dealers as $value)
-                            <option value="{{ $value->id }}" data-commission="{{ $value->commission_rate }}">{{ $value->name.' - '.$value->mobile_no.' ('.$value->area_name.')'  }}</option>
+                            <option value="{{ $value->id }}">{{ $value->name.' - '.$value->mobile_no  }}</option>
                             @endforeach
                             @endif
                         </x-form.selectbox>
@@ -76,21 +76,9 @@
 
                         <x-form.selectbox labelName="Area" name="area_id" col="col-md-3" class="selectpicker"/>
 
-                        
+                    
 
-                        <x-form.selectbox labelName="Payment Status" name="payment_status" col="col-md-3" class="selectpicker">
-                            @foreach (PAYMENT_STATUS as $key => $value)
-                                <option value="{{ $key }}">{{ $value }}</option>
-                            @endforeach
-                        </x-form.selectbox>
-
-                        <x-form.selectbox labelName="Delivery Status" name="delivery_status" col="col-md-3" class="selectpicker">
-                            @foreach (DELIVERY_STATUS as $key => $value)
-                                <option value="{{ $key }}">{{ $value }}</option>
-                            @endforeach
-                        </x-form.selectbox>
-
-                        <div class="col-md-9">
+                        <div class="col-md-3">
                             <div style="margin-top:28px;">     
                                     <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
                                     data-toggle="tooltip" data-theme="dark" title="Reset">
@@ -123,23 +111,17 @@
                                         <th>Sl</th>
                                         <th>Memo No.</th>
                                         <th>Order From</th>
-                                        <th>Name</th>
+                                        <th>Dealer</th>
+                                        <th>Depo</th>
                                         <th>Area Name</th>
                                         <th>Upazila</th>
                                         <th>District</th>
                                         <th>Total Item</th>
                                         <th>Total</th>
-                                        <th>Previous Due</th>
-                                        <th>Net Total</th>
                                         <th>Commission Rate (%)</th>
                                         <th>Total Commission</th>
-                                        <th>Payable Amount</th>
-                                        <th>Paid Amount</th>
-                                        <th>Due Amount</th>
+                                        <th>Net Total</th>
                                         <th>Sale Date</th>
-                                        <th>Payment Status</th>
-                                        <th>Payment Method</th>
-                                        <th>Delivery Status</th>
                                         <th>Delivery Date</th>
                                         <th>Action</th>
                                     </tr>
@@ -155,7 +137,6 @@
         <!--end::Card-->
     </div>
 </div>
-@include('sale::delivery-modal')
 @endsection
 
 @push('scripts')
@@ -208,33 +189,31 @@ $(document).ready(function(){
                 data.district_id     = $("#form-filter #district_id").val();
                 data.upazila_id      = $("#form-filter #upazila_id").val();
                 data.area_id         = $("#form-filter #area_id").val();
-                data.payment_status  = $("#form-filter #payment_status").val();
-                data.delivery_status = $("#form-filter #delivery_status").val();
                 data._token          = _token;
             }
         },
         "columnDefs": [{
                 @if (permission('sale-bulk-delete'))
-                "targets": [0,22],
+                "targets": [0,16],
                 @else
-                "targets": [21],
+                "targets": [15],
                 @endif
                 "orderable": false,
                 "className": "text-center"
             },
             {
                 @if (permission('sale-bulk-delete'))
-                "targets": [1,2,3,4,5,6,7,8,17,18,19,20,21],
+                "targets": [1,2,3,4,5,6,7,8,9,11,14,15],
                 @else
-                "targets": [0,1,2,3,4,5,6,7,16,17,18,19,20],
+                "targets": [0,1,2,3,4,5,6,7,8,10,13,14],
                 @endif
                 "className": "text-center"
             },
             {
                 @if (permission('sale-bulk-delete'))
-                "targets": [9,10,11,12,13,14,15,16],
+                "targets": [10,12,13],
                 @else
-                "targets": [8,9,10,11,12,13,14,15],
+                "targets": [9,11,12],
                 @endif
                 "className": "text-right"
             },
@@ -257,9 +236,9 @@ $(document).ready(function(){
                 "pageSize": "legal", //A3,A5,A6,legal,letter
                 "exportOptions": {
                     @if (permission('sale-bulk-delete'))
-                    columns: ':visible:not(:eq(22))' 
+                    columns: ':visible:not(:eq(0),:eq(16))' 
                     @else 
-                    columns: ':visible:not(:eq(21))' 
+                    columns: ':visible:not(:eq(15))' 
                     @endif
                 },
                 customize: function (win) {
@@ -279,9 +258,9 @@ $(document).ready(function(){
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
                     @if (permission('sale-bulk-delete'))
-                    columns: ':visible:not(:eq(22))' 
+                    columns: ':visible:not(:eq(0),:eq(16))' 
                     @else 
-                    columns: ':visible:not(:eq(21))' 
+                    columns: ':visible:not(:eq(15))' 
                     @endif
                 }
             },
@@ -293,9 +272,9 @@ $(document).ready(function(){
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
                     @if (permission('sale-bulk-delete'))
-                    columns: ':visible:not(:eq(22))' 
+                    columns: ':visible:not(:eq(0),:eq(16))' 
                     @else 
-                    columns: ':visible:not(:eq(21))' 
+                    columns: ':visible:not(:eq(15))' 
                     @endif
                 }
             },
@@ -309,9 +288,9 @@ $(document).ready(function(){
                 "pageSize": "legal", //A3,A5,A6,legal,letter
                 "exportOptions": {
                     @if (permission('sale-bulk-delete'))
-                    columns: ':visible:not(:eq(22))' 
+                    columns: ':visible:not(:eq(0),:eq(16))' 
                     @else 
-                    columns: ':visible:not(:eq(21))' 
+                    columns: ':visible:not(:eq(15))' 
                     @endif
                 },
                 customize: function(doc) {
@@ -373,68 +352,6 @@ $(document).ready(function(){
         }
     }
 
-    //Add Delivery
-    $(document).on('click', '.add_delivery', function () {
-        $('#delivery_form')[0].reset();
-        $('#delivery_form').find('.is-invalid').removeClass('is-invalid');
-        $('#delivery_form').find('.error').remove();
-        $('.selectpicker').selectpicker('refresh');
-        $('#delivery_modal #sale_id').val($(this).data('id'));
-        $('#delivery_modal #delivery_status').val($(this).data('status'));
-        $('#delivery_modal #delivery_date').val($(this).data('date'));
-        $('.selectpicker').selectpicker('refresh');
-        $('#delivery_modal').modal({
-            keyboard: false,
-            backdrop: 'static',
-        });
-        $('#delivery_modal .modal-title').html( '<i class="fas fa-truck"></i> <span>Change Delivery Status</span>');  
-    });
-
-    $(document).on('click','#delivery-save-btn', function(e){
-        e.preventDefault();
-        let form = document.getElementById('delivery_form');
-        let formData = new FormData(form);
-        $.ajax({
-            url: "{{route('sale.delivery.status.update')}}",
-            type: "POST",
-            data: formData,
-            dataType: "JSON",
-            contentType: false,
-            processData: false,
-            cache: false,
-            beforeSend: function(){
-                $('#delivery-save-btn').addClass('spinner spinner-white spinner-right');
-            },
-            complete: function(){
-                $('#delivery-save-btn').removeClass('spinner spinner-white spinner-right');
-            },
-            success: function (data) {
-                $('#delivery_form').find('.is-invalid').removeClass('is-invalid');
-                $('#delivery_form').find('.error').remove();
-                if (data.status == false) {
-                    $.each(data.errors, function (key, value) {
-                        var key = key.split('.').join('_');
-                        $('#delivery_form input#' + key).addClass('is-invalid');
-                        $('#delivery_form select#' + key).parent().addClass('is-invalid');
-                        $('#delivery_form #' + key).parent().append(
-                        '<small class="error text-danger">' + value + '</small>');
-                                                    
-                    });
-                } else {
-                    notification(data.status, data.message);
-                    if (data.status == 'success') {
-                        table.ajax.reload(null, false);
-                        $('#delivery_modal').modal('hide');
-                    }
-                }
-
-            },
-            error: function (xhr, ajaxOption, thrownError) {
-                console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
-            }
-        });
-        
-    });
 
 });
 

@@ -296,7 +296,7 @@ class SaleController extends BaseController
     {
         if(permission('sale-view')){
             $this->setPageData('Sale Details','Sale Details','fas fa-file',[['name'=>'Sale','link' => route('sale')],['name' => 'Sale Details']]);
-            $sale = $this->model->with('sale_products','dealer')->find($id);
+            $sale = $this->model->with('sale_products','dealer','district','upazila','area')->find($id);
             return view('sale::details',compact('sale'));
         }else{
             return $this->access_blocked();
