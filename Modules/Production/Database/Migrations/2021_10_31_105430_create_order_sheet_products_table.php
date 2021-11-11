@@ -22,7 +22,6 @@ class CreateOrderSheetProductsTable extends Migration
             $table->float('stock_qty');
             $table->float('ordered_qty');
             $table->float('required_qty');
-            $table->float('price');
             $table->float('total');
             $table->timestamps();
         });

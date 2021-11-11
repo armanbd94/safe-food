@@ -9,12 +9,12 @@ use Modules\Product\Entities\Product;
 
 class OrderSheet extends BaseModel
 {
-    protected $fillable = ['sheet_no', 'order_date', 'item', 'total_qty', 'total', 'total_commission'];
+    protected $fillable = ['sheet_no', 'order_date','delivery_date','delivery_status', 'item', 'total_qty', 'total', 'total_commission'];
 
     public function products()
     {
         return $this->belongsToMany(Product::class,'order_sheet_products','order_sheet_id','product_id','id','id')
-        ->withPivot('id', 'stock_qty', 'ordered_qty', 'required_qty', 'price', 'total')
+        ->withPivot('id', 'stock_qty', 'ordered_qty', 'required_qty', 'total')
         ->withTimestamps(); 
     }
     public function memos()
