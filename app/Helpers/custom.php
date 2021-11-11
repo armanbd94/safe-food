@@ -373,3 +373,36 @@ function convert_english_number($number)
     $number     = is_numeric($number) ? $number : 0;
     return $number;
 }
+
+function convert_bangla_carton_size($carton_size)
+{
+    $carton_size = explode('CTN',$carton_size)[0];
+    $array_en    = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    $array_bn    = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    $carton_size = str_replace($array_en, $array_bn, $carton_size);
+    return $carton_size;
+}
+
+function convert_english_carton_size($carton_size)
+{
+    $carton_size = explode('CTN',$carton_size)[0];
+    $array_one   = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    $array_two   = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    $carton_size = str_replace($array_one, $array_two, $carton_size);
+    return $carton_size;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

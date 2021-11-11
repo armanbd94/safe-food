@@ -21,7 +21,7 @@ class CreateOrderSheetsTable extends Migration
             $table->enum('delivery_status',['1','2'])->default(2)->comment('1=Delivered,2=Pending');
             $table->float('item');
             $table->float('total_qty');
-            $table->float('total');
+            $table->float('total_order_value');
             $table->float('total_commission')->nullable();
             $table->timestamps();
         });

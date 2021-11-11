@@ -5,7 +5,6 @@
 @push('styles')
 <link href="plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
 <link href="css/daterangepicker.min.css" rel="stylesheet" type="text/css" />
-<link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet" type="text/css" />
 <style>
     #dataTable{
         width:2000px !important;
@@ -145,7 +144,6 @@
 <script src="js/moment.js"></script>
 <script src="js/knockout-3.4.2.js"></script>
 <script src="js/daterangepicker.min.js"></script>
-<script src="js/bootstrap-datetimepicker.min.js"></script>
 <script>
 $('.daterangepicker-filed').daterangepicker({
     callback: function(startDate, endDate, period){
@@ -159,7 +157,7 @@ $('.daterangepicker-filed').daterangepicker({
 });
 var table;
 $(document).ready(function(){
-    $('.date').datetimepicker({format: 'YYYY-MM-DD',ignoreReadonly: true});
+
     table = $('#dataTable').DataTable({
         "processing": true, //Feature control the processing indicator
         "serverSide": true, //Feature control DataTable server side processing mode

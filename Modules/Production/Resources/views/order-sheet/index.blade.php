@@ -17,8 +17,8 @@
                 <div class="card-toolbar">
                     <!--begin::Button-->
                     @if (permission('todays-production-order-sheet-access'))
-                    <a href="{{ route('production.order.sheet') }}"  class="btn btn-primary btn-sm font-weight-bolder"> 
-                        <i class="fas fa-plus-circle"></i> Add New</a>
+                    <a href="{{ url('todays-production-order-sheet') }}"  class="btn btn-primary btn-sm font-weight-bolder"> 
+                        <i class="fas fa-plus-circle"></i> Today's Production Order Sheet</a>
                         @endif
                     <!--end::Button-->
                 </div>
@@ -31,7 +31,19 @@
                 <form method="POST" id="form-filter" class="col-md-12 px-0">
                     <div class="row">
                         <x-form.textbox labelName="Sheet No." name="sheet_no" col="col-md-3" />
-                        <div class="col-md-9">   
+                        <div class="form-group col-md-3">
+                            <label for="name">Choose Your Date</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control daterangepicker-filed">
+                                <input type="hidden" id="start_date" name="start_date">
+                                <input type="hidden" id="end_date" name="end_date">
+                            </div>
+                        </div>
+                        <x-form.selectbox labelName="Delivery Status" name="delivery_status" col="col-md-3" class="selectpicker">
+                            <option value="1">Delivered</option>
+                            <option value="2">Pending</option>
+                        </x-form.selectbox>
+                        <div class="col-md-3">   
                             <div style="margin-top:28px;">    
                                 <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
                                 data-toggle="tooltip" data-theme="dark" title="Reset">
@@ -55,11 +67,13 @@
                                     <tr>
                                         <th>Sl</th>
                                         <th>Sheet No.</th>
-                                        <th>Order Date</th>
                                         <th>Item</th>
                                         <th>Total Qty</th>
                                         <th>Total Amount</th>
                                         <th>Total Commission</th>
+                                        <th>Order Date</th>
+                                        <th>Delivery Date</th>
+                                        <th>Delivery Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -79,7 +93,19 @@
 @push('scripts')
 <script src="plugins/custom/datatables/datatables.bundle.js" type="text/javascript"></script>
 <script src="js/moment.js"></script>
+<script src="js/knockout-3.4.2.js"></script>
+<script src="js/daterangepicker.min.js"></script>
 <script>
+$('.daterangepicker-filed').daterangepicker({
+    callback: function(startDate, endDate, period){
+        var start_date = startDate.format('YYYY-MM-DD');
+        var end_date   = endDate.format('YYYY-MM-DD');
+        var title = start_date + ' To ' + end_date;
+        $(this).val(title);
+        $('input[name="start_date"]').val(start_date);
+        $('input[name="end_date"]').val(end_date);
+    }
+});
 var table;
 $(document).ready(function(){
     table = $('#dataTable').DataTable({
@@ -101,24 +127,27 @@ $(document).ready(function(){
             zeroRecords: '<strong class="text-danger">No Data Found</strong>'
         },
         "ajax": {
-            "url": "{{route('production.datatable.data')}}",
+            "url": "{{route('production.order.sheet.datatable.data')}}",
             "type": "POST",
             "data": function (data) {
-                data.sheet_no          = $("#form-filter #sheet_no").val();
-                data._token            = _token;
+                data.sheet_no        = $("#form-filter #sheet_no").val();
+                data.start_date      = $("#form-filter #start_date").val();
+                data.end_date        = $("#form-filter #end_date").val();
+                data.delivery_status = $("#form-filter #delivery_status").val();
+                data._token          = _token;
             }
         },
         "columnDefs": [{
-                "targets": [8],
+                "targets": [9],
                 "orderable": false,
                 "className": "text-center"
             },
             {
-                "targets": [0,1,2,3,4,5],
+                "targets": [0,1,2,3,6,7,8],
                 "className": "text-center"
             },
             {
-                "targets": [6,7],
+                "targets": [4,5],
                 "className": "text-right"
             }
 
@@ -128,7 +157,6 @@ $(document).ready(function(){
             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'<'float-right'p>>>",
 
         "buttons": [
-            @if (permission('production-report'))
             {
                 'extend':'colvis','className':'btn btn-secondary btn-sm text-white','text':'Column','columns': ':gt(0)'
             },
@@ -140,7 +168,7 @@ $(document).ready(function(){
                 "orientation": "landscape", //portrait
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
-                    columns: ':visible:not(:eq(8))' 
+                    columns: ':visible:not(:eq(9))' 
                 },
                 customize: function (win) {
                     $(win.document.body).addClass('bg-white');
@@ -158,7 +186,7 @@ $(document).ready(function(){
                 "title": "{{ $page_title }} List",
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
-                    columns: ':visible:not(:eq(8))' 
+                    columns: ':visible:not(:eq(9))' 
                 }
             },
             {
@@ -168,7 +196,7 @@ $(document).ready(function(){
                 "title": "{{ $page_title }} List",
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
-                    columns: ':visible:not(:eq(8))' 
+                    columns: ':visible:not(:eq(9))' 
                 },
             },
             {
@@ -180,7 +208,7 @@ $(document).ready(function(){
                 "orientation": "landscape", //portrait
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
-                    columns: ':visible:not(:eq(8))' 
+                    columns: ':visible:not(:eq(9))' 
                 },
                 customize: function(doc) {
                     doc.defaultStyle.fontSize = 7; //<-- set fontsize to 16 instead of 10 
@@ -188,7 +216,6 @@ $(document).ready(function(){
                     doc.pageMargins = [5,5,5,5];
                 } 
             },
-            @endif 
         ],
     });
 

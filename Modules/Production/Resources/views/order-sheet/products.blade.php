@@ -25,7 +25,7 @@
             @php
                 $item = 0;
                 $total_ordered_qty = $total_required_qty = 0;
-                $total_price = 0;
+                $total_order_value = 0;
             @endphp
             @foreach ($products as $key => $value)
             @php
@@ -35,7 +35,7 @@
                 $item++;
                 $total_ordered_qty += $value->ordered_qty;
                 $total_required_qty += $required_qty;
-                $total_price += $value->total_order_value;
+                $total_order_value += $value->total_order_value;
             @endphp
                 <tr>
                     <td class="text-center">{{ $key+1 }}</td>
@@ -49,17 +49,17 @@
                     <input type="hidden" name="products[{{ $key+1 }}][stock_qty]" value="{{ $value->stock_qty ?? 0 }}">
                     <input type="hidden" name="products[{{ $key+1 }}][ordered_qty]" value="{{ $value->ordered_qty }}">
                     <input type="hidden" name="products[{{ $key+1 }}][required_qty]" value="{{ $required_qty }}">
-                    <input type="hidden" name="products[{{ $key+1 }}][total]" value="{{ number_format($value->total_order_value,2,'.',',') }}">
+                    <input type="hidden" name="products[{{ $key+1 }}][total]" value="{{ $value->total_order_value }}">
                 </tr>
             @endforeach
             <tr>
                 <td colspan="4"><h6><b>Total</b></h6></td>
                 <td class="text-center"><h6><b>{{ number_format($total_ordered_qty,2,'.','') }}</b></h6></td>
                 <td class="text-center"><h6><b>{{ number_format($total_required_qty,2,'.','') }}</b></h6></td>
-                <td class="text-right"><h6><b>{{ number_format($total_price,2,'.',',') }}</b></h6></td>
+                <td class="text-right"><h6><b>{{ number_format($total_order_value,2,'.',',') }}</b></h6></td>
                 <input type="hidden" name="item" value="{{ $item }}">
                 <input type="hidden" name="total_qty" value="{{ $total_ordered_qty }}">
-                <input type="hidden" name="total" value="{{ $total_price }}">
+                <input type="hidden" name="total_order_value" value="{{ $total_order_value }}">
                 <input type="hidden" name="total_commission" value="{{ $total_commission }}">
             </tr>
             <tr>

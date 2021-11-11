@@ -48,7 +48,7 @@
                             .invoice header {
                                 padding: 10px 0;
                                 margin-bottom: 20px;
-                                border-bottom: 1px solid #036;
+                                border-bottom: 1px solid #000;
                             }
 
                             .invoice .company-details {
@@ -79,7 +79,7 @@
 
                             .invoice .invoice-details .invoice-id {
                                 margin-top: 0;
-                                color: #036;
+                                color: #000;
                             }
 
                             .invoice main {
@@ -94,7 +94,7 @@
 
                             .invoice main .notices {
                                 padding-left: 6px;
-                                border-left: 6px solid #036;
+                                border-left: 6px solid #000;
                             }
 
                             .invoice table {
@@ -105,7 +105,7 @@
                             }
 
                             .invoice table th {
-                                background: #036;
+                                background: #000;
                                 color: #fff;
                                 padding: 5px;
                                 border-bottom: 1px solid #fff
@@ -116,10 +116,10 @@
                                 border-bottom: 1px solid #fff
                             }
                             .invoice #product_table td{
-                                border: 1px solid #036 !important;
+                                border: 1px solid #000 !important;
                             }
                             .invoice #product_table tbody tr:last-child td {
-                                border: 1px solid #036 !important;
+                                border: 1px solid #000 !important;
                             }
                             #info-table td{padding:0px !important;}
 
@@ -129,7 +129,7 @@
 
                             .invoice table td h3 {
                                 margin: 0;
-                                color: #036;
+                                color: #000;
                             }
 
                             .invoice table .qty {
@@ -145,11 +145,11 @@
 
                             .invoice table .no {
                                 color: #fff;
-                                background: #036
+                                background: #000
                             }
 
                             .invoice table .total {
-                                background: #036;
+                                background: #000;
                                 color: #fff
                             }
 
@@ -172,8 +172,8 @@
                             }
 
                             /* .invoice table tfoot tr:last-child td {
-                                color: #036;
-                                border-top: 1px solid #036
+                                color: #000;
+                                border-top: 1px solid #000
                             } */
 
                             .invoice table tfoot tr td:first-child {
@@ -191,7 +191,7 @@
                             .invoice a {
                                 content: none !important;
                                 text-decoration: none !important;
-                                color: #036 !important;
+                                color: #000 !important;
                             }
 
                             .page-header,
@@ -278,7 +278,7 @@
                                 a {
                                     content: none !important;
                                     text-decoration: none !important;
-                                    color: #036 !important;
+                                    color: #000 !important;
                                 }
 
                                 .text-center {
@@ -352,7 +352,7 @@
                                         </td>
                                     </tr>
                                 </table>
-                                <div style="width: 100%;height:3px;border-top:1px solid #036;border-bottom:1px solid #036;"></div>
+                                <div style="width: 100%;height:3px;border-top:1px solid #000;border-bottom:1px solid #000;"></div>
                                 <table style="margin-bottom: 0px;margin-top:10px;" id="info-table">
                                     <tr>
                                         <td width="40%">

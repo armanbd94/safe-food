@@ -15,8 +15,8 @@ class CreateOrderSheetMemosTable extends Migration
     {
         Schema::create('order_sheet_memos', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('order_sheets_id');
-            $table->foreign('order_sheets_id')->references('id')->on('order_sheets');
+            $table->unsignedBigInteger('order_sheet_id');
+            $table->foreign('order_sheet_id')->references('id')->on('order_sheets');
             $table->unsignedBigInteger('sale_id');
             $table->foreign('sale_id')->references('id')->on('sales');
             $table->timestamps();

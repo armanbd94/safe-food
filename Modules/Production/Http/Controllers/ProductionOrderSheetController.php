@@ -2,6 +2,7 @@
 
 namespace Modules\Production\Http\Controllers;
 
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\BaseController;
@@ -18,7 +19,7 @@ class ProductionOrderSheetController extends BaseController
     public function index()
     {
         if(permission('production-order-sheet-access')){
-            $this->setPageData('Manage Production','Manage Production','fas fa-industry',[['name' => 'Manage Production']]);
+            $this->setPageData('Manage Production Order Sheet','Manage Production Order Sheet','fas fa-file',[['name' => 'Manage Production Order Sheet']]);
             return view('production::order-sheet.index');
         }else{
             return $this->access_blocked();
@@ -28,29 +29,21 @@ class ProductionOrderSheetController extends BaseController
     public function get_datatable_data(Request $request)
     {
         if($request->ajax()){
-            if(permission('production-access')){
+            if(permission('production-order-sheet-access')){
 
-                if (!empty($request->batch_no)) {
-                    $this->model->setBatchNo($request->batch_no);
+                if (!empty($request->sheet_no)) {
+                    $this->model->setSheetNo($request->sheet_no);
                 }
                 if (!empty($request->start_date)) {
-                    $this->model->setStartDate($request->start_date);
+                    $this->model->setFromDate($request->start_date);
                 }
                 if (!empty($request->end_date)) {
-                    $this->model->setEndDate($request->end_date);
+                    $this->model->setToDate($request->end_date);
                 }
-                if (!empty($request->warehouse_id)) {
-                    $this->model->setWarehouseID($request->warehouse_id);
+                if (!empty($request->delivery_status)) {
+                    $this->model->setDeliveryStatus($request->delivery_status);
                 }
-                if (!empty($request->status)) {
-                    $this->model->setStatus($request->status);
-                }
-                if (!empty($request->production_status)) {
-                    $this->model->setProductionStatus($request->production_status);
-                }
-                if (!empty($request->transfer_status)) {
-                    $this->model->setTransferStatus($request->transfer_status);
-                }
+
 
                 $this->set_datatable_default_properties($request);//set datatable default properties
                 $list = $this->model->getDatatableList();//get table data
@@ -59,35 +52,24 @@ class ProductionOrderSheetController extends BaseController
                 foreach ($list as $value) {
                     $no++;
                     $action = '';
-                    if(permission('production-approve')  && $value->status == 2){
-                        $action .= ' <a class="dropdown-item change_status"  data-id="' . $value->id . '" data-name="' . $value->batch_no . '" data-status="' . $value->status . '"><i class="fas fa-toggle-on text-info mr-2"></i> Approve Status</a>';
-                    }
-                    if(permission('production-edit') && $value->status == 2){
-                        $action .= ' <a class="dropdown-item" href="'.route("production.edit",$value->id).'">'.self::ACTION_BUTTON['Edit'].'</a>';
-                    }
-                    if(permission('production-operation') && $value->status == 1 && $value->production_status != 3 ){
-                        $action .= ' <a class="dropdown-item" href="'.url("production/operation/".$value->id).'"><i class="fas fa-toolbox text-success mr-2"></i> Operation</a>';
-                    }
-                    if(permission('production-view')){
-                        $action .= ' <a class="dropdown-item" href="'.url("production/view/".$value->id).'">'.self::ACTION_BUTTON['View'].'</a>';
-                    }
-                    if(permission('production-delete') && $value->production_status != 3 && $value->transfer_status == 1){
-                        $action .= ' <a class="dropdown-item delete_data"  data-id="' . $value->id . '" data-name="' . $value->name . '">'.self::ACTION_BUTTON['Delete'].'</a>';
-                    }
 
-                    // if(permission('production-transfer') && $value->status == 1 && $value->production_status == 3 && $value->transfer_status == 1){
-                    //     $action .= ' <a class="dropdown-item" href="'.url("production/transfer/".$value->id).'"><i class="fas fa-dolly-flatbed text-dark mr-2"></i> Transfer</a>';
-                    // }
+
+                    $action .= ' <a class="dropdown-item" href="'.route("production.order.challan",$value->id).'"><i class="fas fa-file-export text-primary mr-2"></i> Order Challan</a>';
+
+                    if(permission('production-order-sheet-delete') && $value->delivery_status == 2){
+                        $action .= ' <a class="dropdown-item delete_data"  data-id="' . $value->id . '" data-name="' . $value->sheet_no . '">'.self::ACTION_BUTTON['Delete'].'</a>';
+                    }
 
                     $row = [];
                     $row[] = $no;
-                    $row[] = $value->batch_no;
-                    $row[] = $value->warehouse->name;
-                    $row[] = date('d-M-Y',strtotime($value->start_date));
-                    $row[] = $value->end_date ? date('j-F-Y',strtotime($value->end_date)) : '-';
+                    $row[] = $value->sheet_no;
                     $row[] = $value->item;
-                    $row[] = APPROVE_STATUS_LABEL[$value->status];
-                    $row[] = PRODUCTION_STATUS_LABEL[$value->production_status];
+                    $row[] = $value->total_qty;
+                    $row[] = number_format($value->total_order_value,2,'.',',');
+                    $row[] = number_format($value->total_commission,2,'.',',');
+                    $row[] = date('d-M-Y',strtotime($value->order_date));
+                    $row[] = date('d-M-Y',strtotime($value->delivery_date));
+                    $row[] = DELIVERY_STATUS[$value->delivery_status];
                     $row[] = action_button($action);//custom helper function for action button
                     $data[] = $row;
                 }
@@ -122,7 +104,7 @@ class ProductionOrderSheetController extends BaseController
             ->join('products as p','sp.product_id','=','p.id')
             ->join('units as bu','sp.base_unit_id','=','bu.id')
             ->join('units as u','p.unit_id','=','u.id')
-            ->selectRaw('p.id,p.name,bu.unit_name as sale_unit,u.unit_name as ctn_size,SUM(sp.qty) as ordered_qty,sum(sp.total) as total_order_value,p.base_unit_qty as stock_qty')
+            ->selectRaw('p.id,p.name,bu.unit_name as sale_unit,u.unit_name as ctn_size,(SUM(sp.qty) + ifnull(SUM(sp.free_qty),0)) as ordered_qty,sum(sp.total) as total_order_value,p.base_unit_qty as stock_qty')
             ->groupBy('sp.product_id')
             ->whereDate('s.sale_date',date('Y-m-d'))
             ->orderBy('p.id','asc')
@@ -145,17 +127,19 @@ class ProductionOrderSheetController extends BaseController
             DB::beginTransaction();
             try {
                 $order_sheet = $this->model->create([
-                    'sheet_no'         => $request->sheet_no,
-                    'order_date'       => $request->order_date,
-                    'delivery_date'    => $request->order_date,
-                    'item'             => $request->item,
-                    'total_qty'        => $request->total_qty,
-                    'total'            => $request->total,
-                    'total_commission' => $request->total_commission
+                    'sheet_no'          => $request->sheet_no,
+                    'order_date'        => $request->order_date,
+                    'delivery_date'     => $request->order_date,
+                    'item'              => $request->item,
+                    'total_qty'         => $request->total_qty,
+                    'total_order_value' => $request->total_order_value,
+                    'total_commission'  => $request->total_commission,
+                    'created_by'        => auth()->user()->name
                 ]);
                 if($order_sheet)
                 {
                     $orderSheetData = $this->model->with(['products','memos'])->find($order_sheet->id);
+
                     if($request->has('products'))
                     {
                         $products = [];
@@ -204,8 +188,42 @@ class ProductionOrderSheetController extends BaseController
     }
 
 
-    public function destroy($id)
+    public function delete(Request $request)
     {
-        //
+        if($request->ajax()){
+            if(permission('production-order-sheet-delete'))
+            {
+                DB::beginTransaction();
+                try {
+    
+                    $orderSheetData = $this->model->with('products','memos')->find($request->id);
+    
+                    if(!$orderSheetData->products->isEmpty() && $orderSheetData->delivery_status == 2)
+                    {
+                        $orderSheetData->products()->detach();
+                    }
+                    if(!$orderSheetData->memos->isEmpty() && $orderSheetData->delivery_status == 2)
+                    {
+                        $orderSheetData->memos()->detach();
+                    }
+                    $result = $orderSheetData->delete();
+                    if($result)
+                    {
+                        $output = ['status' => 'success','message' => 'Data has been deleted successfully'];
+                    }else{
+                        $output = ['status' => 'error','message' => 'Failed to delete data'];
+                    }
+                    DB::commit();
+                } catch (Exception $e) {
+                    DB::rollback();
+                    $output = ['status' => 'error','message' => $e->getMessage()];
+                }
+                return response()->json($output);
+            }else{
+                return response()->json($this->unauthorized());
+            }
+        }else{
+            return response()->json($this->unauthorized());
+        }
     }
 }

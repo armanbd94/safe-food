@@ -47,7 +47,7 @@
                             .invoice header {
                                 padding: 10px 0;
                                 margin-bottom: 20px;
-                                border-bottom: 1px solid #036;
+                                border-bottom: 1px solid #000;
                             }
 
                             .invoice .company-details {
@@ -78,7 +78,7 @@
 
                             .invoice .invoice-details .invoice-id {
                                 margin-top: 0;
-                                color: #036;
+                                color: #000;
                             }
 
                             .invoice main {
@@ -93,7 +93,7 @@
 
                             .invoice main .notices {
                                 padding-left: 6px;
-                                border-left: 6px solid #036;
+                                border-left: 6px solid #000;
                             }
 
                             .invoice table {
@@ -104,7 +104,7 @@
                             }
 
                             .invoice table th {
-                                background: #036;
+                                background: #000;
                                 color: #fff;
                                 padding: 5px;
                                 /* border-bottom: 1px solid #fff */
@@ -124,7 +124,7 @@
 
                             .invoice table td h3 {
                                 margin: 0;
-                                color: #036;
+                                color: #000;
                             }
 
                             .invoice table .qty {
@@ -140,18 +140,23 @@
 
                             .invoice table .no {
                                 color: #fff;
-                                background: #036
+                                background: #000
                             }
 
                             .invoice table .total {
-                                background: #036;
+                                background: #000;
                                 color: #fff
                             }
 
                             .invoice table tbody tr:last-child td {
                                 border: none
                             }
-
+                            .invoice #product_table td{
+                                border: 1px solid #000 !important;
+                            }
+                            .invoice #product_table tbody tr:last-child td {
+                                border: 1px solid #000 !important;
+                            }
                             .invoice table tfoot td {
                                 background: 0 0;
                                 border-bottom: none;
@@ -167,8 +172,8 @@
                             }
 
                             /* .invoice table tfoot tr:last-child td {
-                                color: #036;
-                                border-top: 1px solid #036
+                                color: #000;
+                                border-top: 1px solid #000
                             } */
 
                             .invoice table tfoot tr td:first-child {
@@ -186,7 +191,7 @@
                             .invoice a {
                                 content: none !important;
                                 text-decoration: none !important;
-                                color: #036 !important;
+                                color: #000 !important;
                             }
 
                             .page-header,
@@ -243,7 +248,12 @@
                                     /* font-size: 12px !important; */
                                     margin-bottom: 100px !important;
                                 }
-
+                                html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend,  {
+           font-size: 10pt !important;
+	  }
+      #product_table tbody td{
+        font-size: 9pt !important;
+      }
                                 .m-0 {
                                     margin: 0 !important;
                                 }
@@ -268,7 +278,7 @@
                                 a {
                                     content: none !important;
                                     text-decoration: none !important;
-                                    color: #036 !important;
+                                    color: #000 !important;
                                 }
 
                                 .text-center {
@@ -343,52 +353,71 @@
                                             {{-- @if(config('settings.contact_no'))<p style="font-weight: normal;margin:0;"><b>Contact No.: </b>{{ config('settings.contact_no') }}, @if(config('settings.email'))<b>Email: </b>{{ config('settings.email') }}@endif</p>@endif --}}
                                             @if(config('settings.address'))<p style="font-weight: normal;margin:0;">{{ config('settings.address') }}</p>@endif
                                             <p class="name" style="margin-top:5px;font-weight: normal;margin:0;"><b>প্রোডাকশন অর্ডার শিট</b></p>
-                                            <p style="font-weight: normal;margin:0;">তারিখ: {{ convert_bangla_number(date('d-m-Y',strtotime($order_sheet->order_date))) }}</p>
-                                            <p style="font-weight: normal;margin:0;">অর্ডার শিট নং: {{ convert_bangla_number($order_sheet->sheet_no) }}</p>
+                                            
+                                            
                                         </td>
                                     </tr>
                                 </table>
-                                {{-- <div style="width: 100%;height:3px;border-top:1px solid #036;border-bottom:1px solid #036;"></div> --}}
-                                <table border="0" cellspacing="0" cellpadding="0" class="product_table">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center">Sl</th>
-                                            <th>Name</th>
-                                            <th class="text-center">Carton Size</th>
-                                            <th class="text-center">Stock Quantity</th>
-                                            <th class="text-center">Ordered Qunatity</th>
-                                            <th class="text-center">Required Quantity</th>
-                                            <th class="text-right">Price</th>
-                                            <th class="text-right">Total</th>
-                                        </tr>
-                                    </thead>
+                                <table>
+                                    <tr>
+                                        <td class="text-left font-weight-bolder"><p style="margin:0;">অর্ডার শিট নং: {{ convert_bangla_number($order_sheet->sheet_no) }}</p></td>
+                                        <td class="text-right font-weight-bolder"><p style="margin:0;">তারিখ: {{ convert_bangla_number(date('d-m-Y',strtotime($order_sheet->order_date))) }}</p></td>
+                                    </tr>
+                                </table>
+
+                                <table cellspacing="0" cellpadding="0" id="product_table">
+                                  
                                     <tbody>
+                                        <tr>
+                                            <td class="text-center"></td>
+                                            <td><b>নাম</b></td>
+                                            <td class="text-center"><b>কার্টুন সাইজ</b></td>
+                                            <td class="text-center"><b>স্টক</b></td>
+                                            <td class="text-center"><b>অর্ডার</b></td>
+                                            <td class="text-center"><b>প্রোডাকশন</b></td> 
+                                            <td class="text-right"><b>মোট</b></td>
+                                        </tr>
+                                        @php
+                                            $required_qty = 0;
+                                        @endphp
                                         @if (!$order_sheet->products->isEmpty())
                                             @foreach ($order_sheet->products as $key => $item)
                                                 <tr>
-                                                    <td class="text-center">{{ $key+1 }}</td>
+                                                    <td class="text-center">{{ convert_bangla_number($key+1) }}</td>
                                                     <td class="text-left">{{ $item->name }}</td>
-                                                    <td class="text-center">{{ $item->unit->unit_name }}</td>
-                                                    <td class="text-center">{{ $item->pivot->stock_qty.' '.$item->base_unit->unit_name }}</td>
-                                                    <td class="text-center">{{ $item->pivot->ordered_qty.' '.$item->base_unit->unit_name }}</td>
-                                                    <td class="text-center">{{ $item->pivot->required_qty.' '.$item->base_unit->unit_name }}</td>
-                                                    <td class="text-right">{{ number_format($item->pivot->price,2,'.',',') }}</td>
-                                                    <td class="text-right">{{ number_format($item->pivot->total,2,'.',',') }}</td>
+                                                    <td class="text-center">{{ convert_bangla_carton_size($item->unit->unit_name )}}</td>
+                                                    <td class="text-center">{{ convert_bangla_number($item->pivot->stock_qty) }}</td>
+                                                    <td class="text-center">{{ convert_bangla_number($item->pivot->ordered_qty) }}</td>
+                                                    <td class="text-center">{{ convert_bangla_number($item->pivot->required_qty) }}</td>
+                                                    <td class="text-right">{{ convert_bangla_number(number_format($item->pivot->total,2,'.',',')) }}</td>
                                                 </tr>
+                                                @php
+                                                    $required_qty += $item->pivot->required_qty;
+                                                @endphp
                                             @endforeach
                                         @endif
                                         <tr>
-                                            <td colspan="4" class="text-right"><p><b>Total</b></p></td>
-                                            <td  class="text-center"><p><b>{{ $order_sheet->item.' ('.number_format($order_sheet->total_qty,2,'.','').')' }}</b></p></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td class="text-right"><p><b>{{ number_format($order_sheet->total,2,'.',',') }}</b></p></td>
+                                            <td colspan="4"><b>মোট</b></td>
+                                            <td class="text-center"><b>{{ convert_bangla_number(number_format($order_sheet->total_qty,2,'.','')) }}</b></td>
+                                            <td class="text-center"><b>{{ convert_bangla_number(number_format($required_qty,2,'.','')) }}</b></td>
+                                            <td class="text-right"><b>{{ convert_bangla_number(number_format($order_sheet->total_order_value,2,'.',',')) }}</b></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="7" class="text-right"><p><b>Commission</b></p></td>
-                                            <td class="text-right"><p><b>{{ number_format($order_sheet->total_commission,2,'.',',') }}</b></p></td>
+                                            <td colspan="6"><b>কমিশন</b></td>
+                                            <td class="text-right"><b>{{ convert_bangla_number(number_format($order_sheet->total_commission,2,'.',',')) }}</b></td>
                                         </tr>
                                     </tbody>
+                                </table>
+                                <table style="width: 100%;">
+                                    <tr>
+                                        <td>
+                                            <div class="font-size-10" style="width:250px;float:right;padding-top:20px;text-align:center;">
+                                                <p style="margin:0;padding:0;"></p>
+                                                <p class="dashed-border"></p>
+                                                <p style="margin:0;padding:0;text-transform: capitalize;font-weight:normal;">কর্তৃপক্ষের স্বাক্ষর</p>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 </table>
                             </div>
                         </div>
