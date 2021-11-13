@@ -25,4 +25,6 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('generate', 'ProductionOrderSheetController@generate_production_order_sheet')->name('generate');
     });
     Route::get('production-order-challan/{id}', 'ProductionOrderChallanController@index')->name('production.order.challan');
+    Route::get('order/depo-bill//{order_sheet_id}/print/{depo_id}', 'ProductionOrderChallanController@depo_invoice');
+    Route::get('order/dealer-bill//{order_sheet_id}/print/{dealer_id}', 'ProductionOrderChallanController@dealer_invoice');
 });

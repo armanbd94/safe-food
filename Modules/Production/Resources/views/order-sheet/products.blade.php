@@ -16,7 +16,7 @@
                 <th class="text-center">Carton Size</th>
                 <th class="text-center">Stock Quantity</th>
                 <th class="text-center">Ordered Qunatity</th>
-                <th class="text-center">Required Quantity</th>
+                <th class="text-center">Production Quantity</th>
                 <th class="text-right">Total Order Value</th>
             </tr>
         </thead>
@@ -30,8 +30,8 @@
             @foreach ($products as $key => $value)
             @php
                 $required_qty = 0;
-                $required_qty = str_replace('-','',($value->stock_qty ? $value->stock_qty : 0) - $value->ordered_qty);
-
+                $required_qty = ($value->stock_qty ? $value->stock_qty : 0) - $value->ordered_qty;
+                $required_qty = $required_qty < 0 ?  str_replace('-','',$required_qty) : 0;
                 $item++;
                 $total_ordered_qty += $value->ordered_qty;
                 $total_required_qty += $required_qty;

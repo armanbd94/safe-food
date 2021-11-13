@@ -54,8 +54,9 @@ class ProductionOrderSheetController extends BaseController
                     $action = '';
 
 
+                    $action .= ' <a class="dropdown-item" href="'.route("production.order.sheet.view",$value->id).'">'.self::ACTION_BUTTON['View'].'</a>';
                     $action .= ' <a class="dropdown-item" href="'.route("production.order.challan",$value->id).'"><i class="fas fa-file-export text-primary mr-2"></i> Order Challan</a>';
-
+                    
                     if(permission('production-order-sheet-delete') && $value->delivery_status == 2){
                         $action .= ' <a class="dropdown-item delete_data"  data-id="' . $value->id . '" data-name="' . $value->sheet_no . '">'.self::ACTION_BUTTON['Delete'].'</a>';
                     }
