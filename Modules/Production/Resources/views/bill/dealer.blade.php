@@ -19,9 +19,7 @@
                 <div class="card-toolbar">
                     <!--begin::Button-->
                     <button type="button" class="btn btn-primary btn-sm mr-3" id="print-invoice"> <i class="fas fa-print"></i> Print</button>
-                    
-                    <a href="{{ route('sale') }}" class="btn btn-warning btn-sm font-weight-bolder"> 
-                        <i class="fas fa-arrow-left"></i> Back</a>
+
                     <!--end::Button-->
                 </div>
             </div>
@@ -254,6 +252,7 @@
                                 #product_table tbody td{
                                     font-size: 9pt !important;
                                 }
+                                .print_body {page-break-after: always;}
                                 .m-0 {
                                     margin: 0 !important;
                                 }
@@ -424,14 +423,14 @@
                                                 <tr>
                                                     <td class="text-center">{{ $key+1 }}</td>
                                                     <td>{{ $item->name }}</td>
-                                                    <td class="text-center">{{ $item->pivot->unit_qty }}</td>
-                                                    <td class="text-center">{{ $item->pivot->qty }}</td>
-                                                    <td class="text-center">{{ $item->pivot->free_qty ?? 0 }}</td>
-                                                    <td class="text-center">{{ $item->unit->unit_name }}</td>
-                                                    <td class="text-right">{{ $item->pivot->net_unit_price }}</td>
-                                                    <td class="text-right">{{ $item->pivot->total }}</td>
+                                                    <td class="text-center">{{ convert_bangla_number($item->pivot->unit_qty) }}</td>
+                                                    <td class="text-center">{{ convert_bangla_number($item->pivot->qty) }}</td>
+                                                    <td class="text-center">{{ convert_bangla_number($item->pivot->free_qty ?? 0) }}</td>
+                                                    <td class="text-center">{{ convert_bangla_carton_size($item->unit->unit_name) }}</td>
+                                                    <td class="text-right">{{ convert_bangla_number(number_format($item->pivot->net_unit_price,2,'.',',')) }}</td>
+                                                    <td class="text-right">{{ convert_bangla_number(number_format($item->pivot->total,2,'.',',')) }}</td>
                                                     <td></td>
-                                                    <td class="text-right">{{ $item->pivot->total }}</td>
+                                                    <td class="text-right">{{ convert_bangla_number(number_format($item->pivot->total,2,'.',',')) }}</td>
                                                 </tr>
                                             @endforeach
                                         @endif
@@ -509,8 +508,10 @@
                                     </tr>
                                 </table>
                             </div>
-                        </div>
+                            {{-- <div class="print_body"></div> --}}
 
+                        </div>
+                        
                     </div>
                 </div>
             </div>

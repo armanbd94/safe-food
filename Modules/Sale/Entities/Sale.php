@@ -10,7 +10,7 @@ use Modules\Location\Entities\Area;
 use Modules\Product\Entities\Product;
 use Modules\Location\Entities\Upazila;
 use Modules\Location\Entities\District;
-
+use Modules\Production\Entities\OrderSheetMemo;
 
 class Sale extends BaseModel
 {
@@ -49,6 +49,11 @@ class Sale extends BaseModel
         return $this->belongsToMany(Product::class,'sale_products','sale_id','product_id','id','id')
         ->withPivot('id', 'unit_qty','qty', 'free_qty', 'base_unit_id', 'unit_id','net_unit_price', 'total')
         ->withTimestamps(); 
+    }
+
+    public function memo()
+    {
+        return $this->hasOne(OrderSheetMemo::class,'sale_id','id');
     }
 
 

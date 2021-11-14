@@ -24,7 +24,9 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('delete', 'ProductionOrderSheetController@delete')->name('delete');
         Route::get('generate', 'ProductionOrderSheetController@generate_production_order_sheet')->name('generate');
     });
+    
     Route::get('production-order-challan/{id}', 'ProductionOrderChallanController@index')->name('production.order.challan');
-    Route::get('order/depo-bill//{order_sheet_id}/print/{depo_id}', 'ProductionOrderChallanController@depo_invoice');
-    Route::get('order/dealer-bill//{order_sheet_id}/print/{dealer_id}', 'ProductionOrderChallanController@dealer_invoice');
+    Route::get('order-challan-change-delivery-status/{id}', 'ProductionOrderChallanController@change_delivery_status');
+    Route::get('order/depo-bill/{order_sheet_id}/print/{depo_id}/{order_date}/{delivery_date}', 'ProductionOrderChallanController@depo_invoice');
+    Route::get('order/dealer-bill/{order_sheet_id}/print/{dealer_id}/{order_date}/{delivery_date}', 'ProductionOrderChallanController@dealer_invoice');
 });

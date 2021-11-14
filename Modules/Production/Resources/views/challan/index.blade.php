@@ -14,9 +14,10 @@
                 <div class="card-toolbar">
                     <!--begin::Button-->
                     @if($stock_out_products == 0)
-                    <button type="button" class="btn btn-success btn-sm font-weight-bolder mr-3"  onclick="store_data()"> 
-                        <i class="fas fa-truck"></i> Confirm Order Delivery</button>
-
+                        @if ($order_sheet->delivery_status == 2)
+                            <button type="button" class="btn btn-success btn-sm font-weight-bolder mr-3"  id="change_status"> 
+                            <i class="fas fa-truck"></i> Change Challan Delivery Status</button>
+                        @endif
                         <button type="button" class="btn btn-primary btn-sm " id="print-invoice"> <i class="fas fa-print"></i> Print</button>
                     @endif
                     <!--end::Button-->
@@ -30,7 +31,7 @@
                 <!--begin: Datatable-->
                 <div id="kt_datatable_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
                     <div class="row">
-                        @if($stock_out_products > 0)
+                        @if($stock_out_products > 0 && $order_sheet->delivery_status == 2)
                         <div class="col-md-12">
                             <h5 class="text-center"><i class="fas fa-exclamation-triangle text-warning"></i> এই চালান তৈরি করার জন্য যে পরিমাণ প্রোডাক্ট দরকার তা নেই। নিচে তার তালিকা দেয়া হল। <i class="fas fa-exclamation-triangle  text-warning"></i></h5>
                             <table id="dataTable" class="table table-bordered table-hover">
@@ -425,17 +426,17 @@
                                                             <td class="text-left">{{ $value['order_from'] == 1 ? $value['depo_name'].' (ডিপো)' : $value['dealer_name'] }}</td>
                                                             <td class="text-center">{{ $value['area']}}</td>
                                                             <td class="text-center">{{ convert_bangla_carton_size($value['commission_rate'])}}</td>
-                                                            <td class="text-right">{{ convert_bangla_carton_size($value['grand_total'])}}</td>
-                                                            <td class="text-right">{{ convert_bangla_carton_size($value['total_commission'])}}</td>
-                                                            <td class="text-right">{{ convert_bangla_carton_size($value['net_total'])}}</td>
+                                                            <td class="text-right">{{ convert_bangla_carton_size(number_format($value['grand_total'],2,'.',','))}}</td>
+                                                            <td class="text-right">{{ convert_bangla_carton_size(number_format($value['total_commission'],2,'.',','))}}</td>
+                                                            <td class="text-right">{{ convert_bangla_carton_size(number_format($value['net_total'],2,'.',','))}}</td>
                                                             <td class="text-center"></td>
                                                             <td class="text-center"></td>
                                                             <td class="text-center"></td>
                                                             <td class="text-center no_print">
                                                                 @if ($value['order_from'] == 1)
-                                                                <a class="btn btn-danger btn-sm text-white" href="order/depo-bill/{{ $order_sheet->id }}/print/{{ $value['depo_id'] }}" target="_blank" style="color:white !important;"><i class="far fa-file-pdf"></i> ক্লিক করুন</a>
+                                                                <a  class="btn btn-danger btn-sm text-white @if ($order_sheet->delivery_status == 2) {{ 'disabled' }} @endif" href="order/depo-bill/{{ $order_sheet->id }}/print/{{ $value['depo_id'] }}/{{ $order_sheet->order_date }}/{{ $order_sheet->delivery_date }}" target="_blank" style="color:white !important;"><i class="far fa-file-pdf"></i> ক্লিক করুন</a>
                                                                 @else
-                                                                <a class="btn btn-danger btn-sm text-white" href="order/dealer-bill/{{ $order_sheet->id }}/print/{{ $value['depo_id'] }}" target="_blank" style="color:white !important;"><i class="far fa-file-pdf"></i> ক্লিক করুন</a>
+                                                                <a  class="btn btn-danger btn-sm text-white @if ($order_sheet->delivery_status == 2) {{ 'disabled' }} @endif" href="order/dealer-bill/{{ $order_sheet->id }}/print/{{ $value['dealer_id'] }}/{{ $order_sheet->order_date }}/{{ $order_sheet->delivery_date }}" target="_blank" style="color:white !important;"><i class="far fa-file-pdf"></i> ক্লিক করুন</a>
                                                                 @endif
                                                             </td>
                                                         </tr>
@@ -489,27 +490,33 @@ $(document).ready(function(){
         $("#invoice").printArea(options);
     });
 
-    $(document).on('click','.generate_sheet',function(){
-        $.ajax({
-            url: "{{ url('production-order-sheet/generate') }}",
-            type: "GET",
-            beforeSend: function(){
-                $('.generate_sheet').addClass('spinner spinner-white spinner-right');
-            },
-            complete: function(){
-                $('.generate_sheet').removeClass('spinner spinner-white spinner-right');
-            },
-            success: function (data) {
-                if(data == 'exist'){
-                    $('.save-btn').addClass('d-none');
-                    notification('error', 'Today\'s Production Order Sheet Already Generated Please Kindly Check Manage Production Order Sheet');
-                }else{
-                    $('#production-order-sheet .row').empty().append(data);
-                    $('.save-btn').removeClass('d-none');
-                }
-            },
-            error: function (xhr, ajaxOption, thrownError) {
-                console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
+    $(document).on('click','#change_status',function(){
+        Swal.fire({
+            title: 'Are you sure to change delivery status of this challan?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes'
+        }).then((result) => {
+            if (result.value) {
+                $.ajax({
+                    url: "{{ url('order-challan-change-delivery-status',$order_sheet->id) }}",
+                    type: "GET",
+                    dataType: "JSON",
+                }).done(function (response) {
+                    if (response.status == "success") {
+                        Swal.fire("Status Changed", response.message, "success").then(function () {
+                            window.location.replace("{{ url('production-order-challan',$order_sheet->id) }}");
+                        });
+                    }
+                    if (response.status == "error") {
+                        Swal.fire('Oops...', response.message, "error");
+                    }
+                }).fail(function () {
+                    Swal.fire('Oops...', "Somthing went wrong with ajax!", "error");
+                });
             }
         });
     });

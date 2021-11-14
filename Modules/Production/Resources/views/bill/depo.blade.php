@@ -19,9 +19,7 @@
                 <div class="card-toolbar">
                     <!--begin::Button-->
                     <button type="button" class="btn btn-primary btn-sm mr-3" id="print-invoice"> <i class="fas fa-print"></i> Print</button>
-                    
-                    <a href="{{ route('sale') }}" class="btn btn-warning btn-sm font-weight-bolder"> 
-                        <i class="fas fa-arrow-left"></i> Back</a>
+
                     <!--end::Button-->
                 </div>
             </div>
@@ -254,6 +252,7 @@
                                 #product_table tbody td{
                                     font-size: 9pt !important;
                                 }
+                                .print_body {page-break-after: always;}
                                 .m-0 {
                                     margin: 0 !important;
                                 }
@@ -358,22 +357,22 @@
                                         <td width="40%">
                                             <table>
                                                 <tr>
-                                                    <td><b>Dealer Name</b></td>
-                                                    <td><b>: {{ $sale->dealer->name }}</b></td>
+                                                    <td><b>Depo Name</b></td>
+                                                    <td><b>: {{ $depo_sale_data->depo_name }}</b></td>
                                                 </tr>
                                                 <tr>
                                                     <td><b>Mobile No.</b></td>
-                                                    <td><b>: </b>{{ $sale->dealer->mobile_no }}</td>
+                                                    <td><b>: </b>{{ $depo_sale_data->mobile_no }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><b>Area Name</b></td>
-                                                    <td><b>: </b> {{ $sale->area->name.', '.$sale->district->name }}</td>
+                                                    <td><b>: </b> {{ $depo_sale_data->area.', '.$depo_sale_data->district }}</td>
                                                 </tr>
 
-                                                @if($sale->dealer->address)
+                                                @if($depo_sale_data->address)
                                                 <tr>
                                                     <td><b>Address</b></td>
-                                                    <td><b>: </b>{{ $sale->dealer->address }}</td>
+                                                    <td><b>: </b>{{ $depo_sale_data->address }}</td>
                                                 </tr>
                                                 @endif
                                             </table>
@@ -385,17 +384,13 @@
                                                     <td colspan="2"></td>
                                                 </tr>
                                                 <tr>
-                                                    <td><b>Memo No.</b></td>
-                                                    <td><b>: #{{ $sale->memo_no }}</b></td>
-                                                </tr>
-                                                <tr>
                                                     <td><b>Order Date</b></td>
-                                                    <td><b>: </b> {{ date('d-M-Y',strtotime($sale->sale_date)) }}</td>
+                                                    <td><b>: </b> {{ date('d-M-Y',strtotime($depo_sale_data->sale_date)) }}</td>
                                                 </tr>
-                                                @if($sale->delivery_date)
+                                                @if($depo_sale_data->delivery_date)
                                                 <tr>
                                                     <td><b>Delivery Date</b></td>
-                                                    <td><b>: </b> {{ date('d-M-Y',strtotime($sale->delivery_date)) }}</td>
+                                                    <td><b>: </b> {{ date('d-M-Y',strtotime($depo_sale_data->delivery_date)) }}</td>
                                                 </tr>
                                                 @endif
                                             </table>
@@ -419,49 +414,58 @@
                                             <td class="text-center font-weight-bolder">PIECE</td>
                                             <td class="text-center font-weight-bolder">FREE PIECE</td>
                                         </tr>
-                                        @if (!$sale->sale_products->isEmpty())
-                                            @foreach ($sale->sale_products as $key =>  $item)
+                                        @if (!$depo_sale_products->isEmpty())
+                                            @php
+                                                $total_unit_qty = $total_qty = $total_free_qty = $grand_total = 0;
+                                            @endphp
+                                            @foreach ($depo_sale_products as $key =>  $item)
                                                 <tr>
                                                     <td class="text-center">{{ $key+1 }}</td>
                                                     <td>{{ $item->name }}</td>
-                                                    <td class="text-center">{{ $item->pivot->unit_qty }}</td>
-                                                    <td class="text-center">{{ $item->pivot->qty }}</td>
-                                                    <td class="text-center">{{ $item->pivot->free_qty ?? 0 }}</td>
-                                                    <td class="text-center">{{ $item->unit->unit_name }}</td>
-                                                    <td class="text-right">{{ $item->pivot->net_unit_price }}</td>
-                                                    <td class="text-right">{{ $item->pivot->total }}</td>
+                                                    <td class="text-center">{{ convert_bangla_number($item->unit_qty) }}</td>
+                                                    <td class="text-center">{{ convert_bangla_number($item->qty) }}</td>
+                                                    <td class="text-center">{{ convert_bangla_number($item->free_qty ?? 0) }}</td>
+                                                    <td class="text-center">{{ convert_bangla_carton_size($item->ctn_size) }}</td>
+                                                    <td class="text-right">{{ convert_bangla_number(number_format($item->net_unit_price,2,'.',',')) }}</td>
+                                                    <td class="text-right">{{ convert_bangla_number(number_format($item->total_order_value,2,'.',',')) }}</td>
                                                     <td></td>
-                                                    <td class="text-right">{{ $item->pivot->total }}</td>
+                                                    <td class="text-right">{{ convert_bangla_number(number_format($item->total_order_value,2,'.',',')) }}</td>
                                                 </tr>
+                                                @php
+                                                $total_unit_qty += $item->unit_qty;
+                                                $total_qty += $item->qty;
+                                                $total_free_qty += $item->free_qty ?? 0; 
+                                                $grand_total += $item->total_order_value;
+                                                @endphp
                                             @endforeach
                                         @endif
                                         <tr>
                                             <td colspan="2" class="text-left  pl-3 font-weight-bolder">TOTAL</td>
-                                            <td class="text-center  font-weight-bolder">{{ number_format($sale->total_unit_qty,2,'.',',') }}</td>
-                                            <td class="text-center  font-weight-bolder">{{ number_format($sale->total_qty,2,'.',',') }}</td>
-                                            <td class="text-center  font-weight-bolder">{{ number_format($sale->total_free_qty,2,'.',',') }}</td>
+                                            <td class="text-center  font-weight-bolder">{{ convert_bangla_number(number_format($total_unit_qty,2,'.',',')) }}</td>
+                                            <td class="text-center  font-weight-bolder">{{ convert_bangla_number(number_format($total_qty,2,'.',',')) }}</td>
+                                            <td class="text-center  font-weight-bolder">{{ convert_bangla_number(number_format($total_free_qty,2,'.',',')) }}</td>
                                             <td class=""></td>
                                             <td class=""></td>
-                                            <td class="text-right  font-weight-bolder">{{ number_format($sale->grand_total,2,'.',',') }} </td>
+                                            <td class="text-right  font-weight-bolder">{{ convert_bangla_number(number_format($grand_total,2,'.',',')) }} </td>
                                             <td class=""></td>
-                                            <td class="text-right  font-weight-bolder">{{ number_format($sale->grand_total,2,'.',',') }} </td>
+                                            <td class="text-right  font-weight-bolder">{{ convert_bangla_number(number_format($grand_total,2,'.',',')) }} </td>
                                         </tr>
-                                        @if($sale->total_commission)
+                                        @if($depo_sale_data->total_commission)
                                         <tr>
                                             <td colspan="7" style="border: none !important;"></td>
-                                            <td colspan="2"  class="text-left  font-weight-bolder">COMMISSION ({{ $sale->commission_rate }}%)</td>
-                                            <td class="text-right  font-weight-bolder"> {{ number_format($sale->total_commission,2,'.',',') }}</td>
+                                            <td colspan="2"  class="text-left  font-weight-bolder">COMMISSION ({{ convert_bangla_number($depo_sale_data->commission_rate) }}%)</td>
+                                            <td class="text-right  font-weight-bolder"> {{ convert_bangla_number(number_format($depo_sale_data->total_commission,2,'.',',')) }}</td>
                                         </tr>
                                         @endif
                                         <tr>
                                             <td colspan="7" style="border: none !important;"></td>
                                             <td colspan="2"  class="text-left  font-weight-bolder">NET TOTAL</td> 
-                                            <td class="text-right  font-weight-bolder">{{ number_format($sale->net_total,2,'.',',') }}</td>
+                                            <td class="text-right  font-weight-bolder">{{ convert_bangla_number(number_format($depo_sale_data->net_total,2,'.',',')) }}</td>
                                         </tr>
                                         <tr>
                                             <td colspan="7" style="border: none !important;"></td>
                                             <td colspan="2"  class="text-left  font-weight-bolder">BALANCE</td> 
-                                            <td class="text-right  font-weight-bolder">{{ number_format($sale->net_total,2,'.',',') }}</td>
+                                            <td class="text-right  font-weight-bolder">{{ convert_bangla_number(number_format($depo_sale_data->net_total,2,'.',',')) }}</td>
                                         </tr>
                                        
                                        
@@ -509,8 +513,192 @@
                                     </tr>
                                 </table>
                             </div>
-                        </div>
+                            <div class="print_body"></div>
+                            @if (!$sales->isEmpty())
+                                @php
+                                    $count = count($sales);
+                                @endphp
+                                @foreach ($sales as $key => $sale)
+                                <div>
+                                    <table>
+                                        <tr>
+                                            <td class="text-center">
+                                                @if (config('settings.logo'))
+                                                <a href="{{ url('dashboard') }}">
+                                                    <img src="{{ asset('storage/'.LOGO_PATH.config('settings.logo'))}}" style="max-width: 60px;" alt="Logo" />
+                                                </a>
+                                                @endif
+                                                <h2 class="name m-0" style="text-transform: uppercase;"><b>{{ config('settings.title') ? config('settings.title') : env('APP_NAME') }}</b></h2>
+                                                {{-- @if(config('settings.contact_no'))<p style="font-weight: normal;margin:0;"><b>Contact No.: </b>{{ config('settings.contact_no') }}, @if(config('settings.email'))<b>Email: </b>{{ config('settings.email') }}@endif</p>@endif --}}
+                                                @if(config('settings.address'))<p style="font-weight: normal;margin:0;">{{ config('settings.address') }}</p>@endif
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <div style="width: 100%;height:3px;border-top:1px solid #000;border-bottom:1px solid #000;"></div>
+                                    <table style="margin-bottom: 0px;margin-top:10px;" id="info-table">
+                                        <tr>
+                                            <td width="40%">
+                                                <table>
+                                                    <tr>
+                                                        <td><b>Dealer Name</b></td>
+                                                        <td><b>: {{ $sale->dealer->name }}</b></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><b>Mobile No.</b></td>
+                                                        <td><b>: </b>{{ $sale->dealer->mobile_no }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><b>Area Name</b></td>
+                                                        <td><b>: </b> {{ $sale->area->name.', '.$sale->district->name }}</td>
+                                                    </tr>
 
+                                                    @if($sale->dealer->address)
+                                                    <tr>
+                                                        <td><b>Address</b></td>
+                                                        <td><b>: </b>{{ $sale->dealer->address }}</td>
+                                                    </tr>
+                                                    @endif
+                                                </table>
+                                            </td>
+                                            <td width="20%"></td>
+                                            <td width="40%">
+                                                <table>
+                                                    <tr>
+                                                        <td colspan="2"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><b>Memo No.</b></td>
+                                                        <td><b>: #{{ $sale->memo_no }}</b></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><b>Order Date</b></td>
+                                                        <td><b>: </b> {{ date('d-M-Y',strtotime($sale->sale_date)) }}</td>
+                                                    </tr>
+                                                    @if($sale->delivery_date)
+                                                    <tr>
+                                                        <td><b>Delivery Date</b></td>
+                                                        <td><b>: </b> {{ date('d-M-Y',strtotime($sale->delivery_date)) }}</td>
+                                                    </tr>
+                                                    @endif
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table cellspacing="0" cellpadding="0" id="product_table">
+                                        <tbody>
+                                            <tr>
+                                                <td rowspan="2" class="text-center font-weight-bolder">SL.</td>
+                                                <td rowspan="2" class="text-left font-weight-bolder">NAME</td>
+                                                <td colspan="3" class="text-center font-weight-bolder">ORDER</td>
+                                                <td rowspan="2" class="text-center font-weight-bolder">CARTON SIZE</td>
+                                                <td rowspan="2" class="text-right font-weight-bolder">PRICE</td>
+                                                <td rowspan="2" class="text-right font-weight-bolder">SUBTOTAL</td>
+                                                <td rowspan="2" class="text-center font-weight-bolder">DAMAGE</td>
+                                                <td rowspan="2" class="text-right font-weight-bolder">TOTAL</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-center font-weight-bolder">CARTON</td>
+                                                <td class="text-center font-weight-bolder">PIECE</td>
+                                                <td class="text-center font-weight-bolder">FREE PIECE</td>
+                                            </tr>
+                                            @if (!$sale->sale_products->isEmpty())
+                                                @foreach ($sale->sale_products as $key =>  $item)
+                                                    <tr>
+                                                        <td class="text-center">{{ $key+1 }}</td>
+                                                        <td>{{ $item->name }}</td>
+                                                        <td class="text-center">{{ convert_bangla_number($item->pivot->unit_qty) }}</td>
+                                                        <td class="text-center">{{ convert_bangla_number($item->pivot->qty) }}</td>
+                                                        <td class="text-center">{{ convert_bangla_number($item->pivot->free_qty ?? 0) }}</td>
+                                                        <td class="text-center">{{ convert_bangla_carton_size($item->unit->unit_name) }}</td>
+                                                        <td class="text-right">{{ convert_bangla_number(number_format($item->pivot->net_unit_price,2,'.',',')) }}</td>
+                                                        <td class="text-right">{{ convert_bangla_number(number_format($item->pivot->total,2,'.',',')) }}</td>
+                                                        <td></td>
+                                                        <td class="text-right">{{ convert_bangla_number(number_format($item->pivot->total,2,'.',',')) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            @endif
+                                            <tr>
+                                                <td colspan="2" class="text-left  pl-3 font-weight-bolder">TOTAL</td>
+                                                <td class="text-center  font-weight-bolder">{{ number_format($sale->total_unit_qty,2,'.',',') }}</td>
+                                                <td class="text-center  font-weight-bolder">{{ number_format($sale->total_qty,2,'.',',') }}</td>
+                                                <td class="text-center  font-weight-bolder">{{ number_format($sale->total_free_qty,2,'.',',') }}</td>
+                                                <td class=""></td>
+                                                <td class=""></td>
+                                                <td class="text-right  font-weight-bolder">{{ number_format($sale->grand_total,2,'.',',') }} </td>
+                                                <td class=""></td>
+                                                <td class="text-right  font-weight-bolder">{{ number_format($sale->grand_total,2,'.',',') }} </td>
+                                            </tr>
+                                            @if($sale->total_commission)
+                                            <tr>
+                                                <td colspan="7" style="border: none !important;"></td>
+                                                <td colspan="2"  class="text-left  font-weight-bolder">COMMISSION ({{ $sale->commission_rate }}%)</td>
+                                                <td class="text-right  font-weight-bolder"> {{ number_format($sale->total_commission,2,'.',',') }}</td>
+                                            </tr>
+                                            @endif
+                                            <tr>
+                                                <td colspan="7" style="border: none !important;"></td>
+                                                <td colspan="2"  class="text-left  font-weight-bolder">NET TOTAL</td> 
+                                                <td class="text-right  font-weight-bolder">{{ number_format($sale->net_total,2,'.',',') }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="7" style="border: none !important;"></td>
+                                                <td colspan="2"  class="text-left  font-weight-bolder">BALANCE</td> 
+                                                <td class="text-right  font-weight-bolder">{{ number_format($sale->net_total,2,'.',',') }}</td>
+                                            </tr>
+                                        
+                                        
+                                        </tbody>
+                                    </table>
+                                
+
+                                    <table style="width: 100%;">
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="font-size-10" style="width:250px;float:left;padding-top:50px;">
+                                                    <p style="margin:0;padding:0;"></p>
+                                                    <p class="dashed-border"></p>
+                                                    <p style="margin:0;padding:0;text-transform: capitalize;font-weight:normal;">ডেলিভারী ইনচার্জ</p>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="font-size-10" style="width:250px;padding-top:50px;margin:0 auto;">
+                                                    <p style="margin:0;padding:0;"></p> 
+                                                    <p class="dashed-border"></p>
+                                                    <p style="margin:0;padding:0;text-transform: capitalize;font-weight:normal;">গ্রহনকারীর স্বাক্ষর</p>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="font-size-10" style="width:250px;float:right;padding-top:50px;">
+                                                    <p style="margin:0;padding:0;"></p>
+                                                    <p class="dashed-border"></p>
+                                                    <p style="margin:0;padding:0;text-transform: capitalize;font-weight:normal;">অর্ডার গ্রহনকারী</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table style="width: 100%;margin-top:10px;">
+                                        <tr>
+                                            <td class="text-center">
+                                                <b>বিঃ দ্রঃ বিক্রিত পণ্য ফেরত যোগ্য নয়</b>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table style="width: 100%;margin-top:10px;">
+                                        <tr>
+                                            <td class="text-center">
+                                                <b>ক্যারেট প্রতি পিচ ১২০টাকা। এই চালানের ক্যারেটের সংখ্যা &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;পিচ ১২০টাকা = &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;মোট টাকা</b> 
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                @if ($count != ($key+1))
+                                <div class="print_body"></div>
+                                @endif
+                                
+                                @endforeach
+                            @endif
+                        </div>
+                        
                     </div>
                 </div>
             </div>
