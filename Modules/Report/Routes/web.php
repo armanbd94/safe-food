@@ -57,5 +57,13 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('dealer-wise-sales-report', 'DealerWiseSalesReportController@index')->name('dealer.wise.sales.report');
     Route::post('dealer-wise-sales-report-data', 'DealerWiseSalesReportController@report_data')->name('dealer.wise.sales.report.data');
 
+    //Depo Wise Product Sales Report Routes
+    Route::get('depo-wise-product-sales-report', 'DepoWiseProductSalesReportController@index')->name('depo.wise.product.sales.report');
+    Route::post('depo-wise-product-sales-report-data', 'DepoWiseProductSalesReportController@report_data')->name('depo.wise.product.sales.report.data');
+
+    //Dealer Wise Product Sales Report Routes
+    Route::get('dealer-wise-product-sales-report', 'DealerWiseProductSalesReportController@index')->name('dealer.wise.product.sales.report');
+    Route::post('dealer-wise-product-sales-report-data', 'DealerWiseProductSalesReportController@report_data')->name('dealer.wise.product.sales.report.data');
+
 
 });
