@@ -30,4 +30,15 @@ Route::group(['middleware' => ['auth']], function () {
     });
     Route::get('area-wise-dealer-list/{area_id}', 'DealerController@area_wise_dealer_list');
     Route::get('depo-wise-dealer-list/{depo_id}', 'DealerController@depo_wise_dealer_list');
+
+    //Dealer Advance Routes
+    Route::get('dealer-advance', 'DealerAdvanceController@index')->name('dealer.advance');
+    Route::group(['prefix' => 'dealer-advance', 'as'=>'dealer.advance.'], function () {
+        Route::post('datatable-data', 'DealerAdvanceController@get_datatable_data')->name('datatable.data');
+        Route::post('store-or-update', 'DealerAdvanceController@store_or_update_data')->name('store.or.update');
+        Route::post('edit', 'DealerAdvanceController@edit')->name('edit');
+        Route::post('delete', 'DealerAdvanceController@delete')->name('delete');
+        Route::post('bulk-delete', 'DealerAdvanceController@bulk_delete')->name('bulk.delete');
+        Route::post('change-status', 'DealerAdvanceController@change_status')->name('change.status');
+    });
 });

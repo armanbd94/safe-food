@@ -34,7 +34,7 @@ class ProductionOrderChallanController extends BaseController
                 ->get();
     
                 $stock_out_products = $products->count();
-                $data['products']           = $products;
+                $data['products']   = $products;
             }
             $data['stock_out_products'] = $stock_out_products;
 

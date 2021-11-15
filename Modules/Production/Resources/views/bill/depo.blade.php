@@ -246,12 +246,12 @@
                                     /* font-size: 12px !important; */
                                     margin-bottom: 100px !important;
                                 }
-                                html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend,  {
-                                    font-size: 10pt !important;
-                                }
-                                #product_table tbody td{
+                                html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend,table,table td,table th  {
                                     font-size: 9pt !important;
                                 }
+                                /* #product_table tbody td{
+                                    font-size: 9pt !important;
+                                } */
                                 .print_body {page-break-after: always;}
                                 .m-0 {
                                     margin: 0 !important;
@@ -357,21 +357,21 @@
                                         <td width="40%">
                                             <table>
                                                 <tr>
-                                                    <td><b>Depo Name</b></td>
+                                                    <td><b>ডিপো নাম</b></td>
                                                     <td><b>: {{ $depo_sale_data->depo_name }}</b></td>
                                                 </tr>
                                                 <tr>
-                                                    <td><b>Mobile No.</b></td>
+                                                    <td><b>মোবাইল নং</b></td>
                                                     <td><b>: </b>{{ $depo_sale_data->mobile_no }}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td><b>Area Name</b></td>
+                                                    <td><b>এরিয়া নাম</b></td>
                                                     <td><b>: </b> {{ $depo_sale_data->area.', '.$depo_sale_data->district }}</td>
                                                 </tr>
 
                                                 @if($depo_sale_data->address)
                                                 <tr>
-                                                    <td><b>Address</b></td>
+                                                    <td><b>ঠিকানা</b></td>
                                                     <td><b>: </b>{{ $depo_sale_data->address }}</td>
                                                 </tr>
                                                 @endif
@@ -384,35 +384,35 @@
                                                     <td colspan="2"></td>
                                                 </tr>
                                                 <tr>
-                                                    <td><b>Order Date</b></td>
-                                                    <td><b>: </b> {{ date('d-M-Y',strtotime($depo_sale_data->sale_date)) }}</td>
+                                                    <td><b>অর্ডার তারিখ</b></td>
+                                                    <td><b>: </b> {{ convert_bangla_number(date('d-m-Y',strtotime($depo_sale_data->sale_date))) }}</td>
                                                 </tr>
                                                 @if($depo_sale_data->delivery_date)
                                                 <tr>
-                                                    <td><b>Delivery Date</b></td>
-                                                    <td><b>: </b> {{ date('d-M-Y',strtotime($depo_sale_data->delivery_date)) }}</td>
+                                                    <td><b>ডেলিভারি তারিখ</b></td>
+                                                    <td><b>: </b> {{ convert_bangla_number(date('d-m-Y',strtotime($depo_sale_data->delivery_date))) }}</td>
                                                 </tr>
                                                 @endif
                                             </table>
                                         </td>
                                     </tr>
                                 </table>
-                                <table cellspacing="0" cellpadding="0" id="product_table">
+                                <table cellspacing="0" cellpadding="0" id="product_table"  style="margin-bottom: 0 !important;">
                                     <tbody>
                                         <tr>
-                                            <td rowspan="2" class="text-center font-weight-bolder">SL.</td>
-                                            <td rowspan="2" class="text-left font-weight-bolder">NAME</td>
-                                            <td colspan="3" class="text-center font-weight-bolder">ORDER</td>
-                                            <td rowspan="2" class="text-center font-weight-bolder">CARTON SIZE</td>
-                                            <td rowspan="2" class="text-right font-weight-bolder">PRICE</td>
-                                            <td rowspan="2" class="text-right font-weight-bolder">SUBTOTAL</td>
-                                            <td rowspan="2" class="text-center font-weight-bolder">DAMAGE</td>
-                                            <td rowspan="2" class="text-right font-weight-bolder">TOTAL</td>
+                                            <td rowspan="2" class="text-center font-weight-bolder">#</td>
+                                            <td rowspan="2" class="text-left font-weight-bolder">নাম</td>
+                                            <td colspan="3" class="text-center font-weight-bolder">অর্ডার</td>
+                                            <td rowspan="2" class="text-center font-weight-bolder">কার্টুন সাইজ</td>
+                                            <td rowspan="2" class="text-right font-weight-bolder">মূল্য</td>
+                                            <td rowspan="2" class="text-right font-weight-bolder">মোট টাকা</td>
+                                            <td rowspan="2" class="text-center font-weight-bolder">ডেমেজ</td>
+                                            <td rowspan="2" class="text-right font-weight-bolder">নিট মোট</td>
                                         </tr>
                                         <tr>
-                                            <td class="text-center font-weight-bolder">CARTON</td>
-                                            <td class="text-center font-weight-bolder">PIECE</td>
-                                            <td class="text-center font-weight-bolder">FREE PIECE</td>
+                                            <td class="text-center font-weight-bolder">কার্টুন</td>
+                                            <td class="text-center font-weight-bolder">পিছ</td>
+                                            <td class="text-center font-weight-bolder">ফ্রী পিছ</td>
                                         </tr>
                                         @if (!$depo_sale_products->isEmpty())
                                             @php
@@ -420,7 +420,7 @@
                                             @endphp
                                             @foreach ($depo_sale_products as $key =>  $item)
                                                 <tr>
-                                                    <td class="text-center">{{ $key+1 }}</td>
+                                                    <td class="text-center">{{ convert_bangla_number($key+1) }}</td>
                                                     <td>{{ $item->name }}</td>
                                                     <td class="text-center">{{ convert_bangla_number($item->unit_qty) }}</td>
                                                     <td class="text-center">{{ convert_bangla_number($item->qty) }}</td>
@@ -440,7 +440,7 @@
                                             @endforeach
                                         @endif
                                         <tr>
-                                            <td colspan="2" class="text-left  pl-3 font-weight-bolder">TOTAL</td>
+                                            <td colspan="2" class="text-left  pl-3 font-weight-bolder">মোট</td>
                                             <td class="text-center  font-weight-bolder">{{ convert_bangla_number(number_format($total_unit_qty,2,'.',',')) }}</td>
                                             <td class="text-center  font-weight-bolder">{{ convert_bangla_number(number_format($total_qty,2,'.',',')) }}</td>
                                             <td class="text-center  font-weight-bolder">{{ convert_bangla_number(number_format($total_free_qty,2,'.',',')) }}</td>
@@ -453,18 +453,18 @@
                                         @if($depo_sale_data->total_commission)
                                         <tr>
                                             <td colspan="7" style="border: none !important;"></td>
-                                            <td colspan="2"  class="text-left  font-weight-bolder">COMMISSION ({{ convert_bangla_number($depo_sale_data->commission_rate) }}%)</td>
+                                            <td colspan="2"  class="text-left  font-weight-bolder">কমিশন ({{ convert_bangla_number($depo_sale_data->commission_rate) }}%)</td>
                                             <td class="text-right  font-weight-bolder"> {{ convert_bangla_number(number_format($depo_sale_data->total_commission,2,'.',',')) }}</td>
                                         </tr>
                                         @endif
                                         <tr>
                                             <td colspan="7" style="border: none !important;"></td>
-                                            <td colspan="2"  class="text-left  font-weight-bolder">NET TOTAL</td> 
+                                            <td colspan="2"  class="text-left  font-weight-bolder">মোট টাকা</td> 
                                             <td class="text-right  font-weight-bolder">{{ convert_bangla_number(number_format($depo_sale_data->net_total,2,'.',',')) }}</td>
                                         </tr>
                                         <tr>
                                             <td colspan="7" style="border: none !important;"></td>
-                                            <td colspan="2"  class="text-left  font-weight-bolder">BALANCE</td> 
+                                            <td colspan="2"  class="text-left  font-weight-bolder">ব্যালেন্স</td> 
                                             <td class="text-right  font-weight-bolder">{{ convert_bangla_number(number_format($depo_sale_data->net_total,2,'.',',')) }}</td>
                                         </tr>
                                        
@@ -473,7 +473,7 @@
                                 </table>
                             
 
-                                <table style="width: 100%;">
+                                <table style="width: 100%;margin-bottom: 0 !important;">
                                     <tr>
                                         <td class="text-center">
                                             <div class="font-size-10" style="width:250px;float:left;padding-top:50px;">
@@ -498,14 +498,14 @@
                                         </td>
                                     </tr>
                                 </table>
-                                <table style="width: 100%;margin-top:10px;">
+                                <table style="width: 100%;margin-bottom: 0 !important;">
                                     <tr>
                                         <td class="text-center">
                                             <b>বিঃ দ্রঃ বিক্রিত পণ্য ফেরত যোগ্য নয়</b>
                                         </td>
                                     </tr>
                                 </table>
-                                <table style="width: 100%;margin-top:10px;">
+                                <table style="width: 100%;margin-bottom: 0 !important;">
                                     <tr>
                                         <td class="text-center">
                                             <b>ক্যারেট প্রতি পিচ ১২০টাকা। এই চালানের ক্যারেটের সংখ্যা &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;পিচ ১২০টাকা = &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;মোট টাকা</b> 
@@ -540,21 +540,21 @@
                                             <td width="40%">
                                                 <table>
                                                     <tr>
-                                                        <td><b>Dealer Name</b></td>
+                                                        <td><b>ডিলার নাম</b></td>
                                                         <td><b>: {{ $sale->dealer->name }}</b></td>
                                                     </tr>
                                                     <tr>
-                                                        <td><b>Mobile No.</b></td>
+                                                        <td><b>মোবাইল নং</b></td>
                                                         <td><b>: </b>{{ $sale->dealer->mobile_no }}</td>
                                                     </tr>
                                                     <tr>
-                                                        <td><b>Area Name</b></td>
+                                                        <td><b>এরিয়া নাম</b></td>
                                                         <td><b>: </b> {{ $sale->area->name.', '.$sale->district->name }}</td>
                                                     </tr>
 
                                                     @if($sale->dealer->address)
                                                     <tr>
-                                                        <td><b>Address</b></td>
+                                                        <td><b>ঠিকানা</b></td>
                                                         <td><b>: </b>{{ $sale->dealer->address }}</td>
                                                     </tr>
                                                     @endif
@@ -567,44 +567,44 @@
                                                         <td colspan="2"></td>
                                                     </tr>
                                                     <tr>
-                                                        <td><b>Memo No.</b></td>
+                                                        <td><b>মেমো নং</b></td>
                                                         <td><b>: #{{ $sale->memo_no }}</b></td>
                                                     </tr>
                                                     <tr>
-                                                        <td><b>Order Date</b></td>
-                                                        <td><b>: </b> {{ date('d-M-Y',strtotime($sale->sale_date)) }}</td>
+                                                        <td><b>অর্ডার তারিখ</b></td>
+                                                        <td><b>: </b> {{ convert_bangla_number(date('d-m-Y',strtotime($sale->sale_date))) }}</td>
                                                     </tr>
                                                     @if($sale->delivery_date)
                                                     <tr>
-                                                        <td><b>Delivery Date</b></td>
-                                                        <td><b>: </b> {{ date('d-M-Y',strtotime($sale->delivery_date)) }}</td>
+                                                        <td><b>ডেলিভারি তারিখ</b></td>
+                                                        <td><b>: </b> {{ convert_bangla_number(date('d-m-Y',strtotime($sale->delivery_date))) }}</td>
                                                     </tr>
                                                     @endif
                                                 </table>
                                             </td>
                                         </tr>
                                     </table>
-                                    <table cellspacing="0" cellpadding="0" id="product_table">
+                                    <table cellspacing="0" cellpadding="0" id="product_table" style="margin-bottom: 0 !important;">
                                         <tbody>
                                             <tr>
-                                                <td rowspan="2" class="text-center font-weight-bolder">SL.</td>
-                                                <td rowspan="2" class="text-left font-weight-bolder">NAME</td>
-                                                <td colspan="3" class="text-center font-weight-bolder">ORDER</td>
-                                                <td rowspan="2" class="text-center font-weight-bolder">CARTON SIZE</td>
-                                                <td rowspan="2" class="text-right font-weight-bolder">PRICE</td>
-                                                <td rowspan="2" class="text-right font-weight-bolder">SUBTOTAL</td>
-                                                <td rowspan="2" class="text-center font-weight-bolder">DAMAGE</td>
-                                                <td rowspan="2" class="text-right font-weight-bolder">TOTAL</td>
+                                                <td rowspan="2" class="text-center font-weight-bolder">#</td>
+                                                <td rowspan="2" class="text-left font-weight-bolder">নাম</td>
+                                                <td colspan="3" class="text-center font-weight-bolder">অর্ডার</td>
+                                                <td rowspan="2" class="text-center font-weight-bolder">কার্টুন সাইজ</td>
+                                                <td rowspan="2" class="text-right font-weight-bolder">মূল্য</td>
+                                                <td rowspan="2" class="text-right font-weight-bolder">মোট টাকা</td>
+                                                <td rowspan="2" class="text-center font-weight-bolder">ডেমেজ</td>
+                                                <td rowspan="2" class="text-right font-weight-bolder">নিট মোট</td>
                                             </tr>
                                             <tr>
-                                                <td class="text-center font-weight-bolder">CARTON</td>
-                                                <td class="text-center font-weight-bolder">PIECE</td>
-                                                <td class="text-center font-weight-bolder">FREE PIECE</td>
+                                                <td class="text-center font-weight-bolder">কার্টুন</td>
+                                                <td class="text-center font-weight-bolder">পিছ</td>
+                                                <td class="text-center font-weight-bolder">ফ্রী পিছ</td>
                                             </tr>
                                             @if (!$sale->sale_products->isEmpty())
                                                 @foreach ($sale->sale_products as $key =>  $item)
                                                     <tr>
-                                                        <td class="text-center">{{ $key+1 }}</td>
+                                                        <td class="text-center">{{ convert_bangla_number($key+1) }}</td>
                                                         <td>{{ $item->name }}</td>
                                                         <td class="text-center">{{ convert_bangla_number($item->pivot->unit_qty) }}</td>
                                                         <td class="text-center">{{ convert_bangla_number($item->pivot->qty) }}</td>
@@ -618,32 +618,32 @@
                                                 @endforeach
                                             @endif
                                             <tr>
-                                                <td colspan="2" class="text-left  pl-3 font-weight-bolder">TOTAL</td>
-                                                <td class="text-center  font-weight-bolder">{{ number_format($sale->total_unit_qty,2,'.',',') }}</td>
-                                                <td class="text-center  font-weight-bolder">{{ number_format($sale->total_qty,2,'.',',') }}</td>
-                                                <td class="text-center  font-weight-bolder">{{ number_format($sale->total_free_qty,2,'.',',') }}</td>
+                                                <td colspan="2" class="text-left  pl-3 font-weight-bolder">মোট</td>
+                                                <td class="text-center  font-weight-bolder">{{ convert_bangla_number(number_format($sale->total_unit_qty,2,'.',',')) }}</td>
+                                                <td class="text-center  font-weight-bolder">{{ convert_bangla_number(number_format($sale->total_qty,2,'.',',')) }}</td>
+                                                <td class="text-center  font-weight-bolder">{{ convert_bangla_number(number_format($sale->total_free_qty,2,'.',',')) }}</td>
                                                 <td class=""></td>
                                                 <td class=""></td>
-                                                <td class="text-right  font-weight-bolder">{{ number_format($sale->grand_total,2,'.',',') }} </td>
+                                                <td class="text-right  font-weight-bolder">{{ convert_bangla_number(number_format($sale->grand_total,2,'.',',')) }} </td>
                                                 <td class=""></td>
-                                                <td class="text-right  font-weight-bolder">{{ number_format($sale->grand_total,2,'.',',') }} </td>
+                                                <td class="text-right  font-weight-bolder">{{ convert_bangla_number(number_format($sale->grand_total,2,'.',',')) }} </td>
                                             </tr>
                                             @if($sale->total_commission)
                                             <tr>
                                                 <td colspan="7" style="border: none !important;"></td>
-                                                <td colspan="2"  class="text-left  font-weight-bolder">COMMISSION ({{ $sale->commission_rate }}%)</td>
-                                                <td class="text-right  font-weight-bolder"> {{ number_format($sale->total_commission,2,'.',',') }}</td>
+                                                <td colspan="2"  class="text-left  font-weight-bolder">কমিশন ({{ convert_bangla_number($sale->commission_rate) }}%)</td>
+                                                <td class="text-right  font-weight-bolder"> {{ convert_bangla_number(number_format($sale->total_commission,2,'.',',')) }}</td>
                                             </tr>
                                             @endif
                                             <tr>
                                                 <td colspan="7" style="border: none !important;"></td>
-                                                <td colspan="2"  class="text-left  font-weight-bolder">NET TOTAL</td> 
-                                                <td class="text-right  font-weight-bolder">{{ number_format($sale->net_total,2,'.',',') }}</td>
+                                                <td colspan="2"  class="text-left  font-weight-bolder">মোট টাকা</td> 
+                                                <td class="text-right  font-weight-bolder">{{ convert_bangla_number(number_format($sale->net_total,2,'.',',')) }}</td>
                                             </tr>
                                             <tr>
                                                 <td colspan="7" style="border: none !important;"></td>
-                                                <td colspan="2"  class="text-left  font-weight-bolder">BALANCE</td> 
-                                                <td class="text-right  font-weight-bolder">{{ number_format($sale->net_total,2,'.',',') }}</td>
+                                                <td colspan="2"  class="text-left  font-weight-bolder">ব্যালেন্স</td> 
+                                                <td class="text-right  font-weight-bolder">{{ convert_bangla_number(number_format($sale->net_total,2,'.',',')) }}</td>
                                             </tr>
                                         
                                         
@@ -651,7 +651,7 @@
                                     </table>
                                 
 
-                                    <table style="width: 100%;">
+                                    <table style="width: 100%;margin-bottom: 0 !important;">
                                         <tr>
                                             <td class="text-center">
                                                 <div class="font-size-10" style="width:250px;float:left;padding-top:50px;">
@@ -676,14 +676,14 @@
                                             </td>
                                         </tr>
                                     </table>
-                                    <table style="width: 100%;margin-top:10px;">
+                                    <table style="width: 100%;margin-bottom: 0 !important;">
                                         <tr>
                                             <td class="text-center">
                                                 <b>বিঃ দ্রঃ বিক্রিত পণ্য ফেরত যোগ্য নয়</b>
                                             </td>
                                         </tr>
                                     </table>
-                                    <table style="width: 100%;margin-top:10px;">
+                                    <table style="width: 100%;margin-bottom: 0 !important;">
                                         <tr>
                                             <td class="text-center">
                                                 <b>ক্যারেট প্রতি পিচ ১২০টাকা। এই চালানের ক্যারেটের সংখ্যা &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;পিচ ১২০টাকা = &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;মোট টাকা</b> 

@@ -29,4 +29,15 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('ledger/datatable-data', 'DepoLedgerController@get_datatable_data')->name('ledger.datatable.data');
     });
     Route::get('area-wise-depo-list/{area_id}', 'DepoController@area_wise_depo_list');
+
+    //Depo Advance Routes
+    Route::get('depo-advance', 'DepoAdvanceController@index')->name('depo.advance');
+    Route::group(['prefix' => 'depo-advance', 'as'=>'depo.advance.'], function () {
+        Route::post('datatable-data', 'DepoAdvanceController@get_datatable_data')->name('datatable.data');
+        Route::post('store-or-update', 'DepoAdvanceController@store_or_update_data')->name('store.or.update');
+        Route::post('edit', 'DepoAdvanceController@edit')->name('edit');
+        Route::post('delete', 'DepoAdvanceController@delete')->name('delete');
+        Route::post('bulk-delete', 'DepoAdvanceController@bulk_delete')->name('bulk.delete');
+        Route::post('change-status', 'DepoAdvanceController@change_status')->name('change.status');
+    });
 });
