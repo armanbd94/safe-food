@@ -284,7 +284,7 @@
                                             -webkit-print-color-adjust: exact !important;
                                             font-family: sans-serif;
                                             /* font-size: 12px !important; */
-                                            margin-bottom: 100px !important;
+                                            /* margin-bottom: 100px !important; */
                                         }
                                         html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend,  {
                                             font-size: 10pt !important;

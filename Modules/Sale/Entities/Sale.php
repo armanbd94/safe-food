@@ -14,10 +14,9 @@ use Modules\Production\Entities\OrderSheetMemo;
 
 class Sale extends BaseModel
 {
-    protected $fillable = [ 'memo_no', 'order_from', 'warehouse_id','depo_id', 'dealer_id', 'district_id','upazila_id','area_id',
-    'item', 'total_unit_qty','total_qty', 'total_free_qty', 'grand_total', 'commission_rate', 'total_commission', 'net_total', 
-    'payment_status', 'payment_method', 'account_id', 'reference_no',
-    'sale_date', 'delivery_date', 'delivery_status','created_by', 'modified_by'];
+    protected $fillable = [ 'memo_no', 'warehouse_id', 'order_from', 'depo_id', 'dealer_id', 'district_id', 'upazila_id', 'area_id', 'item', 
+    'total_unit_qty', 'total_qty', 'total_free_qty', 'grand_total', 'commission_rate', 'total_commission', 'net_total', 'sale_date',
+    'delivery_date', 'delivery_status', 'created_by', 'modified_by'];
 
     public function depo()
     {
