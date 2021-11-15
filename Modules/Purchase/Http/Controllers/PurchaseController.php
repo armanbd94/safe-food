@@ -129,11 +129,9 @@ class PurchaseController extends BaseController
         if(permission('purchase-add')){
             $this->setPageData('Add Purchase','Add Purchase','fas fa-shopping-cart',[['name' => 'Add Purchase']]);
             $purchase = $this->model->select('memo_no')->orderBy('memo_no','desc')->first();
-            $material = Material::get();
             $data = [
                 'suppliers'  => Supplier::allSuppliers(),
-                'taxes'      => Tax::activeTaxes(),
-                'materials'      => $material,
+                'materials'      => Material::with('purchase_unit')->get(),
                 'memo_no'   => 'PINV-'.($purchase ? explode('PINV-',$purchase->memo_no)[1] + 1 : self::MEMO_NO)
             ];
             
