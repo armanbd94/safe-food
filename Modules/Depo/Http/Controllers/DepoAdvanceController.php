@@ -65,7 +65,9 @@ class DepoAdvanceController extends BaseController
                     $payment_method = 'Mobile Bank';
                 }
                 $row = [];
-
+                if(permission('depo-advance-bulk-delete')){
+                    $row[] = row_checkbox($value->voucher_no);
+                }
                 $row[] = $no;
                 $row[] = $value->depo_name;
                 $row[] = $value->mobile_no;
@@ -149,8 +151,8 @@ class DepoAdvanceController extends BaseController
                 'voucher_type'        => 'Advance',
                 'voucher_date'        => date("Y-m-d"),
                 'description'         => $note,
-                'debit'               => 0,
-                'credit'              => $amount,
+                'debit'               => $amount,
+                'credit'              => 0,
                 'posted'              => 1,
                 'approve'             => 1,
                 'created_by'          => auth()->user()->name,

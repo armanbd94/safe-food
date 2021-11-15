@@ -27,6 +27,7 @@ class DealerReceiveController extends BaseController
             ->leftJoin('locations as di','d.district_id','=','di.id')
             ->leftJoin('locations as a','d.area_id','=','a.id')
             ->select('d.*','di.name as district_name','a.name as area_name')
+            ->where([['d.status',1],['d.type',2]])
             ->get();
             return view('account::dealer-receive.index',compact('voucher_no','dealers'));
         }else{

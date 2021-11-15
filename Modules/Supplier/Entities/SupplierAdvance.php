@@ -29,16 +29,22 @@ class SupplierAdvance extends BaseModel
     *******************************************/
     //custom search column property
     protected $supplier_id; 
-    protected $type; 
+    protected $_start_date; 
+    protected $_end_date; 
 
     //methods to set custom search property value
     public function setSupplierID($supplier_id)
     {
         $this->supplier_id = $supplier_id;
     }
-    public function setType($type)
+    public function setStartDate($start_date)
     {
-        $this->type = $type;
+        $this->_start_date = $start_date;
+    }
+
+    public function setEndDate($end_date)
+    {
+        $this->_end_date = $end_date;
     }
 
     private function get_datatable_query()
@@ -59,12 +65,13 @@ class SupplierAdvance extends BaseModel
         if (!empty($this->supplier_id)) {
             $query->where('s.id', $this->supplier_id);
         }
-        if (!empty($this->type) && $this->type == 'debit') {
-            $query->where('transactions.debit', '!=',0);
+        if (!empty($this->start_date)) {
+            $query->where('transactions.voucher_date', '>=',$this->start_date);
         }
-        if (!empty($this->type) && $this->type == 'credit') {
-            $query->where('transactions.credit', '!=',0);
+        if (!empty($this->end_date)) {
+            $query->where('transactions.voucher_date', '<=',$this->end_date);
         }
+
 
         //order by data fetching code
         if (isset($this->orderValue) && isset($this->dirValue)) { //orderValue is the index number of table header and dirValue is asc or desc

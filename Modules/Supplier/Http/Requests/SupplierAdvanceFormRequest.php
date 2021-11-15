@@ -15,12 +15,12 @@ class SupplierAdvanceFormRequest extends FormRequest
     public function rules()
     {
         $this->rules['supplier'] = ['required'];
-        $this->rules['type'] = ['required'];
+        // $this->rules['type'] = ['required'];
         $this->rules['amount'] = ['required','numeric','gt:0'];
         $this->rules['payment_method'] = ['required'];
         $this->rules['account_id'] = ['required'];
-        if(request()->payment_method == 2){
-            $this->rules['cheque_number'] = ['required'];
+        if(request()->payment_method != 1){
+            $this->rules['reference_number'] = ['nullable'];
         }
         return $this->rules;
     }

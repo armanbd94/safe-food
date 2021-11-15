@@ -31,10 +31,10 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('datatable-data', 'SupplierAdvanceController@get_datatable_data')->name('datatable.data');
         Route::post('store-or-update', 'SupplierAdvanceController@store_or_update_data')->name('store.or.update');
         Route::post('edit', 'SupplierAdvanceController@edit')->name('edit');
-        Route::post('view', 'SupplierAdvanceController@show')->name('view');
+        // Route::post('view', 'SupplierAdvanceController@show')->name('view');
         Route::post('delete', 'SupplierAdvanceController@delete')->name('delete');
         Route::post('bulk-delete', 'SupplierAdvanceController@bulk_delete')->name('bulk.delete');
-        Route::post('change-approval-status', 'SupplierAdvanceController@change_approval_status')->name('change.approval.status');
+        // Route::post('change-approval-status', 'SupplierAdvanceController@change_approval_status')->name('change.approval.status');
     });
 
     Route::get('supplier-ledger', 'SupplierLedgerController@index')->name('supplier.ledger');

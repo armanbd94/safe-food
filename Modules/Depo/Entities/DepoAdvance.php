@@ -51,10 +51,13 @@ class DepoAdvance extends BaseModel
     private function get_datatable_query()
     {
         //set column sorting index table column name wise (should match with frontend table header)
-
-        $this->column_order = ['transactions.id','de.name','de.mobile_no','de.district_id','de.upazila_id','de.area_id',null,'transactions.created_at',null,null,null];
-        
-        
+        if(permission('depo-advance-bulk-delete'))
+        {
+            $this->column_order = ['transactions.id','transactions.id','de.name','de.mobile_no','de.district_id','de.upazila_id','de.area_id',null,'transactions.created_at',null,null,null];
+        }else{
+            $this->column_order = ['transactions.id','de.name','de.mobile_no','de.district_id','de.upazila_id','de.area_id',null,'transactions.created_at',null,null,null];
+        }
+       
         $query = self::select('transactions.*','coa.id as coa_id','coa.code','de.id as depo_id','de.name as depo_name',
         'de.mobile_no','d.name as district_name','u.name as upazila_name','a.name as area_name')
         ->join('chart_of_accounts as coa','transactions.chart_of_account_id','=','coa.id')

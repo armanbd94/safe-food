@@ -25,10 +25,10 @@
                         @endforeach
                         @endif
                     </x-form.selectbox>
-                    <x-form.selectbox labelName="Advance Type" name="type" required="required"  col="col-md-12" class="selectpicker">
+                    {{-- <x-form.selectbox labelName="Advance Type" name="type" required="required"  col="col-md-12" class="selectpicker">
                         <option value="debit">Payment</option>
                         <option value="credit">Receive</option>
-                    </x-form.selectbox>
+                    </x-form.selectbox> --}}
                     <x-form.textbox labelName="Amount" name="amount" required="required" col="col-md-12" placeholder="Enter amount"/>
                     <x-form.selectbox labelName="Payment Method" name="payment_method" required="required"  col="col-md-12" class="selectpicker">
                       @foreach (PAYMENT_METHOD as $key => $value)
@@ -36,9 +36,9 @@
                       @endforeach
                     </x-form.selectbox>
                     <x-form.selectbox labelName="Account" name="account_id" required="required"  col="col-md-12" class="selectpicker"/>
-                    <div class="form-group col-md-12 d-none cheque_number required">
-                        <label for="cheque_number">Cheque No.</label>
-                        <input type="text" class="form-control" name="cheque_number" id="cheque_number">
+                    <div class="form-group col-md-12 d-none reference_number required">
+                        <label for="reference_number">Reference No.</label>
+                        <input type="text" class="form-control" name="reference_number" id="reference_number">
                     </div>
                 </div>
             </div>

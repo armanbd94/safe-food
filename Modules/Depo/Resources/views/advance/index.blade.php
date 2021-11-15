@@ -71,6 +71,14 @@
                             <table id="dataTable" class="table table-bordered table-hover">
                                 <thead class="bg-primary">
                                     <tr>
+                                        @if (permission('depo-advance-bulk-delete'))
+                                        <th>
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" id="select_all" onchange="select_all()">
+                                                <label class="custom-control-label" for="select_all"></label>
+                                            </div>
+                                        </th>
+                                        @endif
                                         <th>Sl</th>
                                         <th>Name</th>
                                         <th>Mobile No.</th>
@@ -147,16 +155,28 @@ $(document).ready(function(){
         },
         "columnDefs": [
             {
+                @if (permission('depo-advance-bulk-delete'))
+                "targets": [0,11],
+                @else
                 "targets": [10],
+                @endif
                 "className": "text-center",
                 "orderable":false
             },
             {
+                @if (permission('depo-advance-bulk-delete'))
+                "targets": [1,2,3,4,5,6,8,9,10],
+                @else
                 "targets": [0,1,2,3,4,5,7,8,9],
+                @endif
                 "className": "text-center"
             },
             {
+                @if (permission('depo-advance-bulk-delete'))
+                "targets": [7],
+                @else
                 "targets": [6],
+                @endif
                 "className": "text-right"
             },
         ],
@@ -177,7 +197,11 @@ $(document).ready(function(){
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
                     columns: function (index, data, node) {
+                        @if (permission('depo-advance-bulk-delete'))
+                        columns: ':visible:not(:eq(0),:eq(11))' 
+                        @else
                         columns: ':visible:not(:eq(10))' 
+                        @endif
                     }
                 },
                 customize: function (win) {
@@ -197,7 +221,11 @@ $(document).ready(function(){
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
                     columns: function (index, data, node) {
+                        @if (permission('depo-advance-bulk-delete'))
+                        columns: ':visible:not(:eq(0),:eq(11))' 
+                        @else
                         columns: ':visible:not(:eq(10))' 
+                        @endif
                     }
                 }
             },
@@ -209,7 +237,11 @@ $(document).ready(function(){
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
                     columns: function (index, data, node) {
+                        @if (permission('depo-advance-bulk-delete'))
+                        columns: ':visible:not(:eq(0),:eq(11))' 
+                        @else
                         columns: ':visible:not(:eq(10))' 
+                        @endif
                     }
                 }
             },
@@ -223,7 +255,11 @@ $(document).ready(function(){
                 "pageSize": "A4", //A3,A5,A6,legal,letter
                 "exportOptions": {
                     columns: function (index, data, node) {
+                        @if (permission('depo-advance-bulk-delete'))
+                        columns: ':visible:not(:eq(0),:eq(11))' 
+                        @else
                         columns: ':visible:not(:eq(10))' 
+                        @endif
                     }
                 },
                 customize: function(doc) {
@@ -232,6 +268,15 @@ $(document).ready(function(){
                     doc.pageMargins = [5,5,5,5];
                 }  
             },
+            @if (permission('depo-advance-bulk-delete'))
+            {
+                'className':'btn btn-danger btn-sm delete_btn d-none text-white',
+                'text':'Delete',
+                action:function(e,dt,node,config){
+                    multi_delete();
+                }
+            }
+            @endif
         ],
     });
 
@@ -370,6 +415,26 @@ $(document).ready(function(){
         delete_data(id, url, table, row, name);
     });
 
+    function multi_delete(){
+        let ids = [];
+        let rows;
+        $('.select_data:checked').each(function(){
+            ids.push($(this).val());
+            rows = table.rows($('.select_data:checked').parents('tr'));
+        });
+        if(ids.length == 0){
+            Swal.fire({
+                type:'error',
+                title:'Error',
+                text:'Please checked at least one row of table!',
+                icon: 'warning',
+            });
+        }else{
+            let url = "{{route('depo.advance.bulk.delete')}}";
+            bulk_delete(ids,url,table,rows);
+        }
+    }
+
     $(document).on('change', '#payment_method', function () {
         if($('#payment_method option:selected').val() == 1)
         {
@@ -408,8 +473,15 @@ function showAdvanceFormModal(modal_title, btn_text) {
     $('#store_or_update_form #update_id').val('');
     $('#store_or_update_form').find('.is-invalid').removeClass('is-invalid');
     $('#store_or_update_form').find('.error').remove();
+    $('#store_or_update_form select#depo').each(function(){
+        $('#store_or_update_form select#depo option').each(function() {
+            $(this).attr('disabled', false);
+        });
+    });
     $('#store_or_update_form #account_id').empty();
     $('.reference_number').addClass('d-none');
+    $('#store_or_update_form #reference_number').val('');
+    $('#store_or_update_form select#depo').val('');
     $('#store_or_update_form .selectpicker').selectpicker('refresh');
     $('#store_or_update_modal').modal({
         keyboard: false,
