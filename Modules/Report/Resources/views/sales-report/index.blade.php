@@ -40,13 +40,7 @@
                                 <input type="hidden" id="end_date" name="end_date">
                             </div>
                         </div>
-                        <x-form.selectbox labelName="Product" name="product_id" col="col-md-4" class="selectpicker">
-                            @if (!$products->isEmpty())
-                            @foreach ($products as $id => $name)
-                                <option value="{{ $id }}">{{ $name }}</option>
-                            @endforeach
-                            @endif
-                        </x-form.selectbox>
+
                         <div class="col-md-4">
                             <div style="margin-top:28px;">     
                                     <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
@@ -129,32 +123,28 @@ $(document).ready(function () {
 
 function report_data()
 {
-    let product_id = document.getElementById('product_id').value;
     let start_date = document.getElementById('start_date').value;
     let end_date = document.getElementById('end_date').value;
     if (start_date && end_date) {
-        if(product_id)
-        {
-            $.ajax({
-                url:"{{ route('product.wise.sales.report.data') }}",
-                type:"POST",
-                data:{product_id:product_id,start_date:start_date,end_date:end_date,_token:_token},
-                beforeSend: function(){
-                    $('#table-loader').removeClass('d-none');
-                },
-                complete: function(){
-                    $('#table-loader').addClass('d-none');
-                },
-                success:function(data){
-                    $('#report_data').empty().html(data);
-                },
-                error: function (xhr, ajaxOption, thrownError) {
-                    console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
-                }
-            });
-        }else{
-            notification('error','Please select depo!');
-        }
+
+        $.ajax({
+            url:"{{ route('sales.report.data') }}",
+            type:"POST",
+            data:{start_date:start_date,end_date:end_date,_token:_token},
+            beforeSend: function(){
+                $('#table-loader').removeClass('d-none');
+            },
+            complete: function(){
+                $('#table-loader').addClass('d-none');
+            },
+            success:function(data){
+                $('#report_data').empty().html(data);
+            },
+            error: function (xhr, ajaxOption, thrownError) {
+                console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
+            }
+        });
+  
     } else {
         notification('error','Please choose date!');
     }

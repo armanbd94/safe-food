@@ -1,5 +1,5 @@
 @php
-    $total = $total_unit_qty = $total_qty = $total_free_qty =  0;
+    $grand_total = $total_commission = $net_total = 0;
 @endphp
 <div class="col-sm-12 table-responsive">
     <div id="invoice">
@@ -319,9 +319,8 @@
                             {{-- @if(config('settings.contact_no'))<p style="font-weight: normal;margin:0;"><b>Contact No.: </b>{{ config('settings.contact_no') }}, @if(config('settings.email'))<b>Email: </b>{{ config('settings.email') }}@endif</p>@endif --}}
                             @if(config('settings.address'))<p style="font-weight: normal;margin:0;">{{ config('settings.address') }}</p>@endif
                             <p style="font-weight: normal;font-weight:bold;    margin: 10px auto 5px auto;
-                            font-weight: bold;background: black;border-radius: 10px;width: 250px;color: white;text-align: center;padding:5px 0;}">PRODUCT SALES REPORT</p>
+                            font-weight: bold;background: black;border-radius: 10px;width: 250px;color: white;text-align: center;padding:5px 0;}">SALES REPORT</p>
                             <p style="font-weight: normal;margin:0;font-weight:bold;">Date: {{ $start_date.' to '.$end_date  }}</p>
-                            <div class="text-center"><div style="font-weight: normal;margin:0;font-weight:bold;">{{ $product->name }}</div></div>
                             
                         </td>
                     </tr>
@@ -331,39 +330,47 @@
                         <tr>
                             <td class="text-center font-weight-bolder">Sl</td>
                             <td class="text-center font-weight-bolder">Date</td>
-                            <td class="text-center font-weight-bolder">Carton Size</td>
-                            <td class="text-center font-weight-bolder">Carton Qty</td>
-                            <td class="text-center font-weight-bolder">Piece Qty</td>
-                            <td class="text-center font-weight-bolder">Free Qty</td>
-                            <td class="text-right font-weight-bolder">Total</td>
+                            <td class="text-center font-weight-bolder">Memo No.</td>
+                            <td class="text-center font-weight-bolder">Dealer Name</td>
+                            <td class="text-center font-weight-bolder">Depo Name</td>
+                            <td class="text-center font-weight-bolder">Item</td>
+                            <td class="text-center font-weight-bolder">Total Qty</td>
+                            <td class="text-center font-weight-bolder">Grand Total</td>
+                            <td class="text-center font-weight-bolder">Commission Rate(%)</td>
+                            <td class="text-center font-weight-bolder">Total Commission</td>
+                            <td class="text-right font-weight-bolder">Net Total</td>
                         </tr>
                         @if (!$report_data->isEmpty())
                         @foreach ($report_data as $key => $value)
                         <tr>
                             <td class="text-center"> {{ $key + 1 }} </td>
                             <td class="text-center"> {{ date('d-m-Y',strtotime($value->sale_date)) }} </td>
-                            <td class="text-center"> {{ convert_english_carton_size($value->ctn_size) }} </td>
-                            <td class="text-center"> {{ number_format($value->unit_qty,2,'.',',') }} </td>
-                            <td class="text-center"> {{ number_format($value->qty,2,'.',',') }} </td>
-                            <td class="text-center"> {{ number_format($value->free_qty,2,'.',',') }} </td>
-                            <td class="text-right"> {{ number_format($value->total,2,'.',',') }} </td>
+                            <td class="text-center"> {{ $value->memo_no }} </td>
+                            <td class="text-center"> {{ $value->dealer->name }} </td>
+                            <td class="text-center"> {{ $value->depo->name }} </td>
+                            <td class="text-center"> {{ number_format($value->item,2,'.',',') }} </td>
+                            <td class="text-center"> {{ number_format(($value->total_qty + ($value->total_free_qty ?? 0)),2,'.',',') }} </td>
+                            <td class="text-right"> {{ number_format($value->grand_total,2,'.',',') }} </td>
+                            <td class="text-right"> {{ number_format(($value->commission_rate ?? 0),2,'.',',') }} </td>
+                            <td class="text-right"> {{ number_format($value->total_commission,2,'.',',') }} </td>
+                            <td class="text-right"> {{ number_format($value->net_total,2,'.',',') }} </td>
                         </tr>
                         @php
-                            $total += $value->total;
-                            $total_unit_qty += $value->unit_qty;
-                            $total_qty += $value->qty;
-                            $total_free_qty +=  $value->free_qty;
+                            $grand_total += $value->grand_total;
+                            $total_commission += $value->total_commission;
+                            $net_total += $value->net_total;
+
                         @endphp
                         @endforeach
                         @else
                         <tr><td colspan="8" class="text-center" style="color: red;font-weight:bold;">No Data Found</td></tr>
                         @endif
                         <tr>
-                            <td style="font-weight:bold;" colspan="3">Total</td>
-                            <td style="text-align: center !important;font-weight:bold;">{{ number_format($total_unit_qty,2,'.',',') }}</td>
-                            <td style="text-align: center !important;font-weight:bold;">{{ number_format($total_qty,2,'.',',') }}</td>
-                            <td style="text-align: center !important;font-weight:bold;">{{ number_format($total_free_qty,2,'.',',') }}</td>
-                            <td style="text-align: right !important;font-weight:bold;">{{ number_format($total,2,'.',',') }}</td>
+                            <td style="font-weight:bold;" colspan="7">Total</td>
+                            <td style="text-align: right !important;font-weight:bold;">{{ number_format($grand_total,2,'.',',') }}</td>
+                            <td style="text-align: center !important;font-weight:bold;"></td>
+                            <td style="text-align: right !important;font-weight:bold;">{{ number_format($total_commission,2,'.',',') }}</td>
+                            <td style="text-align: right !important;font-weight:bold;">{{ number_format($net_total,2,'.',',') }}</td>
                         </tr>
                     </tbody>
                 </table>
