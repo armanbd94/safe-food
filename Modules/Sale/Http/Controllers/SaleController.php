@@ -76,14 +76,14 @@ class SaleController extends BaseController
                 foreach ($list as $value) {
                     $no++;
                     $action = '';
-                    if (permission('sale-edit')) {
+                    if (permission('sale-edit') && $value->delivery_status == 2) {
                         $action .= ' <a class="dropdown-item" href="'.route("sale.edit",$value->id).'">'.self::ACTION_BUTTON['Edit'].'</a>';
                     }
                     if (permission('sale-view')) {
                         $action .= ' <a class="dropdown-item view_data" href="'.route("sale.show",$value->id).'">'.self::ACTION_BUTTON['View'].'</a>';
                     }
 
-                    if (permission('sale-delete')) {
+                    if (permission('sale-delete') && $value->delivery_status == 2) {
                         $action .= ' <a class="dropdown-item delete_data"  data-id="' . $value->id . '" data-name="' . $value->memo_no . '">'.self::ACTION_BUTTON['Delete'].'</a>';
                     }
 

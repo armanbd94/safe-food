@@ -25,12 +25,12 @@ Route::group(['middleware' => ['auth']], function () {
     
 
     //Today Sales Report Route
-    Route::get('today-sales-report', 'TodaySalesReportController@index')->name('today.sales.report');
-    Route::post('today-sales-report/datatable-data', 'TodaySalesReportController@get_datatable_data')->name('today.sales.report.datatable.data');
+    Route::get('todays-sales-report', 'TodaysSalesReportController@index')->name('todays.sales.report');
+    Route::post('todays-sales-report-data', 'TodaysSalesReportController@report_data')->name('todays.sales.report.data');
 
     //Sales Report Route
     Route::get('sales-report', 'SalesReportController@index')->name('sales.report');
-    Route::post('sales-report/datatable-data', 'SalesReportController@get_datatable_data')->name('sales.report.datatable.data');
+    Route::post('sales-report-data', 'SalesReportController@report_data')->name('sales.report.data');
     
     //Product Sales Report Route
     Route::get('product-sales-report', 'ProductSalesReportController@index')->name('product.sales.report');

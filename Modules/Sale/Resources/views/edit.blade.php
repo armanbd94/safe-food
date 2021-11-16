@@ -111,7 +111,7 @@
                                             @endphp
                                             <tr>
                                                 <td class="col-md-3">                                                
-                                                    <select name="products[{{ $key+1 }}][id]" id="products_{{ $key+1 }}_id" class="fcs col-md-12 form-control selectpicker"  data-live-search="true" data-row="{{ $key+1 }}">
+                                                    <select name="products[{{ $key+1 }}][id]" id="products_{{ $key+1 }}_id" onchange="setProductDetails({{ $key+1 }})" class="fcs col-md-12 form-control selectpicker"  data-live-search="true" data-row="{{ $key+1 }}">
                                                     @if (!$products->isEmpty())
                                                     <option value="0">Please Select</option>
                                                     @foreach ($products as $product)
@@ -397,7 +397,7 @@ function setProductDetails(row)
     }else{
         group_id = $('#direct_dealer_id option:selected').data('groupid');
     }
-    price = parseFloat($(`#products_${row}_id option:selected`).data(`group${group_id}baseunitprice`));
+    price = $(`#products_${row}_id option:selected`).data(`group${group_id}baseunitprice`) ? parseFloat($(`#products_${row}_id option:selected`).data(`group${group_id}baseunitprice`)) : 0;
 
     $(`.base_unit_name_${row}`).text(base_unit_name);
     $(`.unit_name_${row}`).text(unit_name);

@@ -319,8 +319,8 @@
                             {{-- @if(config('settings.contact_no'))<p style="font-weight: normal;margin:0;"><b>Contact No.: </b>{{ config('settings.contact_no') }}, @if(config('settings.email'))<b>Email: </b>{{ config('settings.email') }}@endif</p>@endif --}}
                             @if(config('settings.address'))<p style="font-weight: normal;margin:0;">{{ config('settings.address') }}</p>@endif
                             <p style="font-weight: normal;font-weight:bold;    margin: 10px auto 5px auto;
-                            font-weight: bold;background: black;border-radius: 10px;width: 250px;color: white;text-align: center;padding:5px 0;}">SALES REPORT</p>
-                            <p style="font-weight: normal;margin:0;font-weight:bold;">Date: {{ $start_date.' to '.$end_date  }}</p>
+                            font-weight: bold;background: black;border-radius: 10px;width: 250px;color: white;text-align: center;padding:5px 0;}">TODAYS SALES REPORT</p>
+                            <p style="font-weight: normal;margin:0;font-weight:bold;">Date: {{ date('d-M-Y',strtotime($date))  }}</p>
                             
                         </td>
                     </tr>
@@ -361,7 +361,6 @@
                             $grand_total += $value->grand_total;
                             $total_commission += $value->total_commission;
                             $net_total += $value->net_total;
-
                         @endphp
                         @endforeach
                         @else

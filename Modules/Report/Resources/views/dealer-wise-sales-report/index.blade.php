@@ -124,6 +124,7 @@ $(document).ready(function () {
         $('#form-filter')[0].reset();
         $('input[name="start_date"]').val('');
         $('input[name="end_date"]').val('');
+        $('#report_data').empty();
     });
 });
 

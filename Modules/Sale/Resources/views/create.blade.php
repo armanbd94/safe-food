@@ -100,9 +100,9 @@
                                     <tbody>
                                         <tr>
                                             <td class="col-md-3">                                                
-                                                <select name="products[1][id]" id="products_1_id" class="fcs col-md-12 form-control selectpicker"  data-live-search="true" data-row="1">
+                                                <select name="products[1][id]" id="products_1_id" class="fcs col-md-12 form-control selectpicker" onchange="setProductDetails(1)"  data-live-search="true" data-row="1">
                                                 @if (!$products->isEmpty())
-                                                <option value="0">Please Select</option>
+                                                <option value="">Please Select</option>
                                                 @foreach ($products as $product)
                                                     <option value="{{ $product->id }}" data-baseunitid={{ $product->base_unit_id }}  data-baseunitname="{{ $product->base_unit->unit_name }}" 
                                                         data-unitid={{ $product->unit_id }}  data-unitname="{{ $product->unit->unit_name }}" 
@@ -373,7 +373,7 @@ function setProductDetails(row)
     }else{
         group_id = $('#direct_dealer_id option:selected').data('groupid');
     }
-    price = parseFloat($(`#products_${row}_id option:selected`).data(`group${group_id}baseunitprice`));
+    price = $(`#products_${row}_id option:selected`).data(`group${group_id}baseunitprice`) ? parseFloat($(`#products_${row}_id option:selected`).data(`group${group_id}baseunitprice`)) : 0;
 
     $(`.base_unit_name_${row}`).text(base_unit_name);
     $(`.unit_name_${row}`).text(unit_name);

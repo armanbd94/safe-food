@@ -41,7 +41,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-8">
                             <div style="margin-top:28px;">     
                                     <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
                                     data-toggle="tooltip" data-theme="dark" title="Reset">
@@ -118,6 +118,7 @@ $(document).ready(function () {
         $('#form-filter')[0].reset();
         $('input[name="start_date"]').val('');
         $('input[name="end_date"]').val('');
+        $('#report_data').empty();
     });
 });
 
