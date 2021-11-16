@@ -334,7 +334,7 @@ if (!function_exists('numberTowords')) {
         }
         
         if ($decnum > 0) {
-            $rettxt .= " AND ";
+            $rettxt .= " And ";
             if ($decnum < 20) {
                 $rettxt .= $ones[$decnum];
             } elseif ($decnum < 100) {

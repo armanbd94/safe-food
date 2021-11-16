@@ -12,8 +12,7 @@ class WarehouseSummaryController extends BaseController
     {
         if(permission('warehouse-summary-access')){
             $this->setPageData('Warehouse Summary','Warehouse Summary','fas fa-file',[['name' => 'Warehouse Summary']]);
-            $warehouses = DB::table('warehouses')->where('status',1)->pluck('name','id');
-            return view('report::warehouse-summary-report.index',compact('warehouses'));
+            return view('report::warehouse-summary-report.index');
         }else{
             return $this->access_blocked();
         }
@@ -24,78 +23,74 @@ class WarehouseSummaryController extends BaseController
         if($request->ajax())
         {
 
-            $warehouse_id = $request->warehouse_id;
             $start_date = $request->start_date;
             $end_date   = $request->end_date;
 
             
-            $material_purchase_data = DB::table('purchases')
-                                ->select(DB::raw("SUM(grand_total) as material_purchase_grand_value"))
+            $purchase = DB::table('purchases')
                                 ->whereDate('purchase_date','>=',$start_date)
                                 ->whereDate('purchase_date','<=',$end_date)
-                                ->first();
+                                ->sum('net_total');
 
-            $product_sale_data = DB::table('sales')
-                                ->select(DB::raw("SUM(grand_total) as product_sales_grand_value"),
-                                DB::raw("SUM(paid_amount) as sales_collection_received_value"),
-                                DB::raw("SUM(due_amount) as product_sales_due_value"),
-                                DB::raw("SUM(order_discount) as customer_discount_grand_value")
-                                )
-                                ->where('warehouse_id',$warehouse_id)
+            $sale = DB::table('sales')
                                 ->whereDate('sale_date','>=',$start_date)
                                 ->whereDate('sale_date','<=',$end_date)
-                                ->groupBy('warehouse_id')
-                                ->first();
+                                ->sum('net_total');
 
-            $total_due_grand_values = DB::table('sales')
-            ->selectRaw('customer_id,due_amount,max(id) as last_due_id')
-            ->groupBy('customer_id')
-            ->where([['warehouse_id',$warehouse_id],['due_amount','>',0]])
-            ->whereDate('sale_date','>=',$start_date)
-            ->whereDate('sale_date','<=',$end_date)
-            ->get();
-            
-            $total_return_value = DB::table('sale_returns')
-                                ->where('warehouse_id',$warehouse_id)
+            $purchase_return = DB::table('purchase_returns')
                                 ->whereDate('return_date','>=',$start_date)
                                 ->whereDate('return_date','<=',$end_date)
                                 ->sum('grand_total');
 
-            $total_damage_value = DB::table('damages')
-                            ->where('warehouse_id',$warehouse_id)
+            $sale_return = DB::table('sale_returns')
+                                ->whereDate('return_date','>=',$start_date)
+                                ->whereDate('return_date','<=',$end_date)
+                                ->sum('grand_total');
+
+            $damage = DB::table('damages')
                             ->whereDate('damage_date','>=',$start_date)
                             ->whereDate('damage_date','<=',$end_date)
                             ->sum('grand_total');
 
-            $warehouse_expense = DB::table('expenses')
-                                ->where('warehouse_id',$warehouse_id)
+            $expense = DB::table('expenses')
                                 ->whereDate('date','>=',$start_date)
                                 ->whereDate('date','<=',$end_date)
                                 ->sum('amount');
-            $sr_commission_due= DB::table('transactions as t')
-                                ->join('chart_of_accounts as coa','t.chart_of_account_id','=','coa.id')
-                                ->select(DB::raw("(SUM(t.credit) - SUM(t.debit)) as due_commission"))
-                                ->whereNotNull('coa.salesmen_id')
-                                ->where('t.warehouse_id',$warehouse_id)
-                                ->whereDate('t.voucher_date','<=',$end_date)
-                                ->first();
                     
             $supplier_due = DB::table('transactions as t')
                                 ->join('chart_of_accounts as coa','t.chart_of_account_id','=','coa.id')
-                                ->select(DB::raw("(SUM(t.credit) - SUM(t.debit)) as due"))
+                                ->select(DB::raw("(SUM(t.debit) - SUM(t.credit)) as due"))
                                 ->whereNotNull('coa.supplier_id')
-                                ->where('t.warehouse_id',$warehouse_id)
                                 ->whereDate('t.voucher_date','<=',$end_date)
                                 ->first();
+
+            $depo_due = DB::table('transactions as t')
+                                ->join('chart_of_accounts as coa','t.chart_of_account_id','=','coa.id')
+                                ->select(DB::raw("(SUM(t.debit) - SUM(t.credit)) as due"))
+                                ->whereNotNull('coa.depo_id')
+                                ->whereDate('t.voucher_date','<=',$end_date)
+                                ->first();
+
+            $dealer_due = DB::table('transactions as t')
+                                ->join('chart_of_accounts as coa','t.chart_of_account_id','=','coa.id')
+                                ->select(DB::raw("(SUM(t.debit) - SUM(t.credit)) as due"))
+                                ->whereNotNull('coa.dealer_id')
+                                ->whereDate('t.voucher_date','<=',$end_date)
+                                ->first();
+
             $data = [
-                'material_purchase_data' => $material_purchase_data,
-                'product_sale_data' => $product_sale_data,
-                'total_damage_value' => $total_damage_value + $total_return_value,
-                'warehouse_expense' => $warehouse_expense,
-                'total_due_grand_values' => $total_due_grand_values,
-                'total_supplier_due_amount'      => $supplier_due ?$supplier_due->due : 0,
-                'total_sr_commission_due_amount' => $sr_commission_due ?$sr_commission_due->due_commission : 0,
+                'total_purchase'        => $purchase,
+                'total_sale'            => $sale,
+                'total_purchase_return' => $purchase_return,
+                'total_sale_return'     => $sale_return,
+                'total_damage'          => $damage,
+                'total_expense'         => $expense,
+                'total_supplier_due'    => $supplier_due ? str_replace('-','',$supplier_due->due) : 0,
+                'total_depo_due'        => $depo_due ? $depo_due->due : 0,
+                'total_dealer_due'      => $dealer_due ? $dealer_due->due : 0,
             ];
+
+            // dd($data);
 
             return view('report::warehouse-summary-report.summary-data',$data)->render();
         }

@@ -1,5 +1,5 @@
 @php
-    $grand_total = $total_commission = $net_total = $total_unit_qty = $total_qty = $total_free_qty = 0;
+    $grand_total = $discount_amount = $net_total = $paid_amount = $due_amount = 0;
 @endphp
 <div class="col-sm-12 table-responsive">
     <div id="invoice">
@@ -219,9 +219,7 @@
                     /* font-size: 12px !important; */
                     /* margin-bottom: 100px !important; */
                 }
-                html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, 
-                acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, 
-                sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend,tbody td  {
+                html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend,tbody td  {
                     font-size: 12pt !important;
                 }
                 /* .print_body {page-break-after: always;} */
@@ -321,10 +319,8 @@
                             {{-- @if(config('settings.contact_no'))<p style="font-weight: normal;margin:0;"><b>Contact No.: </b>{{ config('settings.contact_no') }}, @if(config('settings.email'))<b>Email: </b>{{ config('settings.email') }}@endif</p>@endif --}}
                             @if(config('settings.address'))<p style="font-weight: normal;margin:0;">{{ config('settings.address') }}</p>@endif
                             <p style="font-weight: normal;font-weight:bold;    margin: 10px auto 5px auto;
-                            font-weight: bold;background: black;border-radius: 10px;width: 350px;color: white;text-align: center;padding:5px 0;
-                        }">DEPO WISE PRODUCT SALES REPORT</p>
+                            font-weight: bold;background: black;border-radius: 10px;width: 250px;color: white;text-align: center;padding:5px 0;}">PURCHASE REPORT</p>
                             <p style="font-weight: normal;margin:0;font-weight:bold;">Date: {{ $start_date.' to '.$end_date  }}</p>
-                            <div class="text-center"><div style="font-weight: normal;margin:0;font-weight:bold;">{{ $depo->name }}</div></div>
                             
                         </td>
                     </tr>
@@ -332,71 +328,52 @@
                 <table cellspacing="0" cellpadding="0" id="product_table">
                     <tbody>
                         <tr>
-                            <td rowspan="2" class="text-center font-weight-bolder">SL</td>
-                            <td rowspan="2" class="text-left font-weight-bolder">Product Name</td>
-                            <td colspan="3" class="text-center font-weight-bolder">Order</td>
-                            <td rowspan="2" class="text-center font-weight-bolder">Carton Size</td>
-                            <td rowspan="2" class="text-right font-weight-bolder">Price</td>
-                            <td rowspan="2" class="text-right font-weight-bolder">Total</td>
-                        </tr>
-                        <tr>
-                            <td class="text-center font-weight-bolder">Carton</td>
-                            <td class="text-center font-weight-bolder">Piece</td>
-                            <td class="text-center font-weight-bolder">Free Piece</td>
+                            <td class="text-center font-weight-bolder">Sl</td>
+                            <td class="text-center font-weight-bolder">Date</td>
+                            <td class="text-center font-weight-bolder">Memo No.</td>
+                            <td class="text-center font-weight-bolder">Supplier Name</td>
+                            <td class="text-center font-weight-bolder">Item</td>
+                            <td class="text-center font-weight-bolder">Total Qty</td>
+                            <td class="text-center font-weight-bolder">Grand Total</td>
+                            <td class="text-center font-weight-bolder">Discount Amount</td>
+                            <td class="text-right font-weight-bolder">Net Total</td>
+                            <td class="text-right font-weight-bolder">Paid Amount</td>
+                            <td class="text-right font-weight-bolder">Due Amount</td>
                         </tr>
                         @if (!$report_data->isEmpty())
                         @foreach ($report_data as $key => $value)
                         <tr>
-                            <td class="text-center">{{ $key+1 }}</td>
-                            <td>{{ $value->name }}</td>
-                            <td class="text-center">{{ $value->unit_qty }}</td>
-                            <td class="text-center">{{ $value->qty }}</td>
-                            <td class="text-center">{{ $value->free_qty ?? 0 }}</td>
-                            <td class="text-center">{{ $value->ctn_size }}</td>
-                            <td class="text-right">{{ number_format($value->net_unit_price,2,'.',',') }}</td>
-                            <td class="text-right">{{ number_format($value->total_order_value,2,'.',',') }}</td>
+                            <td class="text-center"> {{ $key + 1 }} </td>
+                            <td class="text-center"> {{ date('d-m-Y',strtotime($value->purchase_date)) }} </td>
+                            <td class="text-center"> {{ $value->memo_no }} </td>
+                            <td class="text-center"> {{ $value->supplier->company_name.' - '.$value->supplier->name }} </td>
+                            <td class="text-center"> {{ number_format($value->item,2,'.',',') }} </td>
+                            <td class="text-center"> {{ number_format($value->total_qty,2,'.',',') }} </td>
+                            <td class="text-right"> {{ number_format($value->grand_total,2,'.',',') }} </td>
+                            <td class="text-right"> {{ number_format(($value->discount_amount ?? 0),2,'.',',') }} </td>
+                            <td class="text-right"> {{ number_format($value->net_total,2,'.',',') }} </td>
+                            <td class="text-right"> {{ number_format($value->paid_amount ?? 0,2,'.',',') }} </td>
+                            <td class="text-right"> {{ number_format($value->due_amount,2,'.',',') }} </td>
                         </tr>
                         @php
-                            $grand_total += $value->total_order_value;
-                            $total_unit_qty += $value->unit_qty;
-                            $total_qty += $value->qty;
-                            $total_free_qty += $value->free_qty ?? 0;
+                        $grand_total += $value->grand_total;
+                        $discount_amount += $value->discount_amount;
+                        $net_total += $value->net_total;
+                        $paid_amount += $value->paid_amount ?? 0;
+                        $due_amount += $value->due_amount;
                         @endphp
                         @endforeach
-                        
                         @else
-                        <tr><td colspan="8" class="text-center" style="color: red;font-weight:bold;">No Data Found</td></tr>
+                        <tr><td colspan="11" class="text-center" style="color: red;font-weight:bold;">No Data Found</td></tr>
                         @endif
                         <tr>
-                            <td style="font-weight:bold;" colspan="2">Total</td>
-                            <td style="text-align: center !important;font-weight:bold;">{{ number_format($total_unit_qty,2,'.',',') }}</td>
-                            <td style="text-align: center !important;font-weight:bold;">{{ number_format($total_qty,2,'.',',') }}</td>
-                            <td style="text-align: center !important;font-weight:bold;">{{ number_format($total_free_qty,2,'.',',') }}</td>
-                            <td></td>
-                            <td></td>
+                            <td style="font-weight:bold;" colspan="6">Total</td>
                             <td style="text-align: right !important;font-weight:bold;">{{ number_format($grand_total,2,'.',',') }}</td>
+                            <td style="text-align: right !important;font-weight:bold;">{{ number_format($discount_amount,2,'.',',') }}</td>
+                            <td style="text-align: right !important;font-weight:bold;">{{ number_format($net_total,2,'.',',') }}</td>
+                            <td style="text-align: right !important;font-weight:bold;">{{ number_format($paid_amount,2,'.',',') }}</td>
+                            <td style="text-align: right !important;font-weight:bold;">{{ number_format($due_amount,2,'.',',') }}</td>
                         </tr>
-                        @php
-                            if($depo->commission_rate)
-                            {
-                                $total_commission = $grand_total * ($depo->commission_rate/100);
-                                $net_total = $grand_total - $total_commission;
-                            }else{
-                                $net_total = $grand_total;
-                            }
-                        @endphp
-                        @if($depo->commission_rate)
-                        <tr>
-                            <td colspan="6" style="border: none !important;"></td>
-                            <td class="text-left  font-weight-bolder">Commission ({{ $depo->commission_rate }}%)</td>
-                            <td class="text-right  font-weight-bolder"> {{ number_format($total_commission,2,'.',',') }}</td>
-                        </tr>
-                        @endif
-                        <tr>
-                            <td colspan="6" style="border: none !important;"></td>
-                            <td class="text-left  font-weight-bolder">Net Total</td> 
-                            <td class="text-right  font-weight-bolder">{{ number_format($net_total,2,'.',',') }}</td>
-                        </tr> 
                     </tbody>
                 </table>
             </div>

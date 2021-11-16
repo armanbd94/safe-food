@@ -5,17 +5,6 @@
 @push('styles')
 <link href="css/daterangepicker.min.css" rel="stylesheet" type="text/css" />
 <style>
-    #summary_data .card-label{
-        font-size: 18px !important;
-        font-weight: bolder;
-        text-align: center;
-    }
-    #summary_data .card-body{
-        text-align: center;
-    }
-    #summary_data .card.card-custom .card-header{
-        justify-content: center !important;
-    }
     .apply-btn,.cancel-btn{display: block !important;}
     .calendar-header .arrow,.calendar-header .arrow button{display: block !important;}
 </style>
@@ -30,10 +19,15 @@
                 <div class="card-title">
                     <h3 class="card-label"><i class="{{ $page_icon }} text-primary"></i> {{ $sub_title }}</h3>
                 </div>
+                <div class="card-toolbar">
+                    <!--begin::Button-->
+                    <button type="button" class="btn btn-primary btn-sm mr-3" id="print-invoice"> <i class="fas fa-print"></i> Print</button>
+
+                    <!--end::Button-->
+                </div>
             </div>
         </div>
         <!--end::Notice-->
-        <!--begin::Card-->
         <div class="card card-custom">
             <div class="card-header flex-wrap py-5">
                 <form method="POST" id="form-filter" class="col-md-12 px-0">
@@ -54,7 +48,7 @@
                                     <i class="fas fa-undo-alt"></i></button>
     
                                     <button id="btn-filter" class="btn btn-primary btn-sm btn-elevate btn-icon mr-2 float-right" type="button"
-                                    data-toggle="tooltip" data-theme="dark" onclick="summary_data()" title="Search">
+                                    data-toggle="tooltip" data-theme="dark" onclick="report_data()" title="Search">
                                     <i class="fas fa-search"></i></button>
                             </div>
                         </div>
@@ -65,7 +59,7 @@
                 <!--begin: Datatable-->
                 <div id="kt_datatable_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
                     <div class="col-md-12" style="position: relative;">
-                        <div class="row" id="summary_data">
+                        <div class="row" id="report_data">
                         
                         </div>
                         <div class="col-md-12 d-none" id="table-loader" style="position: absolute;top:80px;left:0;">
@@ -87,17 +81,28 @@
                 <!--end: Datatable-->
             </div>
         </div>
-        <!--end::Card-->
     </div>
 </div>
 @endsection
 
 @push('scripts')
+<script src="js/jquery.printarea.js"></script>
 <script src="js/moment.js"></script>
 <script src="js/knockout-3.4.2.js"></script>
 <script src="js/daterangepicker.min.js"></script>
 <script>
-$(document).ready(function(){
+$(document).ready(function () {
+    //QR Code Print
+    $(document).on('click','#print-invoice',function(){
+        var mode = 'iframe'; // popup
+        var close = mode == "popup";
+        var options = {
+            mode: mode,
+            popClose: close
+        };
+        $("#invoice").printArea(options);
+    });
+
     $('.daterangepicker-filed').daterangepicker({
         callback: function(startDate, endDate, period){
             var start_date = startDate.format('YYYY-MM-DD');
@@ -113,18 +118,18 @@ $(document).ready(function(){
         $('#form-filter')[0].reset();
         $('input[name="start_date"]').val('');
         $('input[name="end_date"]').val('');
-        $('#summary_data').empty();
+        $('#report_data').empty();
     });
 });
 
-function summary_data()
+function report_data()
 {
     let start_date = document.getElementById('start_date').value;
     let end_date = document.getElementById('end_date').value;
     if (start_date && end_date) {
 
         $.ajax({
-            url:"{{ route('warehouse.summary.data') }}",
+            url:"{{ route('purchase.report.data') }}",
             type:"POST",
             data:{start_date:start_date,end_date:end_date,_token:_token},
             beforeSend: function(){
@@ -134,13 +139,13 @@ function summary_data()
                 $('#table-loader').addClass('d-none');
             },
             success:function(data){
-                $('#summary_data').empty().html(data);
+                $('#report_data').empty().html(data);
             },
             error: function (xhr, ajaxOption, thrownError) {
                 console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
             }
         });
-
+  
     } else {
         notification('error','Please choose date!');
     }

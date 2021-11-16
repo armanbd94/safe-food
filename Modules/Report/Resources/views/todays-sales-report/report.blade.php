@@ -329,7 +329,6 @@
                     <tbody>
                         <tr>
                             <td class="text-center font-weight-bolder">Sl</td>
-                            <td class="text-center font-weight-bolder">Date</td>
                             <td class="text-center font-weight-bolder">Memo No.</td>
                             <td class="text-center font-weight-bolder">Dealer Name</td>
                             <td class="text-center font-weight-bolder">Depo Name</td>
@@ -345,7 +344,6 @@
                         @foreach ($report_data as $key => $value)
                         <tr>
                             <td class="text-center"> {{ $key + 1 }} </td>
-                            <td class="text-center"> {{ date('d-m-Y',strtotime($value->sale_date)) }} </td>
                             <td class="text-center"> {{ $value->memo_no }} </td>
                             <td class="text-center"> {{ $value->dealer->name }} </td>
                             <td class="text-center"> {{ $value->depo->name }} </td>
@@ -364,10 +362,10 @@
                         @endphp
                         @endforeach
                         @else
-                        <tr><td colspan="12" class="text-center" style="color: red;font-weight:bold;">No Data Found</td></tr>
+                        <tr><td colspan="11" class="text-center" style="color: red;font-weight:bold;">No Data Found</td></tr>
                         @endif
                         <tr>
-                            <td style="font-weight:bold;" colspan="8">Total</td>
+                            <td style="font-weight:bold;" colspan="7">Total</td>
                             <td style="text-align: right !important;font-weight:bold;">{{ number_format($grand_total,2,'.',',') }}</td>
                             <td style="text-align: center !important;font-weight:bold;"></td>
                             <td style="text-align: right !important;font-weight:bold;">{{ number_format($total_commission,2,'.',',') }}</td>
