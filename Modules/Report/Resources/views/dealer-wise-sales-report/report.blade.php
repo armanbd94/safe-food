@@ -319,10 +319,10 @@
                             {{-- @if(config('settings.contact_no'))<p style="font-weight: normal;margin:0;"><b>Contact No.: </b>{{ config('settings.contact_no') }}, @if(config('settings.email'))<b>Email: </b>{{ config('settings.email') }}@endif</p>@endif --}}
                             @if(config('settings.address'))<p style="font-weight: normal;margin:0;">{{ config('settings.address') }}</p>@endif
                             <p style="font-weight: normal;font-weight:bold;    margin: 10px auto 5px auto;
-                            font-weight: bold;background: black;border-radius: 10px;width: 150px;color: white;text-align: center;
-                        }">SALES REPORT</p>
-                            <div class="text-center"><div style="font-weight: normal;margin:0;font-weight:bold;">{{ $dealer->name }}</div></div>
+                            font-weight: bold;background: black;border-radius: 10px;width: 300px;color: white;text-align: center;padding:5px 0;}">DEALER WISE SALES REPORT</p>
+                            
                             <p style="font-weight: normal;margin:0;font-weight:bold;">Date: {{ $start_date.' to '.$end_date  }}</p>
+                            <div class="text-center"><div style="font-weight: normal;margin:0;font-weight:bold;">{{ $dealer->name }}</div></div>
                         </td>
                     </tr>
                 </table>

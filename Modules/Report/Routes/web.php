@@ -34,7 +34,7 @@ Route::group(['middleware' => ['auth']], function () {
     
     //Product Wise Sales Report Route
     Route::get('product-wise-sales-report', 'ProductWiseSalesReportController@index')->name('product.wise.sales.report');
-    Route::post('product-wise-sales-report/datatable-data', 'ProductWiseSalesReportController@get_datatable_data')->name('product.wise.sales.report.datatable.data');
+    Route::post('product-wise-sales-report-data', 'ProductWiseSalesReportController@report_data')->name('product.wise.sales.report.data');
    
 
     //Warehouse Summary Report Route

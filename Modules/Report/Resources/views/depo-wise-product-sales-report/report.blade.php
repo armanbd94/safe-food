@@ -219,7 +219,9 @@
                     /* font-size: 12px !important; */
                     /* margin-bottom: 100px !important; */
                 }
-                html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend,tbody td  {
+                html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, 
+                acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, 
+                sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend,tbody td  {
                     font-size: 12pt !important;
                 }
                 /* .print_body {page-break-after: always;} */
@@ -319,10 +321,11 @@
                             {{-- @if(config('settings.contact_no'))<p style="font-weight: normal;margin:0;"><b>Contact No.: </b>{{ config('settings.contact_no') }}, @if(config('settings.email'))<b>Email: </b>{{ config('settings.email') }}@endif</p>@endif --}}
                             @if(config('settings.address'))<p style="font-weight: normal;margin:0;">{{ config('settings.address') }}</p>@endif
                             <p style="font-weight: normal;font-weight:bold;    margin: 10px auto 5px auto;
-                            font-weight: bold;background: black;border-radius: 10px;width: 200px;color: white;text-align: center;
-                        }">PRODUCT SALES REPORT</p>
-                            <div class="text-center"><div style="font-weight: normal;margin:0;font-weight:bold;">{{ $depo->name }}</div></div>
+                            font-weight: bold;background: black;border-radius: 10px;width: 350px;color: white;text-align: center;padding:5px 0;
+                        }">SEPO WISE PRODUCT SALES REPORT</p>
                             <p style="font-weight: normal;margin:0;font-weight:bold;">Date: {{ $start_date.' to '.$end_date  }}</p>
+                            <div class="text-center"><div style="font-weight: normal;margin:0;font-weight:bold;">{{ $depo->name }}</div></div>
+                            
                         </td>
                     </tr>
                 </table>

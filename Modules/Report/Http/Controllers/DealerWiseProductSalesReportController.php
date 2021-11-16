@@ -31,7 +31,7 @@ class DealerWiseProductSalesReportController extends BaseController
         $start_date = $request->start_date;
         $end_date = $request->end_date;
         $dealer = Dealer::with('district','area')->find($dealer_id);
-        $report_data = $depo_sale_products = DB::table('sale_products as sp')
+        $report_data = DB::table('sale_products as sp')
         ->join('sales as s','sp.sale_id','=','s.id')
         ->join('products as p','sp.product_id','=','p.id')
         ->join('units as bu','sp.base_unit_id','=','bu.id')
