@@ -15,6 +15,7 @@ use App\Http\Controllers\BaseController;
 use Modules\Account\Entities\Transaction;
 use Modules\Purchase\Entities\PurchasePayment;
 use Modules\Material\Entities\WarehouseMaterial;
+use Modules\Purchase\Entities\MaterialPurchase;
 use Modules\Purchase\Http\Requests\PurchaseFormRequest;
 
 
@@ -77,7 +78,7 @@ class PurchaseController extends BaseController
                     }
                     if(permission('purchase-payment-add')){
                         if($value->payment_status != 1){
-                        $action .= ' <a class="dropdown-item add_payment" data-id="'.$value->id.'" data-due="'.($value->grand_total - $value->paid_amount).'"><i class="fas fa-plus-square text-info mr-2"></i> Add Payment</a>';
+                        $action .= ' <a class="dropdown-item add_payment" data-id="'.$value->id.'" data-due="'.$value->due_amount.'"><i class="fas fa-plus-square text-info mr-2"></i> Add Payment</a>';
                         }
                     }
                     if(permission('purchase-payment-view')){
@@ -140,126 +141,105 @@ class PurchaseController extends BaseController
                 DB::beginTransaction();
                 try {
                     $warehouse_id = 1;
-                    $purchase_data = [
-                        'memo_no'          => $request->memo_no,
-                        'supplier_id'      => $request->supplier_id,
-                        'warehouse_id'     => $warehouse_id,
-                        'item'             => $request->item,
-                        'total_qty'        => $request->total_qty,
-                        'total_discount'   => $request->total_discount,
-                        'total_tax'        => $request->total_tax,
-                        'total_labor_cost' => $request->labor_cost ? $request->labor_cost : null,
-                        'total_cost'       => $request->total_cost,
-                        'order_tax_rate'   => $request->order_tax_rate,
-                        'order_tax'        => $request->order_tax,
-                        'order_discount'   => $request->order_discount ? $request->order_discount : null,
-                        'shipping_cost'    => $request->shipping_cost ? $request->shipping_cost : null,
-                        'grand_total'      => $request->grand_total,
-                        'paid_amount'      => $request->paid_amount,
-                        'due_amount'       =>($request->grand_total - ($request->paid_amount ? $request->paid_amount : 0)),
-                        'purchase_status'  => $request->purchase_status,
-                        'payment_status'   => $request->payment_status,
-                        'note'             => $request->note,
-                        'purchase_date'    => $request->purchase_date,
-                        'created_by'       => auth()->user()->name
-                    ];
+                    $purchase  = $this->model->create([
+                        'memo_no'         => $request->memo_no,
+                        'supplier_id'     => $request->supplier_id,
+                        'warehouse_id'    => $warehouse_id,
+                        'item'            => $request->item,
+                        'total_qty'       => $request->total_qty,
+                        'grand_total'     => $request->grand_total,
+                        'discount_amount' => $request->discount_amount ? $request->discount_amount : 0,
+                        'net_total'       => $request->net_total,
+                        'paid_amount'     => $request->paid_amount ? $request->paid_amount : 0,
+                        'due_amount'      => $request->due_amount,
+                        'payment_status'  => $request->payment_status,
+                        'purchase_date'   => $request->purchase_date,
+                        'created_by'      => auth()->user()->name
+                    ]);
+                    if($purchase)
+                    {
+                        //purchase materials
+                        $materials = [];
+                        if($request->has('materials'))
+                        {                        
+                            foreach ($request->materials as $key => $value) {
+                                $unit = Unit::find($value['purchase_unit_id']);
 
-                    $payment_data = [
-                        'payment_method' => $request->payment_method,
-                        'account_id'     => $request->account_id,
-                        'paid_amount'    => $request->paid_amount,
-                        'cheque_no'      => $request->cheque_number ? $request->cheque_number : '',
-                    ];
-
-                    if($request->hasFile('document')){
-                        $purchase_data['document'] = $this->upload_file($request->file('document'),PURCHASE_DOCUMENT_PATH);
-                    }
-
-                    //purchase materials
-                    $materials = [];
-                    $labor_cost = $request->labor_cost ? floatval($request->labor_cost) : 0;
-                    $shipping_cost = $request->shipping_cost ? floatval($request->shipping_cost) : 0;
-                    $material_additional_cost = ($request->total_qty > 0) ? ($shipping_cost+$labor_cost) / floatval($request->total_qty) : 0;
-                    if($request->has('materials'))
-                    {                        
-                        foreach ($request->materials as $key => $value) {
-                            $unit = Unit::where('unit_name',$value['unit'])->first();
-                            // dd($unit);
-                            if($unit->operator == '*'){
-                                $qty = $value['received'] * $unit->operation_value;
-                            }else{
-                                $qty = $value['received'] / $unit->operation_value;
-                            }
-                            $material = Material::find($value['id']);
-
-                            if($material->tax_method == 1){
                                 if($unit->operator == '*'){
-                                    $material_cost = (((floatval($value['net_unit_cost'] + ($value['discount'] / $value['qty'])) * $value['qty'])) /  $value['qty']) / $unit->operation_value;
-                                }elseif ($unit->operator == '/') {
-                                    $material_cost = (((floatval($value['net_unit_cost'] + ($value['discount'] / $value['qty'])) * $value['qty'])) /  $value['qty']) * $unit->operation_value;
-                                }
-                            }else{
-                                if($unit->operator == '*'){
-                                    $material_cost = ((floatval($value['subtotal'] + ($value['discount'] / $value['qty'])) / $value['qty']) / $unit->operation_value);
-                                }elseif ($unit->operator == '/') {
-                                  	$material_cost = ((floatval($value['subtotal'] + ($value['discount'] / $value['qty'])) / $value['qty']) * $unit->operation_value);
+                                    $qty = $value['qty'] * $unit->operation_value;
+                                }else{
+                                    $qty = $value['qty'] / $unit->operation_value;
                                 }
                                 
-                            }
-                            $material_cost = $material_cost + $material_additional_cost;
+                                $material = Material::find($value['id']);
 
-                            $new_cost = $material->cost > 0 ? (($material_cost + $material->cost)/2) : $material_cost;
-                            $materials[$value['id']] = [
-                                'qty'              => $value['qty'],
-                                'received'         => $value['received'],
-                                'purchase_unit_id' => $unit ? $unit->id : null,
-                                'net_unit_cost'    => $value['net_unit_cost'],
-                                'new_unit_cost'    => $new_cost,
-                                'old_cost'         => $material->cost,
-                                'discount'         => $value['discount'],
-                                'tax_rate'         => $value['tax_rate'],
-                                'tax'              => $value['tax'],
-                                'total'            => $value['subtotal']
-                            ];
+                                if($material->tax_method == 1){
+                                    if($unit->operator == '*'){
+                                        $material_cost = ((floatval($value['net_unit_cost']) * $value['qty']) /  $value['qty']) / $unit->operation_value;
+                                    }elseif ($unit->operator == '/') {
+                                        $material_cost = ((floatval($value['net_unit_cost']) * $value['qty']) /  $value['qty']) * $unit->operation_value;
+                                    }
+                                }else{
+                                    if($unit->operator == '*'){
+                                        $material_cost = ((floatval($value['subtotal']) / $value['qty']) / $unit->operation_value);
+                                    }elseif ($unit->operator == '/') {
+                                        $material_cost = ((floatval($value['subtotal']) / $value['qty']) * $unit->operation_value);
+                                    }
+                                    
+                                }
+                                
+                                $current_stock_value = ($material->qty ? $material->qty : 0) * ($material->cost ? $material->cost : 0);
+                                $new_cost            = (($material_cost * $qty) + $current_stock_value) / ($qty + $material->qty);
+                                $current_cost        = $material->cost ? $material->cost : 0;
+                                $old_cost            = $material->old_cost ? $material->old_cost : 0;
+   
+                                $materials[] = [
+                                    'purchase_id'      => $purchase->id,
+                                    'material_id'      => $value['id'],
+                                    'qty'              => $value['qty'],
+                                    'purchase_unit_id' => $value['purchase_unit_id'],
+                                    'net_unit_cost'    => $value['net_unit_cost'],
+                                    'new_unit_cost'    => $new_cost,
+                                    'old_cost'         => $old_cost,
+                                    'total'            => $value['subtotal'],
+                                    'created_at'       => date('Y-m-d H:i:s')
+                                ];
 
-                            
-                            if($material){
-                                $material->qty += $qty;
-                                $material->cost = $new_cost;
-                                $material->old_cost = $material->cost;
-                                $material->save();    
+                                if($material){
+                                    $material->qty     += $qty;
+                                    $material->cost     = $new_cost;
+                                    $material->old_cost = $current_cost;
+                                    $material->save();    
+                                }
+                                
+                                $warehouse_material = WarehouseMaterial::where(['warehouse_id'=>$warehouse_id,'material_id'=>$value['id']])->first();
+                                if($warehouse_material){
+                                    $warehouse_material->qty += $qty;
+                                    $warehouse_material->save();
+                                }else{
+                                    WarehouseMaterial::create([
+                                        'warehouse_id' => $warehouse_id,
+                                        'material_id'  => $value['id'],
+                                        'qty'          => $qty
+                                    ]);
+                                }
                             }
-                            
-                            $warehouse_material = WarehouseMaterial::where(['warehouse_id'=>$warehouse_id,'material_id'=>$value['id']])->first();
-                            if($warehouse_material){
-                                $warehouse_material->qty += $qty;
-                                $warehouse_material->save();
-                            }else{
-                                WarehouseMaterial::create([
-                                    'warehouse_id' => $warehouse_id,
-                                    'material_id'  => $value['id'],
-                                    'qty'          => $qty
-                                ]);
+
+                            if(!empty($materials) && count($materials) > 0)
+                            {
+                                MaterialPurchase::insert($materials);
                             }
                         }
-                    }
-                    
-                    $result  = $this->model->create($purchase_data);
-                    if(empty($result))
-                    {
-                        if($request->hasFile('document')){
-                            $this->delete_file($purchase_data['document'], PURCHASE_DOCUMENT_PATH);
-                        }
-                    }
-                    $purchase = $this->model->with('purchase_materials')->find($result->id);
-                    $purchase->purchase_materials()->sync($materials);
-
-                    
-                    $supplier = Supplier::with('coa')->find($request->supplier_id);
-                    $this->purchase_balance_add($result->id,$request->grand_total,$supplier->coa->id,$supplier->name,$request->purchase_date,$payment_data);
-                    if($result)
-                    {
-                        $output = ['status'=>'success','message'=>'Data has been saved successfully','purchase_id'=>$result->id];
+                        
+                        $payment_data = [
+                            'payment_method' => $request->payment_method,
+                            'account_id'     => $request->account_id,
+                            'paid_amount'    => $request->paid_amount ? $request->paid_amount : 0,
+                            'reference_no'   => $request->reference_number ? $request->reference_number : '',
+                        ];
+                        $supplier = Supplier::with('coa')->find($request->supplier_id);
+                        $this->purchase_balance_add($purchase->id,$request->memo_no,$request->net_total,$supplier->coa->id,$supplier->name,$request->purchase_date,$payment_data);
+                        $output = ['status'=>'success','message'=>'Data has been saved successfully','purchase_id'=>$purchase->id];
                     }else{
                         $output = ['status'=>'error','message'=>'Failed to save data','purchase_id'=>''];
                     }
@@ -280,13 +260,12 @@ class PurchaseController extends BaseController
     }
 
  
-    private function purchase_balance_add(int $purchase_id,$balance, int $supplier_coa_id, string $supplier_name, $purchase_date, array $payment_data) {
+    private function purchase_balance_add(int $purchase_id,$memo_no,$balance, int $supplier_coa_id, string $supplier_name, $purchase_date, array $payment_data) {
         if(!empty($purchase_id) && !empty($balance) && !empty($supplier_coa_id) && !empty($supplier_name)  && !empty($purchase_date)){
             // supplier Credit
             $purchase_coa_transaction = array(
                 'chart_of_account_id' => $supplier_coa_id,
-                'warehouse_id'        => 1,
-                'voucher_no'          => $purchase_id,
+                'voucher_no'          => $memo_no,
                 'voucher_type'        => 'Purchase',
                 'voucher_date'        => $purchase_date,
                 'description'         => 'Supplier '.$supplier_name,
@@ -301,8 +280,7 @@ class PurchaseController extends BaseController
             //Inventory Debit
             $cosde = array(
                 'chart_of_account_id' => DB::table('chart_of_accounts')->where('code', $this->coa_head_code('inventory'))->value('id'),
-                'warehouse_id'        =>1,
-                'voucher_no'          => $purchase_id,
+                'voucher_no'          => $memo_no,
                 'voucher_type'        => 'Purchase',
                 'voucher_date'        => $purchase_date,
                 'description'         => 'Inventory Debit For Supplier '.$supplier_name,
@@ -317,8 +295,7 @@ class PurchaseController extends BaseController
              // Expense for company
             $expense = array(
                 'chart_of_account_id' => DB::table('chart_of_accounts')->where('code', $this->coa_head_code('material_purchase'))->value('id'),
-                'warehouse_id'        =>1,
-                'voucher_no'          => $purchase_id,
+                'voucher_no'          => $memo_no,
                 'voucher_type'        => 'Purchase',
                 'voucher_date'        => $purchase_date,
                 'description'         => 'Company Credit For Supplier '.$supplier_name,
@@ -340,8 +317,7 @@ class PurchaseController extends BaseController
                 /****************/
                 $supplierdebit = array(
                     'chart_of_account_id' => $supplier_coa_id,
-                    'warehouse_id'        =>1,
-                    'voucher_no'          => $purchase_id,
+                    'voucher_no'          => $memo_no,
                     'voucher_type'        => 'Purchase',
                     'voucher_date'        => $purchase_date,
                     'description'         => 'Supplier .' . $supplier_name,
@@ -356,8 +332,7 @@ class PurchaseController extends BaseController
                     //Cah In Hand For Supplier
                     $payment = array(
                         'chart_of_account_id' => $payment_data['account_id'],
-                        'warehouse_id'        =>1,
-                        'voucher_no'          => $purchase_id,
+                        'voucher_no'          => $memo_no,
                         'voucher_type'        => 'Purchase',
                         'voucher_date'        => $purchase_date,
                         'description'         => 'Cash in Hand For Supplier ' . $supplier_name,
@@ -373,8 +348,7 @@ class PurchaseController extends BaseController
                     // Bank Ledger
                     $payment = array(
                         'chart_of_account_id' => $payment_data['account_id'],
-                        'warehouse_id'        =>1,
-                        'voucher_no'          => $purchase_id,
+                        'voucher_no'          => $memo_no,
                         'voucher_type'        => 'Purchase',
                         'voucher_date'        => $purchase_date,
                         'description'         => 'Paid amount for Supplier  ' . $supplier_name,
@@ -398,7 +372,7 @@ class PurchaseController extends BaseController
                         'supplier_debit_transaction_id' => $supplier_debit_transaction->id,
                         'amount'                        => $payment_data['paid_amount'],
                         'payment_method'                => $payment_data['payment_method'],
-                        'cheque_no'                     => $payment_data['cheque_no'],
+                        'reference_no'                  => $payment_data['reference_no'],
                         'created_by'                    => auth()->user()->name
                     ]);
                 }
@@ -425,8 +399,7 @@ class PurchaseController extends BaseController
             $this->setPageData('Edit Purchase','Edit Purchase','fas fa-edit',[['name'=>'Purchase','link' => route('purchase')],['name' => 'Edit Purchase']]);
             $data = [
                 'purchase'   => $this->model->with('purchase_materials','supplier')->find($id),
-                'taxes'      => Tax::activeTaxes(),
-                'materials'      => Material::get()
+                'materials'      => Material::with('purchase_unit')->get(),
             ];
             return view('purchase::edit',$data);
         }else{
@@ -443,16 +416,16 @@ class PurchaseController extends BaseController
                 try {
                     $purchaseData = $this->model->with('purchase_materials')->find($request->purchase_id);
                     $warehouse_id = 1;
-                    $balance = $request->grand_total - $purchaseData->paid_amount;
+                    $balance = $request->net_total - ($purchaseData->paid_amount ? $purchaseData->paid_amount : 0);
                     
                     if($balance == 0)
                     {
                         $payment_status = 1;//paid
-                    }else if($balance == $purchaseData->grand_total)
+                    }else if($balance == $purchaseData->net_total)
                     {
                         $payment_status = 3;//due
                     }else{
-                        if($purchaseData->paid_amount > 0)
+                        if($purchaseData->paid_amount > 0 && $balance < $purchaseData->net_total)
                         {
                             $payment_status = 2;//partial
                         }else{
@@ -462,36 +435,22 @@ class PurchaseController extends BaseController
                     }
                     // dd($balance);
                     $purchase_data = [
-                        'item'             => $request->item,
-                        'total_qty'        => $request->total_qty,
-                        'total_discount'   => $request->total_discount,
-                        'total_tax'        => $request->total_tax,
-                        'total_labor_cost' => $request->labor_cost ? $request->labor_cost : null,
-                        'total_cost'       => $request->total_cost,
-                        'order_tax_rate'   => $request->order_tax_rate,
-                        'order_tax'        => $request->order_tax,
-                        'order_discount'   => $request->order_discount ? $request->order_discount : null,
-                        'shipping_cost'    => $request->shipping_cost ? $request->shipping_cost : null,
-                        'grand_total'      => $request->grand_total,
-                        'due_amount'       => ($request->grand_total - ($purchaseData->paid_amount ? $purchaseData->paid_amount : 0)),
-                        'purchase_status'  => $request->purchase_status,
-                        'payment_status'   => $payment_status,
-                        'note'             => $request->note,
-                        'purchase_date'    => $request->purchase_date,
-                        'modified_by'       => auth()->user()->name
+                        'item'            => $request->item,
+                        'total_qty'       => $request->total_qty,
+                        'grand_total'     => $request->grand_total,
+                        'discount_amount' => $request->discount_amount ? $request->discount_amount : 0,
+                        'net_total'       => $request->net_total,
+                        'paid_amount'     => $request->paid_amount ? $request->paid_amount : 0,
+                        'due_amount'      => $request->due_amount,
+                        'payment_status'  => $payment_status,
+                        'purchase_date'   => $request->purchase_date,
+                        'modified_by'     => auth()->user()->name
                     ];
-
-                    if($request->hasFile('document')){
-                        $purchase_data['document'] = $this->upload_file($request->file('document'),PURCHASE_DOCUMENT_PATH);
-                    }
-                    
-                    $old_supplier_id = $purchaseData->supplier_id;
-                    $old_document = $purchaseData ? $purchaseData->document : '';
 
                     if(!$purchaseData->purchase_materials->isEmpty())
                     {
                         foreach ($purchaseData->purchase_materials as  $purchase_material) {
-                            $old_received_qty = $purchase_material->pivot->received;
+                            $old_received_qty = $purchase_material->pivot->qty;
                             $purchase_unit = Unit::find($purchase_material->pivot->purchase_unit_id);
                             //dd($purchase_unit);
                             if($purchase_unit->operator == '*'){
@@ -503,7 +462,8 @@ class PurchaseController extends BaseController
                             $material_data = Material::find($purchase_material->id);
                             if($material_data){
                                 $material_data->qty -= $old_received_qty;
-                                $material_data->cost = $purchase_material->pivot->old_cost;
+                                $material_data->cost = $material_data->old_cost;
+                                $material_data->old_cost = $purchase_material->pivot->old_cost;
                                 $material_data->update();
                             }
                             
@@ -522,55 +482,53 @@ class PurchaseController extends BaseController
 
                     //purchase materials
                     $materials = [];
-                    $labor_cost = $request->labor_cost ? floatval($request->labor_cost) : 0;
-                    $shipping_cost = $request->shipping_cost ? floatval($request->shipping_cost) : 0;
-                    $material_additional_cost = ($request->total_qty > 0) ? ($shipping_cost+$labor_cost) / floatval($request->total_qty) : 0;
                     if($request->has('materials'))
-                    {
-                        
+                    {                        
                         foreach ($request->materials as $key => $value) {
-                            $unit = Unit::where('unit_name',$value['unit'])->first();
-                            // dd($unit);
+                            $unit = Unit::find($value['purchase_unit_id']);
+
                             if($unit->operator == '*'){
-                                $qty = $value['received'] * $unit->operation_value;
+                                $qty = $value['qty'] * $unit->operation_value;
                             }else{
-                                $qty = $value['received'] / $unit->operation_value;
+                                $qty = $value['qty'] / $unit->operation_value;
                             }
+                            
                             $material = Material::find($value['id']);
 
                             if($material->tax_method == 1){
                                 if($unit->operator == '*'){
-                                    $material_cost = (((floatval($value['net_unit_cost'] + ($value['discount'] / $value['qty'])) * $value['qty'])) /  $value['qty']) / $unit->operation_value;
+                                    $material_cost = ((floatval($value['net_unit_cost']) * $value['qty']) /  $value['qty']) / $unit->operation_value;
                                 }elseif ($unit->operator == '/') {
-                                    $material_cost = (((floatval($value['net_unit_cost'] + ($value['discount'] / $value['qty'])) * $value['qty'])) /  $value['qty']) * $unit->operation_value;
+                                    $material_cost = ((floatval($value['net_unit_cost']) * $value['qty']) /  $value['qty']) * $unit->operation_value;
                                 }
                             }else{
                                 if($unit->operator == '*'){
-                                    $material_cost = ((floatval($value['subtotal'] + ($value['discount'] / $value['qty'])) / $value['qty']) / $unit->operation_value);
+                                    $material_cost = ((floatval($value['subtotal']) / $value['qty']) / $unit->operation_value);
                                 }elseif ($unit->operator == '/') {
-                                  	$material_cost = ((floatval($value['subtotal'] + ($value['discount'] / $value['qty'])) / $value['qty']) * $unit->operation_value);
+                                    $material_cost = ((floatval($value['subtotal']) / $value['qty']) * $unit->operation_value);
                                 }
                                 
                             }
-                            $material_cost = $material_cost + $material_additional_cost;
-                            $new_cost = $material->cost > 0 ? (($material_cost + $material->cost)/2) : $material_cost;
                             
+                            $current_stock_value = ($material->qty ? $material->qty : 0) * ($material->cost ? $material->cost : 0);
+                            $new_cost            = (($material_cost * $qty) + $current_stock_value) / ($qty + $material->qty);
+                            $current_cost        = $material->cost ? $material->cost : 0;
+                            $old_cost            = $material->old_cost ? $material->old_cost : 0;
+
                             $materials[$value['id']] = [
                                 'qty'              => $value['qty'],
-                                'received'         => $value['received'],
-                                'purchase_unit_id' => $unit ? $unit->id : null,
+                                'purchase_unit_id' => $value['purchase_unit_id'],
                                 'net_unit_cost'    => $value['net_unit_cost'],
                                 'new_unit_cost'    => $new_cost,
-                                'discount'         => $value['discount'],
-                                'tax_rate'         => $value['tax_rate'],
-                                'tax'              => $value['tax'],
-                                'total'            => $value['subtotal']
+                                'old_cost'         => $old_cost,
+                                'total'            => $value['subtotal'],
+                                'created_at'       => date('Y-m-d H:i:s')
                             ];
 
-                            
                             if($material){
-                                $material->qty += $qty;
-                                $material->cost = $new_cost;
+                                $material->qty     += $qty;
+                                $material->cost     = $new_cost;
+                                $material->old_cost = $current_cost;
                                 $material->save();    
                             }
                             
@@ -580,38 +538,19 @@ class PurchaseController extends BaseController
                                 $warehouse_material->save();
                             }else{
                                 WarehouseMaterial::create([
-                                    'warehouse_id' => $request->warehouse_id,
+                                    'warehouse_id' => $warehouse_id,
                                     'material_id'  => $value['id'],
                                     'qty'          => $qty
                                 ]);
                             }
                         }
-                    }
-                    
-                    $purchase = $purchaseData->update($purchase_data);
-                    if(empty($purchase))
-                    {
-                        if($request->hasFile('document')){
-                            $this->delete_file($purchase_data['document'], PURCHASE_DOCUMENT_PATH);
-                            if($purchase && $old_document != '')
-                            {
-                                $this->delete_file($old_document,PURCHASE_DOCUMENT_PATH);
-                            }
-                        }
-                    }
-                    
-                    $purchaseData->purchase_materials()->sync($materials);
 
-                    
-                    $supplier = Supplier::with('coa')->find($request->supplier_id);
-                    if($request->supplier_id == $old_supplier_id){
-                        $old_supplier_coa_id = $supplier->coa->id;
-                    }else{
-                        $old_supplier = Supplier::with('coa')->find($old_supplier_id);
-                        $old_supplier_coa_id = $old_supplier->coa->id;
                     }
-                    
-                    $this->purchase_balance_update($request->purchase_id,$request->grand_total,$supplier->coa->id,$supplier->name,$request->purchase_date,$old_supplier_coa_id);
+                    $purchase = $purchaseData->update($purchase_data);
+                    $purchaseData->purchase_materials()->sync($materials);
+                    $supplier = Supplier::with('coa')->find($request->supplier_id);
+                    Transaction::where('voucher_no', (string) $request->memo_no)->where('voucher_type', (string) "Purchase")->delete();
+                    $this->purchase_balance_add($purchase->id,$request->memo_no,$request->net_total,$supplier->coa->id,$supplier->name,$request->purchase_date,$payment_data);
                     $output  = $this->store_message($purchase, $request->purchase_id);
                     DB::commit();
                     // return response()->json($output);
@@ -629,59 +568,6 @@ class PurchaseController extends BaseController
         }
     }
 
-    private function purchase_balance_update(int $purchase_id,$balance, int $supplier_coa_id, string $supplier_name,$purchase_date, $old_supplier_coa_id) {
-        if(!empty($purchase_id) && !empty($balance) && !empty($supplier_coa_id) && !empty($supplier_name) && !empty($purchase_date) && !empty($old_supplier_coa_id)){
-
-            if($supplier_coa_id != $old_supplier_coa_id)
-            {
-                PurchasePayment::where('purchase_id', $purchase_id)->delete();
-                $remove_purchase_transaction = Transaction::where('voucher_no', (string) $purchase_id)->where('voucher_type', (string) "Purchase")->delete();
-                // dd($remove_purchase_transaction);
-                if($remove_purchase_transaction)
-                {
-                    $this->purchase_balance_add($purchase_id,$balance,$supplier_coa_id,$supplier_name,$purchase_date,$payment_data = []);
-                }
-            }else{
-                $purchase_coa_transaction = Transaction::where(['chart_of_account_id' => $supplier_coa_id,'voucher_no' => $purchase_id,'voucher_type'=> 'Purchase'])->first();
-                if($purchase_coa_transaction)
-                {
-                    $purchase_coa_transaction->update([
-                        'voucher_date' => $purchase_date,
-                        'credit'       => $balance,
-                        'modified_by'  => auth()->user()->name,
-                        'updated_at'   => date('Y-m-d H:i:s')
-                    ]);
-                }
-
-                $purchase_coscr = Transaction::where([
-                    'chart_of_account_id' => DB::table('chart_of_accounts')->where('code', $this->coa_head_code('inventory'))->value('id'),
-                    'voucher_no' => $purchase_id,'voucher_type'=> 'Purchase'])->first();
-                if($purchase_coscr)
-                {
-                    $purchase_coscr->update([
-                        'voucher_date' => $purchase_date,
-                        'debit'        => $balance,
-                        'modified_by'  => auth()->user()->name,
-                        'updated_at'   => date('Y-m-d H:i:s')
-                    ]);
-                }
-                $company_expense = Transaction::where([
-                    'chart_of_account_id' => DB::table('chart_of_accounts')->where('code', $this->coa_head_code('material_purchase'))->value('id'),
-                    'voucher_no' => $purchase_id,'voucher_type'=> 'Purchase'])->first();
-                if($company_expense)
-                {
-                    $company_expense->update([
-                        'voucher_date' => $purchase_date,
-                        'debit'        => $balance,
-                        'modified_by'  => auth()->user()->name,
-                        'updated_at'   => date('Y-m-d H:i:s')
-                    ]);
-                }
-
-            }
-
-        }
-    }
 
     public function delete(Request $request)
     {
@@ -693,18 +579,20 @@ class PurchaseController extends BaseController
                     if(!$purchaseData->purchase_materials->isEmpty())
                     {
                         foreach ($purchaseData->purchase_materials as  $purchase_material) {
+                            $old_received_qty = $purchase_material->pivot->qty;
                             $purchase_unit = Unit::find($purchase_material->pivot->purchase_unit_id);
+                            //dd($purchase_unit);
                             if($purchase_unit->operator == '*'){
-                                $received_qty = $purchase_material->pivot->received * $purchase_unit->operation_value;
+                                $old_received_qty = $old_received_qty * $purchase_unit->operation_value;
                             }else{
-                                $received_qty = $purchase_material->pivot->received / $purchase_unit->operation_value;
+                                $old_received_qty = $old_received_qty / $purchase_unit->operation_value;
                             }
-
+        
                             $material_data = Material::find($purchase_material->id);
-                            if($material_data)
-                            {
-                                $material_data->qty -= $received_qty;
-                                $material_data->cost = $purchase_material->pivot->old_cost;
+                            if($material_data){
+                                $material_data->qty -= $old_received_qty;
+                                $material_data->cost = $material_data->old_cost;
+                                $material_data->old_cost = $purchase_material->pivot->old_cost;
                                 $material_data->update();
                             }
                             
@@ -714,21 +602,15 @@ class PurchaseController extends BaseController
                                 'material_id'=>$purchase_material->id])->first();
                             if($warehouse_material)
                             {
-                                $warehouse_material->qty -= $received_qty;
+                                $warehouse_material->qty -= $old_received_qty;
                                 $warehouse_material->update();
                             }
-                            
-                            
-                            $pmaterials[] = [
-                                'material_id' => $purchase_material->id,
-                                'material_old_cost' => $purchase_material->pivot->old_cost,
-                            ];
                            
                         }
                         $purchaseData->purchase_materials()->detach();
                     }
                     PurchasePayment::where('purchase_id',$request->id)->delete();
-                    Transaction::where('voucher_no', (string) $request->id)->where('voucher_type', (string) "Purchase")->delete();
+                    Transaction::where('voucher_no', (string) $purchaseData->memo_no)->where('voucher_type', (string) "Purchase")->delete();
                     $result = $purchaseData->delete();
                     $output = $result ? ['status' => 'success','message' => 'Data has been deleted successfully'] : ['status' => 'error','message' => 'failed to delete data'];
                     DB::commit();
@@ -758,17 +640,20 @@ class PurchaseController extends BaseController
                         if(!$purchaseData->purchase_materials->isEmpty())
                         {
                             foreach ($purchaseData->purchase_materials as  $purchase_material) {
+                                $old_received_qty = $purchase_material->pivot->qty;
                                 $purchase_unit = Unit::find($purchase_material->pivot->purchase_unit_id);
+                                //dd($purchase_unit);
                                 if($purchase_unit->operator == '*'){
-                                    $received_qty = $purchase_material->pivot->received * $purchase_unit->operation_value;
+                                    $old_received_qty = $old_received_qty * $purchase_unit->operation_value;
                                 }else{
-                                    $received_qty = $purchase_material->pivot->received / $purchase_unit->operation_value;
+                                    $old_received_qty = $old_received_qty / $purchase_unit->operation_value;
                                 }
+            
                                 $material_data = Material::find($purchase_material->id);
-                                if($material_data)
-                                {
-                                    $material_data->qty -= $received_qty;
-                                    $material_data->cost =  $purchase_material->pivot->old_cost;
+                                if($material_data){
+                                    $material_data->qty -= $old_received_qty;
+                                    $material_data->cost = $material_data->old_cost;
+                                    $material_data->old_cost = $purchase_material->pivot->old_cost;
                                     $material_data->update();
                                 }
                                 
@@ -778,7 +663,7 @@ class PurchaseController extends BaseController
                                     'material_id'=>$purchase_material->id])->first();
                                 if($warehouse_material)
                                 {
-                                    $warehouse_material->qty -= $received_qty;
+                                    $warehouse_material->qty -= $old_received_qty;
                                     $warehouse_material->update();
                                 }
                                 
@@ -786,7 +671,7 @@ class PurchaseController extends BaseController
                             $purchaseData->purchase_materials()->detach();
                         }
                         PurchasePayment::where('purchase_id',$id)->delete();
-                        Transaction::where('voucher_no', (string) $id)->where('voucher_type', (string) "Purchase")->delete();
+                        Transaction::where('voucher_no', (string) $purchaseData->memo_no)->where('voucher_type', (string) "Purchase")->delete();
                         $result = $purchaseData->delete();
                         $output = $result ? ['status' => 'success','message' => 'Data has been deleted successfully'] : ['status' => 'error','message' => 'failed to delete data'];
                         DB::commit();

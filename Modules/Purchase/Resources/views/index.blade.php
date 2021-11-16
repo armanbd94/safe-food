@@ -92,6 +92,7 @@
                                         <th>Memo No.</th>
                                         <th>Supplier Name</th>
                                         <th>Total Item</th>
+                                        <th>Total Qty</th>
                                         <th>Total</th>
                                         <th>Discount</th>
                                         <th>Net Total</th>
@@ -212,26 +213,26 @@
             },
             "columnDefs": [{
                     @if (permission('purchase-bulk-delete'))
-                    "targets": [0,12],
+                    "targets": [0,13],
                     @else
-                    "targets": [11],
+                    "targets": [12],
                     @endif
                     "orderable": false,
                     "className": "text-center"
                 },
                 {
                     @if (permission('purchase-bulk-delete'))
-                    "targets": [1,2,3,10,11],
+                    "targets": [1,2,3,4,10,11],
                     @else
-                    "targets": [0,1,2,9,10],
+                    "targets": [0,1,2,3,9,10],
                     @endif
                     "className": "text-center"
                 },
                 {
                     @if (permission('purchase-bulk-delete'))
-                    "targets": [5,6,7,8,9],
+                    "targets": [6,7,8,9,10],
                     @else
-                    "targets": [4,5,6,7,8],
+                    "targets": [5,6,7,8,9],
                     @endif
                     "className": "text-right"
                 },
@@ -254,9 +255,9 @@
                     "pageSize": "A4", //A3,A5,A6,legal,letter
                     "exportOptions": {
                         @if (permission('purchase-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(12))' 
+                        columns: ':visible:not(:eq(0),:eq(13))' 
                         @else
-                        columns: ':visible:not(:eq(11))' 
+                        columns: ':visible:not(:eq(12))' 
                         @endif
                     },
                     customize: function (win) {
@@ -276,9 +277,9 @@
                     "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                     "exportOptions": {
                         @if (permission('purchase-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(12))' 
+                        columns: ':visible:not(:eq(0),:eq(13))' 
                         @else
-                        columns: ':visible:not(:eq(11))' 
+                        columns: ':visible:not(:eq(12))' 
                         @endif
                     }
                 },
@@ -290,9 +291,9 @@
                     "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                     "exportOptions": {
                         @if (permission('purchase-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(12))' 
+                        columns: ':visible:not(:eq(0),:eq(13))' 
                         @else
-                        columns: ':visible:not(:eq(11))' 
+                        columns: ':visible:not(:eq(12))' 
                         @endif
                     }
                 },
@@ -306,9 +307,9 @@
                     "pageSize": "A4", //A3,A5,A6,legal,letter
                     "exportOptions": {
                         @if (permission('purchase-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(12))' 
+                        columns: ':visible:not(:eq(0),:eq(13))' 
                         @else
-                        columns: ':visible:not(:eq(11))' 
+                        columns: ':visible:not(:eq(12))' 
                         @endif
                     },
                     customize: function(doc) {

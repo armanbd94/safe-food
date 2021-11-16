@@ -68,7 +68,7 @@
                                                     @if (!$materials->isEmpty())
                                                         <option value="0">Please Select</option>
                                                     @foreach ($materials as $material)
-                                                        <option value="{{ $material->id }}" data-unitid="{{ $material->purchase_unit_ide }}" data-unitname="{{ $material->purchase_unit->unit_name }}">{{ $material->material_name.' ('.$material->material_code.')'; }}</option>
+                                                        <option value="{{ $material->id }}" data-unitid="{{ $material->purchase_unit_id }}" data-unitname="{{ $material->purchase_unit->unit_name }}">{{ $material->material_name.' ('.$material->material_code.')'; }}</option>
                                                     @endforeach
                                                     @endif
                                                 </select>
@@ -225,7 +225,7 @@ $(document).ready(function () {
                                 @if (!$materials->isEmpty())
                                     <option value="0">Please Select</option>
                                 @foreach ($materials as $material)
-                                    <option value="{{ $material->id }}" data-unitid="{{ $material->purchase_unit_ide }}" data-unitname="{{ $material->purchase_unit->unit_name }}">{{ $material->material_name.' ('.$material->material_code.')'; }}</option>
+                                    <option value="{{ $material->id }}" data-unitid="{{ $material->purchase_unit_id }}" data-unitname="{{ $material->purchase_unit->unit_name }}">{{ $material->material_name.' ('.$material->material_code.')'; }}</option>
                                 @endforeach
                                 @endif
                             </select>
@@ -256,13 +256,13 @@ function calculateRowTotal(row)
 {
     let cost = $(`#materials_${row}_net_unit_cost`).val() ? parseFloat($(`#materials_${row}_net_unit_cost`).val()) : 0;
     let qty = $(`#materials_${row}_qty`).val() ? parseFloat($(`#materials_${row}_qty`).val()) : 0;
-    if(qty < 1 || qty == ''){
+    if(qty < 0 || qty == ''){
         qty = 0;
-        $(`#materials_${row}_qty`).val('');
+        // $(`#materials_${row}_qty`).val('');
     }
-    if(cost < 1 || cost == ''){
+    if(cost < 0 || cost == ''){
         cost = 0;
-        $(`#materials_${row}_net_unit_cost`).val('');
+        // $(`#materials_${row}_net_unit_cost`).val('');
     }
 
     $(`.subtotal_${row}`).text((qty * cost).toFixed(2));
@@ -293,7 +293,7 @@ function calculateTotal()
     $('#total').text(total.toFixed(2));
     $('input[name="grand_total"]').val(total.toFixed(2));
 
-    var item = $('#product_table tbody tr:last').index()+1;
+    var item = $('#material_table tbody tr:last').index()+1;
     $('input[name="item"]').val(item);
     calculateNetTotal();
 }

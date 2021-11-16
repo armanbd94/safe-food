@@ -31,7 +31,7 @@ class PaymentController extends Controller
                             'purchase_id'     => $request->purchase_id,
                             'amount'          => $request->amount,
                             'payment_method'  => $request->payment_method,
-                            'cheque_no'       => $request->payment_method == 2 ? $request->cheque_number : null,
+                            'reference_no'       => $request->payment_method == 2 ? $request->reference_number : null,
                             'supplier_coa_id' => $supplier->coa->id,
                             'supplier_name'   => $supplier->name,
                             'purchase_date'   => $purchase_data->purchase_date,
@@ -39,15 +39,19 @@ class PaymentController extends Controller
                         ];
                         if(empty($request->payment_id)){
                             $purchase_data->paid_amount += $request->amount;
-                            $balance = $purchase_data->grand_total - $purchase_data->paid_amount;
+                            $balance = $purchase_data->net_total - $purchase_data->paid_amount;
                             if($balance == 0)
                             {
                                 $purchase_data->payment_status = 1;//paid
-                            }else if($balance == $purchase_data->grand_total)
+                            }else if($balance == $purchase_data->net_total)
                             {
                                 $purchase_data->payment_status = 3;//due
                             }else{
-                                $purchase_data->payment_status = 2;//partial
+                                if($balance > 0 && $balance < $purchase_data->net_total){
+                                    $purchase_data->payment_status = 2;//partial
+                                }else{
+                                    $purchase_data->payment_status = 3;//due
+                                }
                             }
                             $payment_data['supplier_debit_transaction_id'] = '';
                             $payment_data['transaction_id'] = '';
@@ -55,15 +59,19 @@ class PaymentController extends Controller
                             $payment = PurchasePayment::find($request->payment_id);
                             $amount_diff = $payment->amount - $request->amount;
                             $purchase_data->paid_amount -= $amount_diff;
-                            $balance = $purchase_data->grand_total - $purchase_data->paid_amount;
+                            $balance = $purchase_data->net_total - $purchase_data->paid_amount;
                             if($balance == 0)
                             {
                                 $purchase_data->payment_status = 1;//paid
-                            }else if($balance == $purchase_data->grand_total)
+                            }else if($balance == $purchase_data->net_total)
                             {
                                 $purchase_data->payment_status = 3;//due
                             }else{
-                                $purchase_data->payment_status = 2;//partial
+                                if($balance > 0 && $balance < $purchase_data->net_total){
+                                    $purchase_data->payment_status = 2;//partial
+                                }else{
+                                    $purchase_data->payment_status = 3;//due
+                                }
                             }
 
                             $payment_data['supplier_debit_transaction_id'] = $payment->supplier_debit_transaction_id;
@@ -94,7 +102,6 @@ class PaymentController extends Controller
     {
         /****************/
         $supplierdebit = array(
-            'warehouse_id' => 1,
             'chart_of_account_id' => $payment_data['supplier_coa_id'],
             'voucher_no'          => $payment_data['purchase_id'],
             'voucher_type'        => 'Purchase',
@@ -108,7 +115,6 @@ class PaymentController extends Controller
         if($payment_data['payment_method'] == 1){
             //Cah In Hand For Supplier
             $payment = array(
-                'warehouse_id' => 1,
                 'chart_of_account_id' => $payment_data['account_id'],
                 'voucher_no'          => $payment_data['purchase_id'],
                 'voucher_type'        => 'Purchase',
@@ -123,7 +129,6 @@ class PaymentController extends Controller
         }else{
             // Bank Ledger
             $payment = array(
-                'warehouse_id' => 1,
                 'chart_of_account_id' => $payment_data['account_id'],
                 'voucher_no'          => $payment_data['purchase_id'],
                 'voucher_type'        => 'Purchase',
@@ -159,7 +164,7 @@ class PaymentController extends Controller
                 'supplier_debit_transaction_id' => $supplier_debit_transaction->id,
                 'amount'                        => $payment_data['amount'],
                 'payment_method'                => $payment_data['payment_method'],
-                'cheque_no'                     => $payment_data['cheque_no'],
+                'reference_no'                     => $payment_data['reference_no'],
             ];
             if($payment_data['payment_id']){
                 $data['modified_by'] = auth()->user()->name;
@@ -193,15 +198,19 @@ class PaymentController extends Controller
                     $payment_data = PurchasePayment::find($request->id);
                     $purchase_data = Purchase::find($payment_data->purchase_id);
                     $purchase_data->paid_amount -= $payment_data->amount;
-                    $balance = $purchase_data->grand_total - $purchase_data->paid_amount;
+                    $balance = $purchase_data->net_total - $purchase_data->paid_amount;
                     if($balance == 0)
                     {
                         $purchase_data->payment_status = 1;//paid
-                    }else if($balance == $purchase_data->grand_total)
+                    }else if($balance == $purchase_data->net_total)
                     {
                         $purchase_data->payment_status = 3;//due
                     }else{
-                        $purchase_data->payment_status = 2;//partial
+                        if($balance > 0 && $balance < $purchase_data->net_total){
+                            $purchase_data->payment_status = 2;//partial
+                        }else{
+                            $purchase_data->payment_status = 3;//due
+                        }
                     }
                     if($purchase_data->update()){
                         $result = $payment_data->delete();

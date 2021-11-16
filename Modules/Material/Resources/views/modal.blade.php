@@ -81,7 +81,7 @@
                                     data-theme="dark" title="Exclusive: price = Actual price + Tax. Inclusive: Actual price = Price - Tax"></i></label>
                                 <select name="tax_method" id="tax_method" required="required" class="form-control selectpicker">
                                 @foreach (TAX_METHOD as $key => $value)
-                                    <option value="{{ $key }}" @if($key == 1){{ 'selected' }} @endif >{{ $value }}</option>
+                                    <option value="{{ $key }}" @if($key == 2){{ 'selected' }} @endif >{{ $value }}</option>
                                 @endforeach
                                 </select>
                             </div>

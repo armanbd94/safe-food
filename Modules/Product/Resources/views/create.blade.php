@@ -98,7 +98,7 @@
                                     <select name="tax_method" id="tax_method" class="form-control selectpicker">
                                     @foreach (TAX_METHOD as $key => $value)
                                         <option value="{{ $key }}" 
-                                       @if($key == 1){{ 'selected' }} @endif>{{ $value }}</option>
+                                       @if($key == 2){{ 'selected' }} @endif>{{ $value }}</option>
                                     @endforeach
                                     </select>
                                 </div>
