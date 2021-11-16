@@ -30,9 +30,9 @@
                       @endforeach
                     </x-form.selectbox>
                     <x-form.selectbox labelName="Account" name="account_id" required="required"  col="col-md-12" class="selectpicker"/>
-                    <div class="form-group col-md-12 d-none cheque_number required">
-                        <label for="cheque_number">Cheque No.</label>
-                        <input type="text" class="form-control" name="cheque_number" id="cheque_number">
+                    <div class="form-group col-md-12 d-none reference_number required">
+                        <label for="reference_number">Reference No.</label>
+                        <input type="text" class="form-control" name="reference_number" id="reference_number">
                     </div>
                     <x-form.textarea labelName="Payment Note" name="payment_note" col="col-md-12"/>
                 </div>

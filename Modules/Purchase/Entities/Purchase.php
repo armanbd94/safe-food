@@ -8,10 +8,8 @@ use Modules\Setting\Entities\Warehouse;
 class Purchase extends BaseModel
 {
     protected $fillable = [
-        'memo_no', 'warehouse_id', 'supplier_id', 'item', 'total_qty', 'total_discount', 'total_tax', 'total_labor_cost',
-         'total_cost', 'order_tax_rate', 'order_tax', 'order_discount', 'shipping_cost', 'grand_total', 'paid_amount', 
-         'due_amount', 'purchase_status', 'payment_status', 'payment_method', 'document', 'note', 'purchase_date', 
-         'created_by', 'modified_by'
+        'memo_no', 'warehouse_id', 'supplier_id', 'item', 'total_qty', 'grand_total', 'discount_amount', 'net_total', 
+        'paid_amount', 'due_amount', 'payment_status', 'payment_method', 'purchase_date', 'created_by', 'modified_by'
     ];
 
     public function warehouse()
@@ -28,8 +26,8 @@ class Purchase extends BaseModel
     {
         return $this->belongsToMany(\Modules\Material\Entities\Material::class,'material_purchase','purchase_id',
         'material_id','id','id')
-        ->withTimeStamps()->withPivot('qty', 'received', 'purchase_unit_id', 'net_unit_cost','new_unit_cost', 'old_cost',
-        'discount', 'tax_rate', 'tax', 'labor_cost', 'total'); 
+        ->withPivot('id','qty', 'purchase_unit_id', 'net_unit_cost', 'new_unit_cost', 'old_cost', 'total')
+        ->withTimeStamps(); 
     }
 
     public function purchase_payments()
@@ -42,38 +40,34 @@ class Purchase extends BaseModel
      * * * Begin :: Custom Datatable Code * * *
     *******************************************/
     //custom search column property
-    protected $memo_no; 
-    protected $from_date; 
-    protected $to_date; 
-    protected $supplier_id; 
-    protected $purchase_status; 
-    protected $payment_status; 
+    protected $_memo_no; 
+    protected $_from_date; 
+    protected $_to_date; 
+    protected $_supplier_id; 
+    protected $_payment_status; 
 
     //methods to set custom search property value
     public function setMemoNo($memo_no)
     {
-        $this->memo_no = $memo_no;
+        $this->_memo_no = $memo_no;
     }
 
     public function setFromDate($from_date)
     {
-        $this->from_date = $from_date;
+        $this->_from_date = $from_date;
     }
     public function setToDate($to_date)
     {
-        $this->to_date = $to_date;
+        $this->_to_date = $to_date;
     }
     public function setSupplierID($supplier_id)
     {
-        $this->supplier_id = $supplier_id;
+        $this->_supplier_id = $supplier_id;
     }
-    public function setPurchaseStatus($purchase_status)
-    {
-        $this->purchase_status = $purchase_status;
-    }
+
     public function setPaymentStatus($payment_status)
     {
-        $this->payment_status = $payment_status;
+        $this->_payment_status = $payment_status;
     }
 
 
@@ -81,34 +75,31 @@ class Purchase extends BaseModel
     {
         //set column sorting index table column name wise (should match with frontend table header)
         if (permission('purchase-bulk-delete')){
-            $this->column_order = [null,'id','memo_no','supplier_id', 'total_item', 'total_cost', 'order_discount','total_labor_cost','order_tax_rate', 'order_tax', 
-            'shipping_cost', 'grand_total', 'paid_amount', 'due_amount', 'purchase_date', 'purchase_status', 'payment_type','payment_status', null];
+            $this->column_order = [null,'id','memo_no','supplier_id', 'item', 'total_qty', 'grand_total', 'discount_amount', 'net_total', 
+            'paid_amount', 'due_amount', 'purchase_date','payment_status',  null];
         }else{
-            $this->column_order = ['id','memo_no','supplier_id', 'total_item', 'total_cost', 'order_discount','total_labor_cost','order_tax_rate', 'order_tax',
-            'shipping_cost', 'grand_total', 'paid_amount', 'due_amount', 'purchase_date', 'purchase_status', 'payment_type','payment_status', null];
+            $this->column_order = ['id','memo_no','supplier_id', 'item', 'total_qty', 'grand_total', 'discount_amount', 'net_total', 
+            'paid_amount', 'due_amount', 'purchase_date','payment_status', null];
         }
         
         $query = self::with('supplier');
 
         //search query
-        if (!empty($this->memo_no)) {
-            $query->where('memo_no', 'like', '%' . $this->memo_no . '%');
+        if (!empty($this->_memo_no)) {
+            $query->where('memo_no', 'like', '%' . $this->_memo_no . '%');
         }
 
-        if (!empty($this->from_date)) {
-            $query->where('purchase_date', '>=',$this->from_date);
+        if (!empty($this->_from_date)) {
+            $query->where('purchase_date', '>=',$this->_from_date);
         }
-        if (!empty($this->to_date)) {
-            $query->where('purchase_date', '<=',$this->to_date);
+        if (!empty($this->_to_date)) {
+            $query->where('purchase_date', '<=',$this->_to_date);
         }
-        if (!empty($this->supplier_id)) {
-            $query->where('supplier_id', $this->supplier_id);
+        if (!empty($this->_supplier_id)) {
+            $query->where('supplier_id', $this->_supplier_id);
         }
-        if (!empty($this->purchase_status)) {
-            $query->where('purchase_status', $this->purchase_status);
-        }
-        if (!empty($this->payment_status)) {
-            $query->where('payment_status', $this->payment_status);
+        if (!empty($this->_payment_status)) {
+            $query->where('payment_status', $this->_payment_status);
         }
 
         //order by data fetching code

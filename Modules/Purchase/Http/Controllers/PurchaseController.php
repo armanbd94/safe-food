@@ -56,9 +56,7 @@ class PurchaseController extends BaseController
                 if (!empty($request->supplier_id)) {
                     $this->model->setSupplierID($request->supplier_id);
                 }
-                if (!empty($request->purchase_status)) {
-                    $this->model->setPurchaseStatus($request->purchase_status);
-                }
+
                 if (!empty($request->payment_status)) {
                     $this->model->setPaymentStatus($request->payment_status);
                 }
@@ -76,10 +74,6 @@ class PurchaseController extends BaseController
                     }
                     if(permission('purchase-view')){
                         $action .= ' <a class="dropdown-item view_data" href="'.route("purchase.view",$value->id).'">'.self::ACTION_BUTTON['View'].'</a>';
-                    }
-                    if($value->document)
-                    {
-                        $action .= '<a class="dropdown-item" href="'.asset('storage/'.PURCHASE_DOCUMENT_PATH.$value->document).'" download><i class="fas fa-download mr-2"></i> Document</a>';
                     }
                     if(permission('purchase-payment-add')){
                         if($value->payment_status != 1){
@@ -99,19 +93,15 @@ class PurchaseController extends BaseController
                     }
                     $row[] = $no;
                     $row[] = $value->memo_no;
-                    $row[] = $value->supplier->name.($value->supplier->mobile ? ' - '.$value->supplier->mobile : '');
-                    $row[] = $value->item.'('.$value->total_qty.')';
-                    $row[] = number_format($value->total_cost,2);
-                    $row[] = $value->order_discount ? number_format($value->order_discount,2) : 0;
-                    $row[] = $value->total_labor_cost ? number_format($value->total_labor_cost,2) : 0;
-                    $row[] = $value->order_tax_rate ? number_format($value->order_tax_rate,2) : 0;
-                    $row[] = $value->order_tax ? number_format($value->order_tax,2) : 0;
-                    $row[] = $value->shipping_cost ? number_format($value->shipping_cost,2) : 0;
-                    $row[] = number_format($value->grand_total,2);
-                    $row[] = number_format($value->paid_amount,2);
-                    $row[] = number_format(($value->grand_total - $value->paid_amount),2);
+                    $row[] = $value->supplier->company_name.' ('.$value->supplier->name.')';
+                    $row[] = $value->item;
+                    $row[] = $value->total_qty;
+                    $row[] = number_format($value->grand_total,2,'.',',');
+                    $row[] = number_format($value->discount_amount ?? 0,2,'.',',');
+                    $row[] = number_format($value->net_total,2,'.',',');
+                    $row[] = number_format($value->paid_amount,2,'.',',');
+                    $row[] = number_format($value->due_amount,2,'.',',');
                     $row[] = date(config('settings.date_format'),strtotime($value->purchase_date));
-                    $row[] = PURCHASE_STATUS_LABEL[$value->purchase_status];
                     $row[] = PAYMENT_STATUS_LABEL[$value->payment_status];
                     $row[] = action_button($action);//custom helper function for action button
                     $data[] = $row;

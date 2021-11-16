@@ -34,9 +34,9 @@
             <div class="card-header flex-wrap py-5">
                 <form method="POST" id="form-filter" class="col-md-12 px-0">
                     <div class="row">
-                        <x-form.textbox labelName="Memo No." name="memo_no" col="col-md-4" />
+                        <x-form.textbox labelName="Memo No." name="memo_no" col="col-md-3" />
                        
-                        <div class="form-group col-md-4">
+                        <div class="form-group col-md-3">
                             <label for="name">Choose Date</label>
                             <div class="input-group">
                                 <input type="text" class="form-control daterangepicker-filed">
@@ -44,25 +44,21 @@
                                 <input type="hidden" id="end_date" name="end_date">
                             </div>
                         </div>
-                        <x-form.selectbox labelName="Supplier" name="supplier_id" col="col-md-4" class="selectpicker">
+                        <x-form.selectbox labelName="Supplier" name="supplier_id" col="col-md-3" class="selectpicker">
                             @if (!$suppliers->isEmpty())
                                 @foreach ($suppliers as $supplier)
                                     <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
                                 @endforeach
                             @endif
                         </x-form.selectbox>
-                        <x-form.selectbox labelName="Purchase Status" name="purchase_status" col="col-md-4" class="selectpicker">
-                            @foreach (PURCHASE_STATUS as $key => $value)
-                                <option value="{{ $key }}">{{ $value }}</option>
-                            @endforeach
-                        </x-form.selectbox>
-                        <x-form.selectbox labelName="Payment Status" name="payment_status" col="col-md-4" class="selectpicker">
+
+                        <x-form.selectbox labelName="Payment Status" name="payment_status" col="col-md-3" class="selectpicker">
                             @foreach (PAYMENT_STATUS as $key => $value)
                                 <option value="{{ $key }}">{{ $value }}</option>
                             @endforeach
                         </x-form.selectbox>
 
-                        <div class="col-md-4">
+                        <div class="col-md-12">
                             <div style="margin-top:28px;">    
                                 <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
                                 data-toggle="tooltip" data-theme="dark" title="Reset">
@@ -98,15 +94,10 @@
                                         <th>Total Item</th>
                                         <th>Total</th>
                                         <th>Discount</th>
-                                        <th>Labor Cost</th>
-                                        <th>Tax Rate(%)</th>
-                                        <th>Order Tax</th>
-                                        <th>Shippping Cost</th>
-                                        <th>Grand Total</th>
+                                        <th>Net Total</th>
                                         <th>Paid Amount</th>
                                         <th>Due Amount</th>
                                         <th>Purchase Date</th>
-                                        <th>Purchase Status</th>
                                         <th>Payment Status</th>
                                         <th>Action</th>
                                     </tr>
@@ -212,36 +203,35 @@
                 "type": "POST",
                 "data": function (data) {
                     data.memo_no       = $("#form-filter #memo_no").val();
-                    data.supplier_id     = $("#form-filter #supplier_id option:selected").val();
+                    data.supplier_id     = $("#form-filter #supplier_id").val();
                     data.from_date       = $("#form-filter #start_date").val();
                     data.to_date         = $("#form-filter #end_date").val();
-                    data.purchase_status = $("#form-filter #purchase_status option:selected").val();
-                    data.payment_status  = $("#form-filter #payment_status option:selected").val();
+                    data.payment_status  = $("#form-filter #payment_status").val();
                     data._token          = _token;
                 }
             },
             "columnDefs": [{
                     @if (permission('purchase-bulk-delete'))
-                    "targets": [0,17],
+                    "targets": [0,12],
                     @else
-                    "targets": [16],
+                    "targets": [11],
                     @endif
                     "orderable": false,
                     "className": "text-center"
                 },
                 {
                     @if (permission('purchase-bulk-delete'))
-                    "targets": [1,2,4,14,15,16],
+                    "targets": [1,2,3,10,11],
                     @else
-                    "targets": [0,1,3,13,14,15],
+                    "targets": [0,1,2,9,10],
                     @endif
                     "className": "text-center"
                 },
                 {
                     @if (permission('purchase-bulk-delete'))
-                    "targets": [5,6,7,8,9,10,11,12,13],
+                    "targets": [5,6,7,8,9],
                     @else
-                    "targets": [4,5,6,7,8,9,10,11,12],
+                    "targets": [4,5,6,7,8],
                     @endif
                     "className": "text-right"
                 },
@@ -252,7 +242,6 @@
                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'<'float-right'p>>>",
     
             "buttons": [
-                @if (permission('purchase-report'))
                 {
                     'extend':'colvis','className':'btn btn-secondary btn-sm text-white','text':'Column','columns': ':gt(0)'
                 },
@@ -265,9 +254,9 @@
                     "pageSize": "A4", //A3,A5,A6,legal,letter
                     "exportOptions": {
                         @if (permission('purchase-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(17))' 
+                        columns: ':visible:not(:eq(0),:eq(12))' 
                         @else
-                        columns: ':visible:not(:eq(16))' 
+                        columns: ':visible:not(:eq(11))' 
                         @endif
                     },
                     customize: function (win) {
@@ -287,9 +276,9 @@
                     "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                     "exportOptions": {
                         @if (permission('purchase-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(17))' 
+                        columns: ':visible:not(:eq(0),:eq(12))' 
                         @else
-                        columns: ':visible:not(:eq(16))' 
+                        columns: ':visible:not(:eq(11))' 
                         @endif
                     }
                 },
@@ -301,9 +290,9 @@
                     "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                     "exportOptions": {
                         @if (permission('purchase-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(17))' 
+                        columns: ':visible:not(:eq(0),:eq(12))' 
                         @else
-                        columns: ':visible:not(:eq(16))' 
+                        columns: ':visible:not(:eq(11))' 
                         @endif
                     }
                 },
@@ -317,9 +306,9 @@
                     "pageSize": "A4", //A3,A5,A6,legal,letter
                     "exportOptions": {
                         @if (permission('purchase-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(17))' 
+                        columns: ':visible:not(:eq(0),:eq(12))' 
                         @else
-                        columns: ':visible:not(:eq(16))' 
+                        columns: ':visible:not(:eq(11))' 
                         @endif
                     },
                     customize: function(doc) {
@@ -328,7 +317,6 @@
                         doc.pageMargins = [5,5,5,5];
                     }  
                 },
-                @endif
                 @if (permission('purchase-bulk-delete'))
                 {
                     'className':'btn btn-danger btn-sm delete_btn d-none text-white',
@@ -390,7 +378,7 @@
                 $('#payment_form')[0].reset();
                 $('#payment_form').find('.is-invalid').removeClass('is-invalid');
                 $('#payment_form').find('.error').remove();
-                $('.cheque_number').addClass('d-none');
+                $('.reference_number').addClass('d-none');
                 $('.selectpicker').selectpicker('refresh');
                 if (id) {
                     $('#payment_modal #payment_id').val('');
@@ -413,14 +401,14 @@
             let due = $(this).data('due');
             let payment_method = $(this).data('paymentmethod');
             let account_id = $(this).data('accountid');
-            let cheque_no = $(this).data('chequeno');
+            let reference_no = $(this).data('referenceno');
             let payment_note = $(this).data('note');
             if(id)
             {
                 $('#payment_form')[0].reset();
                 $('#payment_form').find('.is-invalid').removeClass('is-invalid');
                 $('#payment_form').find('.error').remove();
-                $('.cheque_number').addClass('d-none');
+                $('.reference_number').addClass('d-none');
                 $('.selectpicker').selectpicker('refresh');
                 if (id) {
                     $('#payment_modal #payment_id').val(id);
@@ -431,12 +419,12 @@
                     $('#payment_modal #account_id').val(account_id);
                     $('#payment_modal #payment_note').val(payment_note);
                     account_list(payment_method,account_id);
-                    if(payment_method == 2){
-                        $('.cheque_number').removeClass('d-none');
-                        $('#cheque_number').val(cheque_no);
+                    if(payment_method != 1){
+                        $('.reference_number').removeClass('d-none');
+                        $('#reference_number').val(reference_no);
                     }else{
-                        $('.cheque_number').addClass('d-none');
-                        $('#cheque_number').val('');
+                        $('.reference_number').addClass('d-none');
+                        $('#reference_number').val('');
                     }
                     $('.selectpicker').selectpicker('refresh');
                     $('#payment_view_modal').modal('hide');
@@ -559,11 +547,11 @@
         });
 
         $(document).on('change', '#payment_method', function () {
-            if($('#payment_method option:selected').val() == 2)
+            if($('#payment_method option:selected').val() != 1)
             {
-                $('.cheque_number').removeClass('d-none');
+                $('.reference_number').removeClass('d-none');
             }else{
-                $('.cheque_number').addClass('d-none');
+                $('.reference_number').addClass('d-none');
             }
             account_list($('#payment_method option:selected').val());
         });
