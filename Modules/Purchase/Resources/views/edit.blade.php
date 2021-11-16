@@ -12,6 +12,14 @@
 
 @section('content')
 <div class="d-flex flex-column-fluid">
+    @php
+        $payment_method = $account_id = $reference_no = '';
+        if($purchase->purchase_payments->isEmpty())
+        {
+            $account_id = $purchase->purchase_payments[0]->account_id;
+            $reference_no = $purchase->purchase_payments[0]->reference_no;
+        }
+    @endphp
     <div class="container-fluid">
         <!--begin::Notice-->
         <div class="card card-custom gutter-b">
@@ -35,20 +43,16 @@
                 <div id="kt_datatable_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
                     <form action="" id="purchase_store_form" method="post" enctype="multipart/form-data">
                         @csrf
+                        <input type="hidden" name="purchase_id" id="purchase_id" value="{{ $purchase->id }}">
+                        <input type="hidden" name="supplier_id" id="supplier_id" value="{{ $purchase->supplier_id }}">
                         <div class="row">
                             <div class="form-group col-md-4 required">
                                 <label for="chalan_no">Memo No.</label>
-                                <input type="text" class="form-control" name="memo_no" id="memo_no" value="{{ $memo_no }}" readonly />
+                                <input type="text" class="form-control" name="memo_no" id="memo_no" value="{{ $purchase->memo_no }}" readonly />
                             </div>
                             <x-form.textbox labelName="Purchase Date" name="purchase_date" value="{{ date('Y-m-d') }}" required="required" class="date" col="col-md-4"/>
+                            <x-form.textbox labelName="Supplier" name="supplier" value="{{ $purchase->supplier->name }}" required="required" property="readonly" col="col-md-4"/>
 
-                            <x-form.selectbox labelName="Supplier" name="supplier_id" required="required" col="col-md-4" class="selectpicker">
-                                @if (!$suppliers->isEmpty())
-                                    @foreach ($suppliers as $supplier)
-                                        <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                                    @endforeach 
-                                @endif
-                            </x-form.selectbox>
 
 
                             <div class="col-md-12">
@@ -85,16 +89,16 @@
                                     <tfoot>
                                         <tr>
                                             <td colspan="2" class="font-weight-bolder">Total</td>
-                                            <td id="total-qty" class="text-center font-weight-bolder">0</td>
+                                            <td id="total-qty" class="text-center font-weight-bolder">{{ $purchase->total_qty }}</td>
                                             <td></td>
-                                            <td id="total" class="text-right font-weight-bolder">0.00</td>
+                                            <td id="total" class="text-right font-weight-bolder">{{ number_format($purchase->grand_total,2,'.',',') }}</td>
                                             <td class="text-center">
                                                 <button type="button" class="btn btn-success small-btn btn-sm add-material"><i class="fas fa-plus"></i></button>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td class="text-right font-weight-bolder" colspan="4">Discount Amount</td>
-                                            <td><input type="text" class="fcs form-control text-right" name="discount_amount" id="discount_amount" onkeyup="calculateNetTotal()" placeholder="0.00"></td>
+                                            <td><input type="text" class="fcs form-control text-right" name="discount_amount" id="discount_amount" value="{{ number_format($purchase->discount_amount,2,'.','') }}" onkeyup="calculateNetTotal()" placeholder="0.00"></td>
                                             <td></td>
                                         </tr>
                                         <tr>
@@ -102,18 +106,18 @@
                                                 <div class="row">
                                                     <x-form.selectbox labelName="Payment Status" name="payment_status" required="required"  col="col-md-6 mb-0" class="fcs selectpicker" data-live-search="true">
                                                         @foreach (PAYMENT_STATUS as $key => $value)
-                                                        <option value="{{ $key }}">{{ $value }}</option>
+                                                        <option value="{{ $key }}" {{ $purchase->payment_status == $key ? 'selected' : '' }}>{{ $value }}</option>
                                                         @endforeach
                                                     </x-form.selectbox>
                                                     <x-form.selectbox labelName="Payment Method" name="payment_method" onchange="account_list(this.value)" required="required"  col="col-md-6 payment_row d-none" class="selectpicker" data-live-search="true">
                                                         @foreach (SALE_PAYMENT_METHOD as $key => $value)
-                                                        <option value="{{ $key }}">{{ $value }}</option>
+                                                        <option value="{{ $key }}" {{ $purchase->payment_method == $key ? 'selected' : '' }}>{{ $value }}</option>
                                                         @endforeach
                                                     </x-form.selectbox>
                                                 </div>
                                             </td>
                                             <td class="text-right font-weight-bolder">Net Total</td>
-                                            <td><input type="text" class="fcs form-control text-right bg-secondary" name="net_total" id="net_total" placeholder="0.00" readonly></td>
+                                            <td><input type="text" class="fcs form-control text-right bg-secondary" name="net_total" id="net_total" value="{{ number_format($purchase->net_total,2,'.','') }}" placeholder="0.00" readonly></td>
                                             <td></td>
                                         </tr>
                                         <tr class="payment_row d-none">
@@ -122,36 +126,36 @@
                                                     <x-form.selectbox labelName="Account" name="account_id" required="required"  col="col-md-6" class="fcs selectpicker"/>
                                                     <div class="form-group col-md-6 d-none reference_no">
                                                         <label for="reference_no">Reference No.</label>
-                                                        <input type="text" class="fcs form-control" name="reference_no" id="reference_no">
+                                                        <input type="text" class="fcs form-control" name="reference_no" id="reference_no" >
                                                     </div>
                                                 </div>
                                             </td>
                                             <td class="text-right font-weight-bolder">Paid Amount</td>
                                             <td>
                                                 <div class="form-group mb-0">
-                                                <input type="text" class="fcs form-control text-right" name="paid_amount" id="paid_amount" placeholder="0.00">
+                                                <input type="text" class="fcs form-control text-right" name="paid_amount" id="paid_amount" value="{{ number_format($purchase->paid_amount,2,'.','') }}" placeholder="0.00">
                                                 </div>
                                             </td>
                                             <td></td>
                                         </tr>
                                         <tr class="payment_row d-none">
                                             <td class="text-right font-weight-bolder" colspan="4">Due Amount</td>
-                                            <td><input type="text" class="fcs form-control bg-secondary text-right" name="due_amount" id="due_amount" placeholder="0.00" readonly></td>
+                                            <td><input type="text" class="fcs form-control bg-secondary text-right" name="due_amount" id="due_amount" value="{{ number_format($purchase->due_amount,2,'.','') }}" placeholder="0.00" readonly></td>
                                             <td></td>
                                         </tr>
                                     </tfoot>
                                 </table>
                             </div>
                             <div class="col-md-12">
-                                <input type="hidden" name="item" id="item">
-                                <input type="hidden" name="total_qty" id="total_qty">
-                                <input type="hidden" name="grand_total" id="grand_total">
+                                <input type="hidden" name="item" id="item" value="{{ $purchase->item }}">
+                                <input type="hidden" name="total_qty" id="total_qty" value="{{ number_format($purchase->total_qty,2,'.','') }}">
+                                <input type="hidden" name="grand_total" id="grand_total" value="{{ number_format($purchase->grand_total,2,'.','') }}">
                             </div>
                             
 
                             <div class="form-grou col-md-12 text-center pt-5">
                                 <button type="button" class="btn btn-danger btn-sm mr-3"><i class="fas fa-sync-alt"></i> Reset</button>
-                                <button type="button" class="btn btn-primary btn-sm mr-3" id="save-btn" onclick="store_data()"><i class="fas fa-save"></i> Save</button>
+                                <button type="button" class="btn btn-primary btn-sm mr-3" id="save-btn" onclick="store_data()"><i class="fas fa-save"></i> Update</button>
                             </div>
                         </div>
                     </form>

@@ -46,9 +46,9 @@ class ProductStockAlertController extends BaseController
                     $row[] = $no;
                     $row[] = $value->name;
                     $row[] = $value->code;
-                    $row[] = $value->category_name;
-                    $row[] = $value->unit_name;
-                    $row[] = number_format($value->qty,2,'.','') ?? 0;
+                    $row[] = $value->category->name;
+                    $row[] = $value->base_unit->unit_name;
+                    $row[] = number_format($value->base_unit_qty,2,'.','') ?? 0;
                     $row[] = number_format($value->alert_quantity,2,'.','') ?? 0;
                     $data[] = $row;
                 }

@@ -398,7 +398,7 @@ class PurchaseController extends BaseController
         if(permission('purchase-edit')){
             $this->setPageData('Edit Purchase','Edit Purchase','fas fa-edit',[['name'=>'Purchase','link' => route('purchase')],['name' => 'Edit Purchase']]);
             $data = [
-                'purchase'   => $this->model->with('purchase_materials','supplier')->find($id),
+                'purchase'   => $this->model->with('purchase_materials','supplier','purchase_payments')->find($id),
                 'materials'      => Material::with('purchase_unit')->get(),
             ];
             return view('purchase::edit',$data);

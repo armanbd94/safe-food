@@ -2,13 +2,60 @@
 
 namespace Modules\Report\Entities;
 
+use App\Models\Tax;
+use App\Models\Unit;
+use App\Models\Category;
 use App\Models\BaseModel;
 use Illuminate\Support\Facades\DB;
+use Modules\Material\Entities\Material;
+use Modules\Setting\Entities\DealerGroup;
+use Modules\Product\Entities\WarehouseProduct;
 
 class ProductStockAlert extends BaseModel
 {
-    protected $table = "warehouse_product";
-    protected $guarded = [];
+    protected $table = "products";
+    protected $fillable = [ 'category_id', 'name', 'code',  'product_type', 'barcode_symbology', 
+    'base_unit_id', 'unit_id', 'cost', 'base_unit_qty', 'alert_quantity', 'image',
+    'tax_id', 'tax_method', 'status', 'description', 'created_by', 'modified_by'];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class,'unit_id','id');
+    }
+
+    public function base_unit()
+    {
+        return $this->belongsTo(Unit::class,'base_unit_id','id');
+    }
+
+    public function tax()
+    {
+        return $this->belongsTo(Tax::class)->withDefault(['name'=>'No Tax','rate' => 0]);
+    }
+
+    public function product_material(){
+        return $this->belongsToMany(Material::class,'product_material','product_id','material_id','id','id')
+                    ->withTimestamps();
+    }
+
+    public function product_prices(){
+        return $this->belongsToMany(DealerGroup::class,'product_prices','product_id','dealer_group_id','id','id')
+        ->withPivot('id','base_unit_price', 'unit_price')        
+        ->withTimestamps();
+    }
+
+    public function warehouse_product()
+    {
+        return $this->hasMany(WarehouseProduct::class,'product_id','id')
+        ->selectRaw('warehouse_product.product_id,SUM(warehouse_product.qty) as qty')
+        ->groupBy('warehouse_product.product_id');
+    }
+
 
 
     
@@ -35,25 +82,20 @@ class ProductStockAlert extends BaseModel
     {
         //set column sorting index table column name wise (should match with frontend table header)
 
-        $this->column_order = ['id', 'material_name', 'material_code','category_id', 'unit_id', 'qty', 'alert_qty'];
+        $this->column_order = ['id', 'name', 'code','category_id', 'base_unit_id', 'base_unit_qty', 'alert_qty'];
         
         
-        $query = DB::table('warehouse_product as wp')
-        ->join('products as p','wp.product_id','=','p.id')
-        ->join('categories as c','p.category_id','=','c.id')
-        ->join('units as u','p.base_unit_id','=','u.id')
-        ->selectRaw('wp.*,p.name,p.code,p.alert_quantity,c.name as category_name,u.unit_name')
-        ->groupBy('wp.product_id')
-        ->where('wp.warehouse_id',1)
-        ->whereColumn('p.alert_quantity','>','wp.qty');
+        $query = self::with('category:id,name','base_unit:id,unit_name')
+        ->where('status',1)
+        ->whereColumn('alert_quantity','>','base_unit_qty');
 
         //search query
         if (!empty($this->_name)) {
-            $query->where('p.name', 'like', '%' . $this->_name . '%');
+            $query->where('name', 'like', '%' . $this->_name . '%');
         }
 
         if (!empty($this->_category_id)) {
-            $query->where('p.category_id', $this->_category_id);
+            $query->where('category_id', $this->_category_id);
         }
  
 
@@ -83,13 +125,9 @@ class ProductStockAlert extends BaseModel
 
     public function count_all()
     {
-        return DB::table('warehouse_product as wp')
-        ->join('products as p','wp.product_id','=','p.id')
-        ->join('categories as c','p.category_id','=','c.id')
-        ->join('units as u','p.base_unit_id','=','u.id')
-        ->selectRaw('wp.*,p.name,c.name as category_name,u.unit_name')
-        ->groupBy('wp.product_id')
-        ->whereColumn('p.alert_quantity','>','wp.qty')->get()->count();
+        return self::with('category:id,name','unit:id,unit_name')
+        ->where('status',1)
+        ->whereColumn('alert_quantity','>','base_unit_qty')->count();
     }
     /******************************************
      * * * End :: Custom Datatable Code * * *
