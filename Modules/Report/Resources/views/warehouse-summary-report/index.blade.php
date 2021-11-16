@@ -16,6 +16,8 @@
     #summary_data .card.card-custom .card-header{
         justify-content: center !important;
     }
+    .apply-btn,.cancel-btn{display: block !important;}
+    .calendar-header .arrow,.calendar-header .arrow button{display: block !important;}
 </style>
 @endpush
 

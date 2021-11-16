@@ -5,7 +5,6 @@ namespace Modules\Report\Http\Controllers;
 use Illuminate\Http\Request;
 use Modules\Product\Entities\Product;
 use App\Http\Controllers\BaseController;
-use Modules\Report\Entities\ProductWiseSalesReport;
 use Illuminate\Support\Facades\DB;
 
 class ProductWiseSalesReportController extends BaseController

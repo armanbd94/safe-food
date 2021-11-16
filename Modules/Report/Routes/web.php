@@ -32,6 +32,10 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('sales-report', 'SalesReportController@index')->name('sales.report');
     Route::post('sales-report/datatable-data', 'SalesReportController@get_datatable_data')->name('sales.report.datatable.data');
     
+    //Product Sales Report Route
+    Route::get('product-sales-report', 'ProductSalesReportController@index')->name('product.sales.report');
+    Route::post('product-sales-report-data', 'ProductSalesReportController@report_data')->name('product.sales.report.data');
+    
     //Product Wise Sales Report Route
     Route::get('product-wise-sales-report', 'ProductWiseSalesReportController@index')->name('product.wise.sales.report');
     Route::post('product-wise-sales-report-data', 'ProductWiseSalesReportController@report_data')->name('product.wise.sales.report.data');

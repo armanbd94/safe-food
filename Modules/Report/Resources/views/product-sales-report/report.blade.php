@@ -319,9 +319,8 @@
                             {{-- @if(config('settings.contact_no'))<p style="font-weight: normal;margin:0;"><b>Contact No.: </b>{{ config('settings.contact_no') }}, @if(config('settings.email'))<b>Email: </b>{{ config('settings.email') }}@endif</p>@endif --}}
                             @if(config('settings.address'))<p style="font-weight: normal;margin:0;">{{ config('settings.address') }}</p>@endif
                             <p style="font-weight: normal;font-weight:bold;    margin: 10px auto 5px auto;
-                            font-weight: bold;background: black;border-radius: 10px;width: 320px;color: white;text-align: center;padding:5px 0;}">PRODUCT WISE SALES REPORT</p>
+                            font-weight: bold;background: black;border-radius: 10px;width: 300px;color: white;text-align: center;padding:5px 0;}">PRODUCT SALES REPORT</p>
                             <p style="font-weight: normal;margin:0;font-weight:bold;">Date: {{ $start_date.' to '.$end_date  }}</p>
-                            <div class="text-center"><div style="font-weight: normal;margin:0;font-weight:bold;">{{ $product->name }}</div></div>
                             
                         </td>
                     </tr>
@@ -330,7 +329,7 @@
                     <tbody>
                         <tr>
                             <td class="text-center font-weight-bolder">Sl</td>
-                            <td class="text-center font-weight-bolder">Date</td>
+                            <td class="text-center font-weight-bolder">Name</td>
                             <td class="text-center font-weight-bolder">Carton Size</td>
                             <td class="text-center font-weight-bolder">Carton Qty</td>
                             <td class="text-center font-weight-bolder">Piece Qty</td>
@@ -341,18 +340,18 @@
                         @foreach ($report_data as $key => $value)
                         <tr>
                             <td class="text-center"> {{ $key + 1 }} </td>
-                            <td class="text-center"> {{ date('d-m-Y',strtotime($value->sale_date)) }} </td>
+                            <td class="text-center"> {{ $value->name }} </td>
                             <td class="text-center"> {{ convert_english_carton_size($value->ctn_size) }} </td>
-                            <td class="text-center"> {{ number_format($value->unit_qty,2,'.',',') }} </td>
-                            <td class="text-center"> {{ number_format($value->qty,2,'.',',') }} </td>
-                            <td class="text-center"> {{ number_format($value->free_qty,2,'.',',') }} </td>
-                            <td class="text-right"> {{ number_format($value->total,2,'.',',') }} </td>
+                            <td class="text-center"> {{ number_format($value->unit_qty ?? 0,2,'.',',') }} </td>
+                            <td class="text-center"> {{ number_format($value->qty ?? 0,2,'.',',') }} </td>
+                            <td class="text-center"> {{ number_format($value->free_qty ?? 0,2,'.',',') }} </td>
+                            <td class="text-right"> {{ number_format($value->total ?? 0,2,'.',',') }} </td>
                         </tr>
                         @php
-                            $total += $value->total;
-                            $total_unit_qty += $value->unit_qty;
-                            $total_qty += $value->qty;
-                            $total_free_qty +=  $value->free_qty;
+                            $total += $value->total ?? 0;
+                            $total_unit_qty += $value->unit_qty ?? 0;
+                            $total_qty += $value->qty ?? 0;
+                            $total_free_qty +=  $value->free_qty ?? 0;
                         @endphp
                         @endforeach
                         @else

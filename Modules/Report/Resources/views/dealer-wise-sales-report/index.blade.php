@@ -4,7 +4,10 @@
 
 @push('styles')
 <link href="css/daterangepicker.min.css" rel="stylesheet" type="text/css" />
-
+<style>
+    .apply-btn,.cancel-btn{display: block !important;}
+    .calendar-header .arrow,.calendar-header .arrow button{display: block !important;}
+</style>
 @endpush
 
 @section('content')
