@@ -42,8 +42,7 @@ class Damage extends BaseModel
      private function get_datatable_query()
      {
          //set column sorting index table column name wise (should match with frontend table header)
-        $this->column_order = ['dm.id','dm.damage_no','dm.memo_no', 'dm.customer_id', 's.salemen_id','s.upazila_id','s.route_id',
-        's.area_id','dm.damage_date', 'dm.total_deduction','dm.grand_total', null];
+        $this->column_order = ['id','damage_no',null,null,null, 'item','total_qty','grand_total', 'damage_date',null];
          
         $query = self::with('sale');
          //search query

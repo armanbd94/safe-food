@@ -16,18 +16,14 @@ class CreatePurchaseReturnsTable extends Migration
         Schema::create('purchase_returns', function (Blueprint $table) {
             $table->id();
             $table->string('return_no')->unique();
-            $table->string('memo_no');
-            $table->unsignedBigInteger('warehouse_id');
-            $table->foreign('warehouse_id')->references('id')->on('warehouses');
-            $table->unsignedBigInteger('supplier_id')->nullable();
-            $table->foreign('supplier_id')->references('id')->on('suppliers');
+            $table->unsignedBigInteger('purchase_id');
+            $table->foreign('purchase_id')->references('id')->on('purchases');
+            $table->float('item');
+            $table->float('total_qty');
             $table->double('total_price');
             $table->double('total_deduction')->nullable();
-            $table->double('tax_rate')->nullable();
-            $table->double('total_tax')->nullable();
             $table->double('grand_total');
             $table->text('reason')->nullable();
-            $table->date('date');
             $table->date('return_date');
             $table->string('created_by')->nullable();
             $table->string('modified_by')->nullable();

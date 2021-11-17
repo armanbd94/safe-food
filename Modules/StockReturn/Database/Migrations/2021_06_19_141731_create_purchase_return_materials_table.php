@@ -17,7 +17,6 @@ class CreatePurchaseReturnMaterialsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('purchase_return_id');
             $table->foreign('purchase_return_id')->references('id')->on('purchase_returns');
-            $table->string('memo_no');
             $table->unsignedBigInteger('material_id');
             $table->foreign('material_id')->references('id')->on('materials');
             $table->double('return_qty');

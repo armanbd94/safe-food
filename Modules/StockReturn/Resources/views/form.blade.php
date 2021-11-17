@@ -33,7 +33,7 @@
                                             <label for="memo_no">Memo No:</label>
                                             <input type="text" name="memo_no"  class="form-control col-md-10" id="memo_no" placeholder="Enter Purchase Memo No" required="required">
                                         </div>
-                                        <button type="submit" class="btn btn-primary btn-md" style="margin-top: 18px;">Serach</button>
+                                        <button type="submit" class="btn btn-primary btn-md">Serach</button>
                                     </form>
                                 </div>
                             </div>
@@ -51,7 +51,7 @@
                                             <label for="memo_no">Memo No:</label>
                                             <input type="text" name="memo_no"  class="form-control col-md-10" id="memo_no" placeholder="Enter Sale Memo No" required="required">
                                         </div>
-                                        <button type="submit" class="btn btn-primary btn-md" style="margin-top: 18px;">Serach</button>
+                                        <button type="submit" class="btn btn-primary btn-md">Serach</button>
                                     </form>
                                 </div>
                             </div>

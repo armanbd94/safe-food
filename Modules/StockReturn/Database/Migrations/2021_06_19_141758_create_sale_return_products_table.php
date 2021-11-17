@@ -21,8 +21,8 @@ class CreateSaleReturnProductsTable extends Migration
             $table->unsignedBigInteger('product_id');
             $table->foreign('product_id')->references('id')->on('products');
             $table->double('return_qty');
-            $table->unsignedBigInteger('unit_id')->nullable();
-            $table->foreign('unit_id')->references('id')->on('units');
+            $table->unsignedBigInteger('base_unit_id')->nullable();
+            $table->foreign('base_unit_id')->references('id')->on('units');
             $table->double('product_rate');
             $table->double('deduction_rate')->nullable();
             $table->double('deduction_amount')->nullable();

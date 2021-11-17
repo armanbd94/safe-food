@@ -23,7 +23,7 @@ class StockReturnController extends BaseController
     public function return_sale(Request $request)
     {
         if(permission('sale-return-access')){
-            $sale = Sale::with(['sale_products','customer:id,name,shop_name','warehouse:id,name','salesmen:id,name,phone','route:id,name','area:id,name'])
+            $sale = Sale::with(['sale_products','depo','dealer'])
             ->where('memo_no',$request->get('memo_no'))->first();
 
             if($sale){

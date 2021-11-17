@@ -10,8 +10,7 @@ use Modules\StockReturn\Entities\PurchaseReturnMaterial;
 
 class PurchaseReturn extends BaseModel
 {
-    protected $fillable = ['return_no', 'memo_no',  'warehouse_id','supplier_id', 'total_price', 'total_deduction', 'tax_rate',
-    'total_tax', 'grand_total', 'reason', 'date', 'return_date', 'created_by', 'modified_by'];
+    protected $fillable = ['return_no', 'purchase_id', 'item','total_qty','total_price', 'total_deduction', 'grand_total', 'reason', 'return_date', 'created_by', 'modified_by'];
 
     public function purchase()
     {

@@ -43,10 +43,10 @@ class DamageProductController extends BaseController
                     $this->model->setMemoNo($request->memo_no);
                 }
                 if (!empty($request->start_date)) {
-                    $this->model->setStartDate($request->start_date);
+                    $this->model->setFromDate($request->start_date);
                 }
                 if (!empty($request->end_date)) {
-                    $this->model->setEndDate($request->end_date);
+                    $this->model->setToDate($request->end_date);
                 }
 
 

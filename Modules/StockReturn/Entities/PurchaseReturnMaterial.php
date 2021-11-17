@@ -7,8 +7,7 @@ use Modules\Material\Entities\Material;
 
 class PurchaseReturnMaterial extends Model
 {
-    protected $fillable = ['purchase_return_id', 'invoice_no', 'material_id', 'return_qty', 'unit_id',
-     'material_rate', 'deduction_rate', 'deduction_amount', 'total'];
+    protected $fillable = ['purchase_return_id', 'material_id', 'return_qty', 'unit_id', 'material_rate', 'deduction_rate', 'deduction_amount', 'total'];
 
      public function material()
     {

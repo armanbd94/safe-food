@@ -88,7 +88,7 @@
                                                     @php
                                                          $damage_qty = DB::table('damage_products as dp')
                                                         ->join('damages as d','dp.damage_id','=','d.id')
-                                                        ->where([['product_id',$product->id],['d.sale_id',$sale->id]])
+                                                        ->where([['dp.product_id',$product->id],['d.sale_id',$sale->id]])
                                                         ->sum('dp.damage_qty');
                                                     @endphp
                                                     <option value="{{ $product->id }}" data-baseunitid={{ $product->base_unit_id }}  data-baseunitname="{{ $product->base_unit->unit_name }}" 
