@@ -4,7 +4,7 @@
 
 @push('styles')
 <link href="plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
-<link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet" type="text/css" />
+<link href="css/daterangepicker.min.css" rel="stylesheet" type="text/css" />
 @endpush
 
 @section('content')
@@ -32,25 +32,19 @@
             <div class="card-header flex-wrap py-5">
                 <form method="POST" id="form-filter" class="col-md-12 px-0">
                     <div class="row">
+                        <div class="form-group col-md-3">
+                            <label for="name">Choose Your Date</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control daterangepicker-filed">
+                                <input type="hidden" id="start_date" name="start_date">
+                                <input type="hidden" id="end_date" name="end_date">
+                            </div>
+                        </div>
                         <x-form.textbox labelName="Return No." name="return_no" col="col-md-3" />
-                        <x-form.textbox labelName="Invoice No." name="invoice_no" col="col-md-3" />
-                        <div class="form-group col-md-3">
-                            <label for="from_date">From Date</label>
-                            <input type="text" class="form-control date" name="from_date" id="from_date" readonly />
-                        </div>
-                        <div class="form-group col-md-3">
-                            <label for="to_date">To Date</label>
-                            <input type="text" class="form-control date" name="to_date" id="to_date" readonly />
-                        </div>
-                        <x-form.selectbox labelName="supplier" name="supplier_id" col="col-md-3" class="selectpicker">
-                            @if (!$suppliers->isEmpty())
-                                @foreach ($suppliers as $value)
-                                    <option value="{{ $value->id }}">{{ $value->name.($value->mobile ? ' - '.$value->mobile : '') }}</option>
-                                @endforeach
-                            @endif
-                        </x-form.selectbox>
+                        <x-form.textbox labelName="Memo No." name="memo_no" col="col-md-3" />
 
-                        <div class="col-md-9">
+
+                        <div class="col-md-3">
                             <div style="margin-top:28px;">     
                                     <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
                                     data-toggle="tooltip" data-theme="dark" title="Reset">
@@ -72,20 +66,16 @@
                             <table id="dataTable" class="table table-bordered table-hover">
                                 <thead class="bg-primary">
                                     <tr>
-                                        @if (permission('purchase-return-bulk-delete'))
-                                        <th>
-                                            <div class="custom-control custom-checkbox">
-                                                <input type="checkbox" class="custom-control-input" id="select_all" onchange="select_all()">
-                                                <label class="custom-control-label" for="select_all"></label>
-                                            </div>
-                                        </th>
-                                        @endif
                                         <th>Sl</th>
                                         <th>Return No.</th>
-                                        <th>Invoice No.</th>
+                                        <th>Memo No.</th>
                                         <th>Supplier Name</th>
-                                        <th>Return Date</th>
+                                        <th>Total Item</th>
+                                        <th>Total Qty</th>
+                                        <th>Total</th>
+                                        <th>Total Deduction</th>
                                         <th>Grand Total</th>
+                                        <th>Return Date</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -105,11 +95,22 @@
 @push('scripts')
 <script src="plugins/custom/datatables/datatables.bundle.js" type="text/javascript"></script>
 <script src="js/moment.js"></script>
-<script src="js/bootstrap-datetimepicker.min.js"></script>
+<script src="js/knockout-3.4.2.js"></script>
+<script src="js/daterangepicker.min.js"></script>
 <script>
 var table;
 $(document).ready(function(){
-    $('.date').datetimepicker({format: 'YYYY-MM-DD',ignoreReadonly: true});
+
+    $('.daterangepicker-filed').daterangepicker({
+        callback: function(startDate, endDate, period){
+            var start_date = startDate.format('YYYY-MM-DD');
+            var end_date   = endDate.format('YYYY-MM-DD');
+            var title = start_date + ' To ' + end_date;
+            $(this).val(title);
+            $('input[name="start_date"]').val(start_date);
+            $('input[name="end_date"]').val(end_date);
+        }
+    });
     table = $('#dataTable').DataTable({
         "processing": true, //Feature control the processing indicator
         "serverSide": true, //Feature control DataTable server side processing mode
@@ -132,47 +133,29 @@ $(document).ready(function(){
             "url": "{{route('purchase.return.datatable.data')}}",
             "type": "POST",
             "data": function (data) {
-                data.return_no       = $("#form-filter #return_no").val();
-                data.invoice_no       = $("#form-filter #invoice_no").val();
-                data.from_date       = $("#form-filter #from_date").val();
-                data.to_date         = $("#form-filter #to_date").val();
-                data.supplier_id     = $("#form-filter #supplier_id option:selected").val();
+                data.return_no   = $("#form-filter #return_no").val();
+                data.memo_no     = $("#form-filter #memo_no").val();
+                data.start_date  = $("#form-filter #start_date").val();
+                data.end_date    = $("#form-filter #end_date").val();
                 data._token          = _token;
             }
         },
         "columnDefs": [{
-                @if(permission('purchase-return-bulk-delete'))
-                "targets": [0,7],
-                @else
-                "targets": [6],
-                @endif
+
+                "targets": [10],
                 "orderable": false,
                 "className": "text-center"
             },
             {
-                @if(permission('purchase-return-bulk-delete'))
-                "targets": [1,2,3,5],
-                @else
-                "targets": [0,1,2,4],
-                @endif
+                "targets": [0,1,4,5,9],
                 "className": "text-center"
             },
             {
-
-                @if(permission('purchase-return-bulk-delete'))
-                "targets": [6],
-                @else
-                "targets": [5],
-                @endif
+                "targets": [6,7,8],
                 "className": "text-right"
             },
             {
-
-                @if(permission('purchase-return-bulk-delete'))
-                "targets": [4],
-                @else
-                "targets": [3],
-                @endif
+                "targets": [2,3],
                 "orderable": false,
             },
 
@@ -193,11 +176,7 @@ $(document).ready(function(){
                 "orientation": "landscape", //portrait
                 "pageSize": "legal", //A3,A5,A6,legal,letter
                 "exportOptions": {
-                    @if(permission('purchase-return-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(7))' 
-                    @else
-                    columns: ':visible:not(:eq(6))' 
-                    @endif
+                    columns: ':visible:not(:eq(10))' 
                 },
                 customize: function (win) {
                     $(win.document.body).addClass('bg-white');
@@ -215,11 +194,7 @@ $(document).ready(function(){
                 "title": "{{ $page_title }} List",
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
-                       @if(permission('purchase-return-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(7))' 
-                    @else
-                    columns: ':visible:not(:eq(6))' 
-                    @endif
+                    columns: ':visible:not(:eq(10))' 
                 }
             },
             {
@@ -229,11 +204,7 @@ $(document).ready(function(){
                 "title": "{{ $page_title }} List",
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
-                       @if(permission('purchase-return-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(7))' 
-                    @else
-                    columns: ':visible:not(:eq(6))' 
-                    @endif
+                    columns: ':visible:not(:eq(10))' 
                 }
             },
             {
@@ -245,11 +216,7 @@ $(document).ready(function(){
                 "orientation": "landscape", //portrait
                 "pageSize": "legal", //A3,A5,A6,legal,letter
                 "exportOptions": {
-                       @if(permission('purchase-return-bulk-delete'))
-                    columns: ':visible:not(:eq(0),:eq(7))' 
-                    @else
-                    columns: ':visible:not(:eq(6))' 
-                    @endif
+                    columns: ':visible:not(:eq(10))' 
                 },
                 customize: function(doc) {
                     doc.defaultStyle.fontSize = 7; //<-- set fontsize to 16 instead of 10 
@@ -257,15 +224,7 @@ $(document).ready(function(){
                     doc.pageMargins = [5,5,5,5];
                 }  
             },
-            @if (permission('purchase-return-bulk-delete'))
-            {
-                'className':'btn btn-danger btn-sm delete_btn d-none text-white',
-                'text':'Delete',
-                action:function(e,dt,node,config){
-                    multi_delete();
-                }
-            }
-            @endif
+
         ],
     });
 
@@ -288,25 +247,6 @@ $(document).ready(function(){
         delete_data(id, url, table, row, name);
     });
 
-    function multi_delete(){
-        let ids = [];
-        let rows;
-        $('.select_data:checked').each(function(){
-            ids.push($(this).val());
-            rows = table.rows($('.select_data:checked').parents('tr'));
-        });
-        if(ids.length == 0){
-            Swal.fire({
-                type:'error',
-                title:'Error',
-                text:'Please checked at least one row of table!',
-                icon: 'warning',
-            });
-        }else{
-            let url = "{{route('purchase.return.bulk.delete')}}";
-            bulk_delete(ids,url,table,rows);
-        }
-    }
 
 });
 </script>

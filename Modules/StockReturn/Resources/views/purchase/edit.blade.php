@@ -33,15 +33,15 @@
                         @csrf
                         <div class="row">
                             <input type="hidden" name="supplier_id" value="{{ $purchase->supplier_id }}">
-                            <input type="hidden" class="form-control" name="warehouse_id" value="{{ $purchase->warehouse_id }}" />
+                            <input type="hidden" class="form-control" name="purchase_id" value="{{ $purchase->id }}" />
 
                             <div class="form-group col-md-3 required">
                                 <label for="memo_no">Memo No.</label>
                                 <input type="text" class="form-control" name="memo_no" id="memo_no" value="{{ $purchase->memo_no }}"  readonly />
                             </div>
                             <div class="form-group col-md-3 required">
-                                <label for="purchase_date">Purchased Date</label>
-                                <input type="text" class="form-control" name="purchase_date" id="purchase_date" value="{{ $purchase->purchase_date }}" readonly />
+                                <label for="purchase_date">Purchase Date</label>
+                                <input type="text" class="form-control"  value="{{ $purchase->purchase_date }}" readonly />
                             </div>
                             <div class="form-group col-md-3 required">
                                 <label for="return_date">Return Date</label>
@@ -56,81 +56,97 @@
                                 <table class="table table-bordered" id="product_table">
                                     <thead class="bg-primary">
                                         <th >Name</th>
-                                        <th  class="text-center">Code</th>
                                         <th  class="text-center">Unit</th>
                                         <th  class="text-center">Purchase Qty</th>
                                         <th  class="text-center">Return Qty</th>
                                         <th  class="text-right">Net Unit Cost</th>
-                                        <th  class="text-right">Deduction (%)</th>
+                                        <th  class="text-right">Deduction(%)</th>
                                         <th  class="text-right">Subtotal</th>
-                                        <th>Check Return</th>
+                                        <th>Action</th>
                                     </thead>
                                     <tbody>
                                         @if (!$purchase->purchase_materials->isEmpty())
                                             @foreach ($purchase->purchase_materials as $key => $purchase_material)
-                                                <tr>
-                                                    @php
-                                                        $tax = DB::table('taxes')->where('rate',$purchase_material->pivot->tax_rate)->first();
-
-                                                        $unit_name = DB::table('units')->where('id',$purchase_material->pivot->purchase_unit_id)->value('unit_name');
-                                                        
-                                                        $total_return_qty = \DB::table('purchase_return_materials')
-                                                        ->where('memo_no',$purchase->memo_no)
-                                                        ->where('material_id',$purchase_material->pivot->material_id)->sum('return_qty');;
-                                                        $purchase_qty = $purchase_material->pivot->qty - $total_return_qty;
-                                                    @endphp
-                                                    <td>{{ $purchase_material->material_name }}</td>
-                                                    <td class="text-center">{{ $purchase_material->material_code }}</td>
-                                                    <td class="unit-name text-center">{{ $unit_name }}</td>
-                                                    <td><input type="text" class="purchase_qty_{{ $key+1 }} form-control text-center" name="materials[{{ $key+1 }}][purchase_qty]"  value="{{ $purchase_qty }}" readonly></td>
-                                                    <td><input type="text" class="form-control return_qty_{{ $key+1 }} text-center" onkeyup="quantity_calculate('{{ $key+1 }}')" onchange="quantity_calculate('{{ $key+1 }}')" name="materials[{{ $key+1 }}][return_qty]" id="products_{{ $key+1 }}_return_qty" placeholder="0"></td>
-                                                    <td><input type="text" class="net_unit_cost_{{ $key+1 }} form-control text-right" name="materials[{{ $key+1 }}][net_unit_cost]" value="{{ $purchase_material->pivot->new_unit_cost }}"></td>
-                                                    <td><input type="text" class="deduction_rate_{{ $key+1 }} form-control text-right" onkeyup="quantity_calculate('{{ $key+1 }}')" onchange="quantity_calculate('{{ $key+1 }}')" name="materials[{{ $key+1 }}][deduction_rate]" placeholder="0.00"></td>
-                                                    <td class="sub-total sub-total-{{ $key+1 }} text-right"></td>
-                                                    <td class="text-center">
-                                                        <div class="custom-control custom-checkbox">
-                                                            <input type="hidden" id="return_{{ $key+1 }}"  name="materials[{{ $key+1 }}][return]" value="2">
-                                                            <input type="checkbox" class="custom-control-input chk" onchange="setReturnValue('{{ $key+1 }}')"  id="products_{{ $key+1 }}_return_checkbox">
-                                                            <label class="custom-control-label" for="products_{{ $key+1 }}_return_checkbox"></label>
-                                                        </div>
-                                                    </td>
-                                                    <input type="hidden" class="product-id" name="materials[{{ $key+1 }}][id]"  value="{{ $purchase_material->pivot->material_id }}">
-                                                    <input type="hidden" class="product-code" name="materials[{{ $key+1 }}][code]" value="{{ $purchase_material->material_code }}">
-                                                    <input type="hidden" class="purchase-unit material-unit" name="materials[{{ $key+1 }}][unit]" value="{{ $unit_name }}">
-                                                    <input type="hidden" class="deduction_amount deduction_amount_{{ $key+1 }}" name="materials[{{ $key+1 }}][deduction_amount]" >
-                                                    <input type="hidden" class="subtotal subtotal_{{ $key+1 }}" name="materials[{{ $key+1 }}][total]" >
-                                
-                                                </tr>
+                                                
                                             @endforeach
                                         @endif
+
+                                        <tr>
+                                            <td class="col-md-3">                                                
+                                                <select name="materials[1][id]" id="materials_1_id" class="fcs col-md-12 form-control selectpicker" onchange="setMaterialDetails(1)"  data-live-search="true" data-row="1">
+                                                @if (!$purchase->purchase_materials->isEmpty())
+                                                <option value="">Please Select</option>
+                                                @foreach ($purchase->purchase_materials as $key => $material)
+                                                    @php
+                                                         $return_qty = DB::table('purchase_return_materials as sp')
+                                                        ->join('purchase_returns as sr','sp.purchase_return_id','=','sr.id')
+                                                        ->where([['sp.product_id',$material->id],['sr.purchase_id',$sale->id]])
+                                                        ->sum('sp.return_qty');
+                                                        $unit_name = DB::table('units')->where('id',$material->pivot->purchase_unit_id)->value('unit_name');
+                                                    @endphp
+                                                    <option value="{{ $material->id }}" data-unitid={{ $material->pivot->purchase_unit_id }}  data-unitname="{{ $unit_name }}" 
+                                                         data-purchaseqty="{{ ($material->pivot->qty - ($return_qty ?? 0)) }}" 
+                                                        data-cost="{{ $material->pivot->net_unit_cost }}">{{ $material->name }}</option>
+                                                @endforeach
+                                                @endif
+                                                </select>
+                                            </td>
+                                            <td class="unit_name_1 text-center" data-row="1"></td>
+                                            <td>
+                                                <div class="d-flex justify-content-center">
+                                                <input type="text" class="fcs form-control purchase_qty text-center custom-input bg-secondary" name="materials[1][purchase_qty]" id="materials_1_purchase_qty" data-row="1" readonly>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex justify-content-center">
+                                                <input type="text" class="fcs form-control return_qty text-center custom-input" onkeyup="calculateRowTotal(1)" name="materials[1][return_qty]" id="materials_1_return_qty" data-row="1">
+                                                </div>
+                                            </td>
+                                            <td class="net_unit_cost_1 text-right" data-row="1"></td>
+                                            <td>
+                                                <div class="d-flex justify-content-center">
+                                                <input type="text" class="fcs form-control text-right custom-input" onkeyup="calculateRowTotal(1)" name="materials[1][deduction_rate]" id="materials_1_deduction_rate" data-row="1">
+                                                </div>
+                                            </td>
+                                            <td class="subtotal_1 text-right" data-row="1"></td>
+                                            <td class="text-center"></td>
+                                            <input type="hidden" class="unit_id" name="materials[1][unit_id]"  id="materials_1_unit_id" data-row="1">
+                                            <input type="hidden" class="net_unit_cost" name="materials[1][net_unit_cost]" id="materials_1_net_unit_cost" data-row="1">
+                                            <input type="hidden" class="deduction_amount" name="materials[1][deduction_amount]" id="materials_1_deduction_amount" data-row="1">
+                                            <input type="hidden" class="subtotal" name="materials[1][subtotal]" id="materials_1_subtotal" data-row="1">
+                                        </tr>
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <td colspan="6" rowspan="3">
+                                            <td colspan="5" rowspan="4">
                                                 <label  for="reason">Reason</label>
                                                 <textarea class="form-control" name="reason" id="reason"></textarea><br>
                                             </td>
-                                            <td class="text-right" colspan="1"><b>Total Deduction</b></td>
-                                            <td class="text-right">
-                                                <input type="text" id="total_deduction_ammount" class="form-control text-right" placeholder="0.00" name="total_deduction" readonly="readonly" />
-                                            </td>
-                                        </tr>
-                                        <tr class="d-none">
-                                            <td class="text-right" colspan="1" ><b>Total Tax</b></td>
-                                            <td class="text-right">
-                                                <input type="hidden" name="total_price" id="total_price">
-                                                <input type="hidden" name="tax_rate" id="tax_rate" value="{{ $purchase->order_tax_rate ? $purchase->order_tax_rate : 0 }}">
-                                                <input id="total_tax_ammount" tabindex="-1" class="form-control text-right valid" name="total_tax" placeholder="0.00" readonly="readonly" aria-invalid="false" type="text">
-                                            </td>
                                         </tr>
                                         <tr>
-                                            <td colspan="1"  class="text-right"><b>Net Return</b></td>
-                                            <td class="text-right">
-                                                <input type="text" id="grandTotal" class="form-control text-right" name="grand_total_price" placeholder="0.00" readonly="readonly" />
-                                            </td>
+                                            <td class="text-right font-weight-bolder"><b>Total</b></td>
+                                            <td id="total-cost"  class="text-right font-weight-bolder">0.00</td>
+                                            <td class="text-center"><button type="button" class="btn btn-success btn-sm add-product"><i class="fas fa-plus"></i></button></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-right font-weight-bolder"><b>Total Deduction</b></td>
+                                            <td id="total-deduction"  class="text-right font-weight-bolder">0.00</td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-right font-weight-bolder"><b>Grand Total</b></td>
+                                            <td id="total"  class="text-right font-weight-bolder">0.00</td>
+                                            <td></td>
                                         </tr>
                                     </tfoot>
                                 </table>
+                            </div>
+                            <div class="col-md-12">
+                                <input type="hidden" name="item" id="item">
+                                <input type="hidden" name="total_qty" id="total_qty">
+                                <input type="hidden" name="total_cost" id="total_cost">
+                                <input type="hidden" name="total_deduction" id="total_deduction">
+                                <input type="hidden" name="grand_total" id="grand_total">
                             </div>
                             <div class="form-grou col-md-12 text-right pt-5">
                                 <button type="button" class="btn btn-primary btn-sm mr-3" id="save-btn" onclick="save_data()">Return</button>
@@ -166,48 +182,80 @@ $(document).ready(function () {
     });
 });
 
-function setReturnValue(row)
+
+function setProductDetails(row)
 {
-    $('#products_'+row+'_return_checkbox').is(':checked') ? $('#return_'+row).val(1) : $('#return_'+row).val(2); 
+    let base_unit_id   = $(`#products_${row}_id option:selected`).data('baseunitid');
+    let unit_id        = $(`#products_${row}_id option:selected`).data('unitid');
+    let unit_name      = $(`#products_${row}_id option:selected`).data('unitname');
+    let price          = parseFloat($(`#products_${row}_id option:selected`).data('price'));
+    let sold_qty       = parseFloat($(`#products_${row}_id option:selected`).data('soldqty'));
+
+    $(`.unit_name_${row}`).text(unit_name);
+    $(`.net_unit_price_${row}`).text(parseFloat(price));
+    $(`#products_${row}_base_unit_id`).val(base_unit_id);
+    $(`#products_${row}_net_unit_price`).val(price);
+    $(`#products_${row}_sold_qty`).val(sold_qty);
 }
 
-function quantity_calculate(row) {
-    var a = 0,o = 0,d = 0,p = 0;
-    var purchase_qty = $(".purchase_qty_" + row).val();
-    var return_qty = $(".return_qty_" + row).val() ? $(".return_qty_" + row).val() : 0;
-    var price_item = $(".net_unit_cost_" + row).val();
-    var deduction_rate = $(".deduction_rate_" + row).val();
-    if(parseFloat(purchase_qty) < parseFloat(return_qty)){
-        alert("Purchase quantity less than quantity!");
-        $("#return_qty_"+row).val("");
+function calculateRowTotal(row)
+{
+    let price = parseFloat($(`#products_${row}_net_unit_price`).val());
+    let return_qty = parseFloat($(`#products_${row}_return_qty`).val());
+    let deduction_rate = $(`#products_${row}_deduction_rate`).val() ? parseFloat($(`#products_${row}_deduction_rate`).val()) : 0;
+
+    if(return_qty <= 0 || return_qty == ''){
+        return_qty = 0;
+        $(`#products_${row}_return_qty`).val('');
     }
-    
-    var price = (return_qty * price_item);
-    var deduction = price * (deduction_rate / 100);
-    $(".deduction_amount_" + row).val(deduction);
-    var deduction_amount = $(".deduction_amount_" + row).val();
+    var subtotal = return_qty * price;
+    let deduction_amount = subtotal * (deduction_rate/100);
+    subtotal = subtotal - deduction_amount;
+    $(`.subtotal_${row}`).text(subtotal.toFixed(2));
+    $(`#products_${row}_deduction_amount`).val(deduction_amount.toFixed(2));
+    $(`#products_${row}_subtotal`).val(subtotal.toFixed(2));
+    calculateTotal();
+}
 
-    //Total price calculate per product
-    var temp = price - deduction_amount;
-    $(".subtotal_" + row).val(temp);
-    $(".sub-total-" + row).text(parseFloat(temp).toFixed(2));
-
-    $(".subtotal").each(function () {
-        isNaN(this.value) || o == this.value.length || (a += parseFloat(this.value));
+function calculateTotal()
+{
+    //sum of qty
+    var total_qty = 0;
+    $('.return_qty').each(function() {
+        if($(this).val() == ''){
+            total_qty += 0;
+        }else{
+            total_qty += parseFloat($(this).val());
+        }
     });
-    var tax_rate = parseFloat($('#tax_rate').val());
-    var total_tax_ammount = a * (tax_rate/100);
-    var grand_total = a + total_tax_ammount;
-    $("#total_price").val(a.toFixed(2, 2));
-    $("#total_tax_ammount").val(total_tax_ammount.toFixed(2, 2));
-    $("#grandTotal").val(grand_total.toFixed(2, 2));
 
-    $(".deduction_amount").each(function () {
-        isNaN(this.value) || p == this.value.length || (d += parseFloat(this.value));
+    $('input[name="total_qty"]').val(total_qty.toFixed(2));
+
+    //sum of subtotal
+    var total_deusction = 0;
+    $('.deduction_amount').each(function() {
+        if($(this).val() == ''){
+            total_deusction += 0;
+        }else{
+            total_deusction += parseFloat($(this).val());
+        }
     });
-    $("#total_deduction_ammount").val(d.toFixed(2, 2));
-    
+    $('#total-deduction').text(total_deusction.toFixed(2));
+    $('input[name="total_deduction"]').val(total_deusction.toFixed(2));
 
+    var total = 0;
+    $('.subtotal').each(function() {
+        total += parseFloat($(this).val());
+    });
+    $('#total-price').text(total.toFixed(2));
+    $('input[name="total_price"]').val(total.toFixed(2));
+
+    var grand_total = total - total_deusction;
+    $('#total').text(parseFloat(grand_total).toFixed(2));
+    $('input[name="grand_total"]').val(parseFloat(grand_total).toFixed(2));
+
+    var item = $('#product_table tbody tr:last').index()+1;
+    $('input[name="item"]').val(item);
 }
 
 function save_data(){

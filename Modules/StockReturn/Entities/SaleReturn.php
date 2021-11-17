@@ -60,10 +60,10 @@ class SaleReturn extends BaseModel
         }
  
          if (!empty($this->_start_date)) {
-             $query->where('sr.return_date', '>=',$this->_start_date);
+             $query->where('return_date', '>=',$this->_start_date);
          }
          if (!empty($this->_end_date)) {
-             $query->where('sr.return_date', '<=',$this->_end_date);
+             $query->where('return_date', '<=',$this->_end_date);
          }
  
          //order by data fetching code

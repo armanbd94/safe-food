@@ -10,20 +10,13 @@ use Modules\StockReturn\Entities\PurchaseReturnMaterial;
 
 class PurchaseReturn extends BaseModel
 {
-    protected $fillable = ['return_no', 'purchase_id', 'item','total_qty','total_price', 'total_deduction', 'grand_total', 'reason', 'return_date', 'created_by', 'modified_by'];
+    protected $fillable = ['return_no', 'purchase_id', 'item','total_qty','total_cost', 'total_deduction', 'grand_total', 'reason', 'return_date', 'created_by', 'modified_by'];
 
     public function purchase()
     {
-        return $this->belongsTo(Purchase::class,'memo_no','memo_no');
+        return $this->belongsTo(Purchase::class,'purchase_id','id');
     }
-    public function warehouse()
-    {
-        return $this->belongsTo(Warehouse::class,'warehouse_id','id');
-    }
-    public function supplier()
-    {
-        return $this->belongsTo(Supplier::class,'supplier_id','id')->withDefault(['name'=>'','company_name'=>'','mobile'=>'']);
-    }
+
  
     public function return_materials()
     {
@@ -36,65 +29,43 @@ class PurchaseReturn extends BaseModel
      //custom search column property
      protected $_return_no; 
      protected $_memo_no; 
-     protected $_from_date; 
-     protected $_to_date; 
-     protected $_supplier_id; 
+     protected $_start_date; 
+     protected $_end_date; 
  
      //methods to set custom search property value
-     public function setReturnNo($return_no)
-     {
-         $this->_return_no = $return_no;
-     }
-     public function setInvoiceNo($memo_no)
-     {
-         $this->_memo_no = $memo_no;
-     }
- 
-     public function setFromDate($from_date)
-     {
-         $this->_from_date = $from_date;
-     }
-     public function setToDate($to_date)
-     {
-         $this->_to_date = $to_date;
-     }
-     public function setSupplierID($supplier_id)
-     {
-         $this->_supplier_id = $supplier_id;
-     }
+     public function setReturnNo($return_no){ $this->_return_no = $return_no; }
+     public function setMemoNo($memo_no){ $this->_memo_no = $memo_no;}
+     public function setStartDate($start_date){ $this->_start_date = $start_date; }
+     public function setEndDate($end_date){ $this->_end_date = $end_date; }
  
  
      private function get_datatable_query()
      {
-         //set column sorting index table column name wise (should match with frontend table header)
-         if(permission('purchase-return-bulk-delete')){
-             $this->column_order = ['id','id','return_no','memo_no', null, 'return_date', 'grand_total', null];
+
+        $this->column_order = ['id', 'return_no', null, null, 'item', 'total_qty', 'total_cost', 'total_deduction', 'grand_total', 'return_date', null];
          
-         }else{
-             $this->column_order = ['id','return_no','memo_no', null, 'return_date', 'grand_total', null];
-         }
          
-         $query = self::with('supplier');
+         $query = self::with('purchase');
  
          //search query
          if (!empty($this->_return_no)) {
              $query->where('return_no', 'like', '%' . $this->_return_no . '%');
          }
+
          if (!empty($this->_memo_no)) {
-             $query->where('memo_no', 'like', '%' . $this->_memo_no . '%');
-         }
+            $memo_no = $this->_memo_no;
+            $query->whereHas('purchase',function($q) use ($memo_no){
+                $q->where('memo_no', 'like', '%' . $memo_no . '%');
+            });
+        }
  
-         if (!empty($this->_from_date)) {
-             $query->where('return_date', '>=',$this->_from_date);
-         }
-         if (!empty($this->_to_date)) {
-             $query->where('return_date', '<=',$this->_to_date);
-         }
-
-         if (!empty($this->_supplier_id)) {
-             $query->where('supplier_id', $this->_supplier_id);
-         }
-
+        if (!empty($this->_start_date)) {
+            $query->where('return_date', '>=',$this->_start_date);
+        }
+        
+        if (!empty($this->_end_date)) {
+            $query->where('return_date', '<=',$this->_end_date);
+        }
  
          //order by data fetching code
          if (isset($this->orderValue) && isset($this->dirValue)) { //orderValue is the index number of table header and dirValue is asc or desc

@@ -20,7 +20,7 @@ class CreatePurchaseReturnsTable extends Migration
             $table->foreign('purchase_id')->references('id')->on('purchases');
             $table->float('item');
             $table->float('total_qty');
-            $table->double('total_price');
+            $table->double('total_cost');
             $table->double('total_deduction')->nullable();
             $table->double('grand_total');
             $table->text('reason')->nullable();

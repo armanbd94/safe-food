@@ -26,10 +26,7 @@ class PurchaseReturnController extends BaseController
     {
         if(permission('purchase-return-access')){
             $this->setPageData('Purchase Return','Purchase Return','fas fa-undo-alt',[['name' => 'Purchase Return']]);
-            $data = [
-                'suppliers'  => Supplier::where('status',1)->get(),
-            ];
-            return view('stockreturn::purchase.index',$data);
+            return view('stockreturn::purchase.index');
         }else{
             return $this->access_blocked();
         }
@@ -47,14 +44,11 @@ class PurchaseReturnController extends BaseController
                 if (!empty($request->memo_no)) {
                     $this->model->setInvoiceNo($request->memo_no);
                 }
-                if (!empty($request->from_date)) {
-                    $this->model->setFromDate($request->from_date);
+                if (!empty($request->start_date)) {
+                    $this->model->setStartDate($request->start_date);
                 }
-                if (!empty($request->to_date)) {
-                    $this->model->setToDate($request->to_date);
-                }
-                if (!empty($request->supplier_id)) {
-                    $this->model->setSupplierID($request->supplier_id);
+                if (!empty($request->end_date)) {
+                    $this->model->setEndDate($request->end_date);
                 }
 
                 $this->set_datatable_default_properties($request);//set datatable default properties
@@ -78,10 +72,14 @@ class PurchaseReturnController extends BaseController
                     }
                     $row[] = $no;
                     $row[] = $value->return_no;
-                    $row[] = $value->memo_no;
-                    $row[] = $value->supplier->name.($value->supplier->mobile ? ' ( '.$value->supplier->mobile.')' : '');
-                    $row[] = date(config('settings.date_format'),strtotime($value->return_date));
-                    $row[] = number_format($value->grand_total,2);
+                    $row[] = $value->purchase->memo_no;
+                    $row[] = $value->purchase->supplier->name;
+                    $row[] = $value->item;
+                    $row[] = $value->total_qty;
+                    $row[] = number_format($value->total_cost,2,'.','');
+                    $row[] = number_format($value->total_deduction,2,'.','');
+                    $row[] = number_format($value->grand_total,2,'.','');
+                    $row[] = date('d-M-Y',strtotime($value->return_date));
                     $row[] = action_button($action);//custom helper function for action button
                     $data[] = $row;
                 }
@@ -100,30 +98,24 @@ class PurchaseReturnController extends BaseController
                 // dd($request->all());
                 DB::beginTransaction();
                 try {
-                    $purchase_return_data = [
-                        'return_no'        => 'PRINV-'.date('ym').rand(1,999),
-                        'memo_no'          => $request->memo_no,
-                        'warehouse_id'     => $request->warehouse_id,
-                        'supplier_id'      => $request->supplier_id,
-                        'total_price'      => $request->total_price,
-                        'total_deduction'  => $request->total_deduction ? $request->total_deduction : null,
-                        'tax_rate'         => $request->tax_rate ? $request->tax_rate : null,
-                        'total_tax'        => $request->total_tax ? $request->total_tax : null,
-                        'grand_total'      => $request->grand_total_price,
-                        'reason'           => $request->reason,
-                        'date'             => $request->purchase_date,
-                        'return_date'      => $request->return_date,
-                        'created_by'       => auth()->user()->name
-                    ];
-
-                    $purchase_return  = $this->model->create($purchase_return_data);
+                    $purchase_return  = $this->model->create([
+                        'return_no'       => 'PRINV-'.date('ym').rand(1,999),
+                        'purchase_id'     => $request->purchase_id,
+                        'item'            => $request->item,
+                        'total_qty'       => $request->total_qty,
+                        'total_price'     => $request->total_price,
+                        'total_deduction' => $request->total_deduction ? $request->total_deduction : 0,
+                        'grand_total'     => $request->grand_total,
+                        'reason'          => $request->reason,
+                        'return_date'     => $request->return_date,
+                        'created_by'      => Auth::user()->name
+                    ]);
                     //purchase materials
                     $materials = [];
                     if($request->has('materials'))
                     {
                         foreach ($request->materials as $key => $value) {
-                            if($value['return'] == 1){
-                                $unit = Unit::where('unit_name',$value['unit'])->first();
+                                $unit = Unit::find($value['unit_id']);
                                 if($unit->operator == '*'){
                                     $qty = $value['return_qty'] * $unit->operation_value;
                                 }else{
@@ -132,14 +124,13 @@ class PurchaseReturnController extends BaseController
 
                                 $materials[] = [
                                     'purchase_return_id' => $purchase_return->id,
-                                    'memo_no'            => $request->memo_no,
                                     'material_id'        => $value['id'],
                                     'return_qty'         => $value['return_qty'],
-                                    'unit_id'            => $unit ? $unit->id : null,
+                                    'unit_id'            => $value['unit_id'],
                                     'material_rate'      => $value['net_unit_cost'],
-                                    'deduction_rate'     => $value['deduction_rate'] ? $value['deduction_rate'] : null,
-                                    'deduction_amount'   => $value['deduction_amount'] ? $value['deduction_amount'] : null,
-                                    'total'              => $value['total']
+                                    'deduction_rate'     => $value['deduction_rate'] ? $value['deduction_rate'] : 0,
+                                    'deduction_amount'   => $value['deduction_amount'] ? $value['deduction_amount'] : 0,
+                                    'total'              => $value['subtotal']
                                 ];
 
                                 $material = Material::find($value['id']);
@@ -147,14 +138,11 @@ class PurchaseReturnController extends BaseController
                                     $material->qty -= $qty;
                                     $material->update();
                                 }
-                                $warehouse_material = WarehouseMaterial::where(['warehouse_id' => $request->warehouse_id,'material_id'  => $value['id']])->first();
+                                $warehouse_material = WarehouseMaterial::where(['warehouse_id' => 1,'material_id'  => $value['id']])->first();
                                 if($warehouse_material){
                                     $warehouse_material->qty -= $qty;
                                     $warehouse_material->update();
                                 }
-                                
-
-                            }
                             
                         }
                         if(count($materials) > 0)
@@ -166,12 +154,12 @@ class PurchaseReturnController extends BaseController
                     $supplier = Supplier::with('coa')->find($request->supplier_id);
                     $supplier_debit = array(
                         'chart_of_account_id' => $supplier->coa->id,
-                        'warehouse_id'     => $request->warehouse_id,
+                        'warehouse_id'        => 1,
                         'voucher_no'          => $request->memo_no,
-                        'voucher_type'        => 'Return',
+                        'voucher_type'        => 'PURCHASE RETURN',
                         'voucher_date'        => $request->return_date,
-                        'description'         => 'Supplier '.$supplier->name.' debit for Product Return Memo No. - ' . $request->memo_no,
-                        'debit'               => $request->grand_total_price,
+                        'description'         => 'Debit amount '.$request->grand_total.'Tk for material return Memo No. - ' . $request->memo_no,
+                        'debit'               => $request->grand_total,
                         'credit'              => 0,
                         'posted'              => 1,
                         'approve'             => 1,
@@ -198,7 +186,7 @@ class PurchaseReturnController extends BaseController
     {
         if(permission('purchase-return-view')){
             $this->setPageData('Purchase Return Details','Purchase Return Details','fas fa-file',[['name' => 'Purchase Return Details']]);
-            $purchase = $this->model->with('purchase','return_materials','supplier')->find($id);
+            $purchase = $this->model->with('purchase','return_materials')->find($id);
             return view('stockreturn::purchase.details',compact('purchase'));
         }else{
             return $this->access_blocked();
@@ -213,12 +201,11 @@ class PurchaseReturnController extends BaseController
                 DB::beginTransaction();
                 try {
     
-                    $purchaseData = $this->model->with('purchase','return_materials')->find($request->id);
-                    $memo_no = $purchaseData->memo_no;
+                    $purchaseReturnData = $this->model->with('purchase','return_materials')->find($request->id);
     
-                    if(!$purchaseData->return_materials->isEmpty())
+                    if(!$purchaseReturnData->return_materials->isEmpty())
                     {
-                        foreach ($purchaseData->return_materials as  $return_material) {
+                        foreach ($purchaseReturnData->return_materials as  $return_material) {
                             $return_qty = $return_material->return_qty;
                             $purchase_unit = Unit::find($return_material->unit_id);
                             if($purchase_unit->operator == '*'){
@@ -233,18 +220,18 @@ class PurchaseReturnController extends BaseController
                                 $material->update();
                             }
 
-                            $warehouse_material = WarehouseMaterial::where(['warehouse_id' => $purchaseData->purchase->warehouse_id,'material_id'  => $return_material->material_id])->first();
+                            $warehouse_material = WarehouseMaterial::where(['warehouse_id' => $purchaseReturnData->purchase->warehouse_id,'material_id'  => $return_material->material_id])->first();
                             if($warehouse_material){
                                 $warehouse_material->qty += $return_qty;
                                 $warehouse_material->update();
                             }
 
                         }
-                        $purchaseData->return_materials()->delete();
+                        $purchaseReturnData->return_materials()->delete();
                     }
-                    Transaction::where(['voucher_no'=>$memo_no,'voucher_type'=>'Return'])->delete();
+                    Transaction::where(['voucher_no'=>$purchaseReturnData->purchase->memo_no,'voucher_type'=>'PURCHASE RETURN'])->delete();
     
-                    $result = $purchaseData->delete();
+                    $result = $purchaseReturnData->delete();
                     if($result)
                     {
                         $output = ['status' => 'success','message' => 'Data has been deleted successfully'];
@@ -265,66 +252,4 @@ class PurchaseReturnController extends BaseController
         }
     }
 
-    public function bulk_delete(Request $request)
-    {
-        if($request->ajax()){
-            if(permission('purchase-return-bulk-delete')){
-                
-                    DB::beginTransaction();
-                    try {
-                        foreach ($request->ids as $id) {
-                            $purchaseData = $this->model->with('purchase','return_materials')->find($id);
-                            $memo_no = $purchaseData->memo_no;
-            
-                            if(!$purchaseData->return_materials->isEmpty())
-                            {
-                                foreach ($purchaseData->return_materials as  $return_material) {
-                                    $return_qty = $return_material->return_qty;
-                                    $purchase_unit = Unit::find($return_material->unit_id);
-                                    if($purchase_unit->operator == '*'){
-                                        $return_qty = $return_qty * $purchase_unit->operation_value;
-                                    }else{
-                                        $return_qty = $return_qty / $purchase_unit->operation_value;
-                                    }
-
-                                    $material = Material::find($return_material->material_id);
-                                    if($material){
-                                        $material->qty += $return_qty;
-                                        $material->update();
-                                    }
-
-                                    $warehouse_material = WarehouseMaterial::where(['warehouse_id' => $purchaseData->purchase->warehouse_id,'material_id'  => $return_material->material_id])->first();
-                                    if($warehouse_material){
-                                        $warehouse_material->qty += $return_qty;
-                                        $warehouse_material->update();
-                                    }
-
-                                }
-                                $purchaseData->return_materials()->delete();
-                            }
-                            Transaction::where(['voucher_no'=>$memo_no,'voucher_type'=>'Return'])->delete();
-            
-                            $result = $purchaseData->delete();
-                            if($result)
-                            {
-                                $output = ['status' => 'success','message' => 'Data has been deleted successfully'];
-                            }else{
-                                $output = ['status' => 'error','message' => 'Failed to delete data'];
-                            }
-                        }
-                        DB::commit();
-                    } catch (\Exception $e) {
-                        DB::rollBack();
-                        $output = ['status'=>'error','message'=>$e->getMessage()];
-                    }
-                    return response()->json($output);
-                
-            }else{
-                $output = $this->access_blocked();
-            }
-            return response()->json($output);
-        }else{
-            return response()->json($this->access_blocked());
-        }
-    }
 }
