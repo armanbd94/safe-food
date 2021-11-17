@@ -16,22 +16,15 @@ class CreateDamagesTable extends Migration
         Schema::create('damages', function (Blueprint $table) {
             $table->id();
             $table->string('damage_no')->unique();
-            $table->string('memo_no');
-            $table->unsignedBigInteger('warehouse_id');
-            $table->foreign('warehouse_id')->references('id')->on('warehouses');
-            $table->unsignedBigInteger('customer_id')->nullable();
-            $table->foreign('customer_id')->references('id')->on('customers');
-            $table->double('total_price');
-            $table->double('total_deduction')->nullable();
-            $table->double('tax_rate')->nullable();
-            $table->double('total_tax')->nullable();
+            $table->unsignedBigInteger('sale_id')->nullable();
+            $table->foreign('sale_id')->references('id')->on('sales');
+            $table->float('item');
+            $table->float('total_qty');
             $table->double('grand_total');
             $table->text('reason')->nullable();
-            $table->date('date');
             $table->date('damage_date');
             $table->string('created_by')->nullable();
             $table->string('modified_by')->nullable();
-
             $table->timestamps();
         });
     }

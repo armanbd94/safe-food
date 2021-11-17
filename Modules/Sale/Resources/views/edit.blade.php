@@ -169,7 +169,7 @@
                                             <td id="total-qty" class="text-center font-weight-bolder">{{ number_format($sale->total_qty,2,'.','') }}</td>
                                             <td id="total-free-qty" class="text-center font-weight-bolder">{{ number_format($sale->total_free_qty,2,'.','') }}</td>
                                             <td colspan="2" class="text-right font-weight-bolder">Grand Total</td>
-                                            <td id="grand-total"  class="text-right font-weight-bolder">{{ number_format($sale->grand_total,2,'.',',') }}</td>
+                                            <td id="total"  class="text-right font-weight-bolder">{{ number_format($sale->grand_total,2,'.',',') }}</td>
                                             <td class="text-center"><button type="button" class="btn btn-success btn-md add-product"><i class="fas fa-plus"></i></button></td>
                                         </tr>
                                         <tr class="commission_row @if(empty($sale->total_commission)) {{ 'd-none' }} @endif">
@@ -495,10 +495,10 @@ function calculateTotal()
     $('.subtotal').each(function() {
         total += parseFloat($(this).val());
     });
-    $('#grand-total').text(total.toFixed(2));
+    $('#total').text(total.toFixed(2));
     $('input[name="grand_total"]').val(total.toFixed(2));
 
-    var item           = $('#product_table tbody tr:last').index()+1;
+    var item = $('#product_table tbody tr:last').index()+1;
     $('input[name="item"]').val(item);
     calculateNetTotal();
 }

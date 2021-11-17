@@ -17,16 +17,13 @@ class CreateDamageProductsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('damage_id');
             $table->foreign('damage_id')->references('id')->on('damages');
-            $table->string('memo_no');
-            $table->string('batch_no');
             $table->unsignedBigInteger('product_id');
             $table->foreign('product_id')->references('id')->on('products');
             $table->double('damage_qty');
-            $table->unsignedBigInteger('unit_id')->nullable();
-            $table->foreign('unit_id')->references('id')->on('units');
-            $table->double('product_rate');
+            $table->unsignedBigInteger('base_unit_id')->nullable();
+            $table->foreign('base_unit_id')->references('id')->on('units');
+            $table->double('net_unit_price');
             $table->double('total');
-
             $table->timestamps();
         });
     }

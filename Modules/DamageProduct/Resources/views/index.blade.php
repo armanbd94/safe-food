@@ -43,46 +43,8 @@
                         <x-form.textbox labelName="Damage No." name="damage_no" col="col-md-3" />
                         <x-form.textbox labelName="Memo No." name="memo_no" col="col-md-3" />
 
-                        <x-form.selectbox labelName="Salesman" name="salesmen_id" col="col-md-3" class="selectpicker">
-                            @if (!$salesmen->isEmpty())
-                                @foreach ($salesmen as $value)
-                                    <option value="{{ $value->id }}">{{ $value->name.' - '.$value->phone }}</option>
-                                @endforeach
-                            @endif
-                        </x-form.selectbox>
-
-                        <x-form.selectbox labelName="Upazila" name="upazila_id" col="col-md-3" class="selectpicker" onchange="getRouteList(this.value)">
-                            @if (!$locations->isEmpty())
-                                @foreach ($locations as $location)
-                                    @if ($location->type == 2 && $location->parent_id == auth()->user()->district_id)
-                                    <option value="{{ $location->id }}">{{ $location->name }}</option>
-                                    @endif
-                                @endforeach
-                            @endif
-                        </x-form.selectbox>
-
-                        <x-form.selectbox labelName="Route" name="route_id" col="col-md-3" class="selectpicker" onchange="getAreaList(this.value);">
-                            @if (!$locations->isEmpty())
-                                @foreach ($locations as $location)
-                                    @if ($location->type == 3 && $location->grand_parent_id == auth()->user()->district_id)
-                                    <option value="{{ $location->id }}">{{ $location->name }}</option>
-                                    @endif
-                                @endforeach
-                            @endif
-                        </x-form.selectbox>
-
-                        <x-form.selectbox labelName="Area" name="area_id" col="col-md-3" class="selectpicker" onchange="customer_list(this.value)">
-                            @if (!$locations->isEmpty())
-                                @foreach ($locations as $location)
-                                    @if ($location->type == 4 && $location->grand_grand_parent_id == auth()->user()->district_id)
-                                    <option value="{{ $location->id }}">{{ $location->name }}</option>
-                                    @endif
-                                @endforeach
-                            @endif
-                        </x-form.selectbox>
-                        <x-form.selectbox labelName="Customer" name="customer_id" col="col-md-3" class="selectpicker"/>
-
-                        <div class="col-md-12">
+                      
+                        <div class="col-md-3">
                             <div style="margin-top:28px;">     
                                     <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
                                     data-toggle="tooltip" data-theme="dark" title="Reset">
@@ -105,17 +67,14 @@
                                 <thead class="bg-primary">
                                     <tr>
                                         <th>Sl</th>
-                                        <th>Return No.</th>
+                                        <th>Damage No.</th>
                                         <th>Memo No.</th>
-                                        <th>Customer Name</th>
-                                        <th>Salesman</th>
-                                        <th>Upazila</th>
-                                        <th>Route</th>
-                                        <th>Area</th>
+                                        <th>Dealer Name</th>
+                                        <th>Depo Name</th>
                                         <th>Total Item</th>
-                                        <th>Damage Date</th>
+                                        <th>Total Qty</th>
                                         <th>Grand Total</th>
-                                        <th>Deducted SR Commission</th>
+                                        <th>Damage Date</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -176,25 +135,20 @@ $(document).ready(function(){
                 data.memo_no     = $("#form-filter #memo_no").val();
                 data.start_date  = $("#form-filter #start_date").val();
                 data.end_date    = $("#form-filter #end_date").val();
-                data.customer_id = $("#form-filter #customer_id").val();
-                data.salesmen_id = $("#form-filter #salesmen_id").val();
-                data.upazila_id  = $("#form-filter #upazila_id").val();
-                data.route_id    = $("#form-filter #route_id").val();
-                data.area_id     = $("#form-filter #area_id").val();
                 data._token      = _token;
             }
         },
         "columnDefs": [{
-                "targets": [8,12],
+                "targets": [9],
                 "orderable": false,
                 "className": "text-center"
             },
             {
-                "targets": [0,1,2,5,6,7,9],
+                "targets": [1,2,3,4,5,6,8],
                 "className": "text-center"
             },
             {
-                "targets": [10,11],
+                "targets": [7],
                 "className": "text-right"
             },
         ],
@@ -214,7 +168,7 @@ $(document).ready(function(){
                 "orientation": "landscape", //portrait
                 "pageSize": "legal", //A3,A5,A6,legal,letter
                 "exportOptions": {
-                    columns: ':visible:not(:eq(13))'
+                    columns: ':visible:not(:eq(9))'
                 },
                 customize: function (win) {
                     $(win.document.body).addClass('bg-white');
@@ -232,7 +186,7 @@ $(document).ready(function(){
                 "title": "{{ $page_title }} List",
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
-                    columns: ':visible:not(:eq(12))'
+                    columns: ':visible:not(:eq(9))'
                 }
             },
             {
@@ -242,7 +196,7 @@ $(document).ready(function(){
                 "title": "{{ $page_title }} List",
                 "filename": "{{ strtolower(str_replace(' ','-',$page_title)) }}-list",
                 "exportOptions": {
-                    columns: ':visible:not(:eq(12))'
+                    columns: ':visible:not(:eq(9))'
                 }
             },
             {
@@ -254,7 +208,7 @@ $(document).ready(function(){
                 "orientation": "landscape", //portrait
                 "pageSize": "legal", //A3,A5,A6,legal,letter
                 "exportOptions": {
-                    columns: ':visible:not(:eq(12))'
+                    columns: ':visible:not(:eq(9))'
                 },
                 customize: function(doc) {
                     doc.defaultStyle.fontSize = 7; //<-- set fontsize to 16 instead of 10 
@@ -281,62 +235,11 @@ $(document).ready(function(){
         let id    = $(this).data('id');
         let name  = $(this).data('name');
         let row   = table.row($(this).parent('tr'));
-        let url   = "{{ route('sale.return.delete') }}";
+        let url   = "{{ route('damage.product.delete') }}";
         delete_data(id, url, table, row, name);
     });
 });
 
-function customer_list()
-{
-    let route_id = document.getElementById('route_id').value;
-    let area_id = document.getElementById('area_id').value;
-    $.ajax({
-        url:"{{ url('customer-list') }}",
-        type:"POST",
-        data:{route_id:route_id,area_id:area_id,_token:_token},
-        dataType:"JSON",
-        success:function(data){
-            html = `<option value="">Select Please</option>`;
-            $.each(data, function(key, value) {
-                html += `<option value="${value.id}">${value.name} - ${value.mobile} (${value.shop_name})</option>`;
-            });
-            $('#form-filter #customer_id').empty().append(html);
-            $('#form-filter #customer_id.selectpicker').selectpicker('refresh');
-      
-        },
-    });
-
-}
-function getRouteList(upazila_id){
-    $.ajax({
-        url:"{{ url('upazila-id-wise-route-list') }}/"+upazila_id,
-        type:"GET",
-        dataType:"JSON",
-        success:function(data){
-            html = `<option value="">Select Please</option>`;
-            $.each(data, function(key, value) {
-                html += '<option value="'+ key +'">'+ value +'</option>';
-            });
-            $('#form-filter #route_id').empty().append(html);
-            $('.selectpicker').selectpicker('refresh');
-        },
-    });
-}
-function getAreaList(route_id,selector,area_id=''){
-    $.ajax({
-        url:"{{ url('route-id-wise-area-list') }}/"+route_id,
-        type:"GET",
-        dataType:"JSON",
-        success:function(data){
-            html = `<option value="">Select Please</option>`;
-            $.each(data, function(key, value) {
-                html += '<option value="'+ key +'">'+ value +'</option>';
-            });
-            $('#form-filter #area_id').empty().append(html);
-            $('.selectpicker').selectpicker('refresh');
-        },
-    });
-}
 
 </script>
 @endpush

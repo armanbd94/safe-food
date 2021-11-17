@@ -12,9 +12,7 @@ class DamageProductRequest extends FormRequest
     public function rules()
     {
         $this->rules['memo_no']  = ['required'];
-        $this->rules['sale_date']   = ['required','date','date_format:Y-m-d'];
         $this->rules['damage_date'] = ['required','date','date_format:Y-m-d'];
-        $this->rules['customer_name'] = ['required'];
 
         if(request()->has('products'))
         {
@@ -24,6 +22,7 @@ class DamageProductRequest extends FormRequest
                 $this->messages['products.'.$key.'.damage_qty.required']    = 'The damage quantity field is required';
                 $this->messages['products.'.$key.'.damage_qty.numeric']     = 'The damage quantity value must be numeric';
                 $this->messages['products.'.$key.'.damage_qty.gt']          = 'The damage quantity value must be greater than 0';
+                $this->messages['products.'.$key.'.damage_qty.lte']          = 'The damage quantity value must be less than or equal '.$value['sold_qty'];
             }
         }
 
