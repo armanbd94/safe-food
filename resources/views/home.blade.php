@@ -66,46 +66,7 @@
                 </div>
             </div>
             
-            <div class="col-md-3 mb-5">
-                <div class="bg-white text-center py-3  rounded-xl">
-                    <span class="svg-icon svg-icon-3x svg-icon-danger d-block my-3">
-                        <img src="images/supplier-due.png" alt="supplier" class="icon">
-                    </span>
-                    <h6 id="supplier_due" class="m-0">{{ number_format(0,2) }}TK</h6>
-                    <a href="javascript::void(0);" class="font-weight-bold font-size-h7 mt-2">Supplier Due</a>
-                </div>
-            </div>
-
-            <div class="col-md-3 mb-5">
-                <div class="bg-white text-center py-3  rounded-xl">
-                    <span class="svg-icon svg-icon-3x svg-icon-danger d-block my-3">
-                        <img src="images/customer-due.png" alt="customer" class="icon">
-                    </span>
-                    <h6 id="customer_due" class="m-0">{{ number_format(0,2) }}TK</h6>
-                    <a href="javascript::void(0);" class="font-weight-bold font-size-h7 mt-2">Customer Due</a>
-                </div>
-            </div>
-
-            <div class="col-md-3 mb-5">
-                <div class="bg-white text-center py-3  rounded-xl">
-                    <span class="svg-icon svg-icon-3x svg-icon-danger d-block my-3">
-                        <img src="images/salesman-due.png" alt="sr" class="icon">
-                    </span>
-                    <h6 id="sr_due" class="m-0">{{ number_format(0,2) }}TK</h6>
-                    <a href="javascript::void(0);" class="font-weight-bold font-size-h7 mt-2">SR Commission Due</a>
-                </div>
-            </div>
-
-            <div class="col-md-3 mb-5">
-                <div class="bg-white text-center py-3  rounded-xl">
-                    <span class="svg-icon svg-icon-3x svg-icon-danger d-block my-3">
-                        <img src="images/customer.png" alt="customer" class="icon">
-                    </span>
-                    <h6 id="total_customer" class="m-0">0</h6>
-                    <a href="javascript::void(0);" class="font-weight-bold font-size-h7 mt-2">Total Customer</a>
-                </div>
-            </div>
-
+           
         </div>
         <!-- Start :: Bar Chart-->
         <div class="row py-5">
@@ -146,10 +107,6 @@ $(document).ready(function(){
             $('#purchase').text((data.purchase).toFixed(2)+'Tk');
             $('#income').text((data.income).toFixed(2)+'Tk');
             $('#expense').text((data.expense).toFixed(2)+'Tk');
-            $('#supplier_due').text((data.supplier_due).toFixed(2)+'Tk');
-            $('#customer_due').text((data.customer_due).toFixed(2)+'Tk');
-            $('#sr_due').text((data.sr_commission_due).toFixed(2)+'Tk');
-            $('#total_customer').text(data.total_customer);
         });
     }
 

@@ -26,10 +26,10 @@ class HomeController extends BaseController
                 $end_date  = date('Y').'-'.date('m',$start).'-31';
 
                 $sale_amount = DB::table('sales')->whereDate('sale_date','>=',$start_date)
-                ->whereDate('sale_date','<=',$end_date)->sum('grand_total');
+                ->whereDate('sale_date','<=',$end_date)->sum('net_total');
 
                 $purchase_amount = DB::table('purchases')->whereDate('purchase_date','>=',$start_date)
-                ->whereDate('purchase_date','<=',$end_date)->sum('grand_total');
+                ->whereDate('purchase_date','<=',$end_date)->sum('net_total');
 
                 $yearly_sale_amount[] = number_format($sale_amount,2,'.','');
                 $yearly_purchase_amount[] = number_format($purchase_amount,2,'.','');
@@ -46,65 +46,40 @@ class HomeController extends BaseController
         if($start_date && $end_date)
         {
             $sale = DB::table('sales')
-                    ->whereDate('sale_date','>=',$start_date)
-                    ->whereDate('sale_date','<=',$end_date)
-                    ->sum('grand_total');
-            $purchase = DB::table('purchases')->whereDate('purchase_date','>=',$start_date)
-                        ->whereDate('purchase_date','<=',$end_date)
-                        ->sum('grand_total');
-            $income = DB::table('sales')
-                        ->whereDate('sale_date','>=',$start_date)
-                        ->whereDate('sale_date','<=',$end_date)
-                        ->sum('paid_amount');
-            $expense = DB::table('expenses')
-            ->whereDate('date','>=',$start_date)
-            ->whereDate('date','<=',$end_date)
-            ->sum('amount');
+                    ->whereBetween('sale_date',[$start_date,$end_date])
+                    ->sum('net_total');
 
-            $sr_commission_due= DB::table('transactions as t')
-            ->join('chart_of_accounts as coa','t.chart_of_account_id','=','coa.id')
-            ->select(DB::raw("(SUM(t.credit) - SUM(t.debit)) as due_commission"))
-            ->whereNotNull('coa.salesmen_id')
-            ->whereDate('t.voucher_date','<=',$end_date)
-            ->first();
-            $supplier_due = DB::table('transactions as t')
-                ->join('chart_of_accounts as coa','t.chart_of_account_id','=','coa.id')
-                ->select(DB::raw("(SUM(t.credit) - SUM(t.debit)) as due"))
-                ->whereNotNull('coa.supplier_id')
-                ->whereDate('t.voucher_date','<=',$end_date)
-                ->first();
-            $total_customer_dues = 0;
-            $customer_dues = DB::table('sales as s')
-                ->leftJoin('customers as c','s.customer_id','=','c.id')
-                ->selectRaw('s.customer_id,s.due_amount,max(s.id) as last_due_id')
-                ->groupBy('s.customer_id')
-                ->where('s.due_amount','>',0)
-                ->when($start_date,function($q) use($start_date){
-                    $q->whereDate('s.sale_date','>=',$start_date);
-                })
-                ->when($end_date,function($q) use($end_date){
-                    $q->whereDate('s.sale_date','<=',$end_date);
-                })
-                ->get();
-            if(!$customer_dues->isEmpty())
-            {
-                foreach ($customer_dues->chunk(10) as $chunk) {
-                    foreach ($chunk as $value)
-                    {
-                        $total_customer_dues += $value->due_amount;
-                    }
-                }
-            }
-            $customers = DB::table('customers')->count();
+            $purchase = DB::table('purchases')
+                        ->whereBetween('purchase_date',[$start_date,$end_date])
+                        ->sum('net_total');
+
+            $expense = DB::table('expenses')
+                        ->whereBetween('date',[$start_date,$end_date])
+                        ->sum('amount');
+            $income_from_depo = DB::table('transactions as t')
+                        ->join('chart_of_accounts as coa','t.chart_of_account_id','=','coa.id')
+                        ->whereNotNull('coa.depo_id')
+                        ->whereBetween('t.voucher_date',[$start_date,$end_date])
+                        ->where(function($q){
+                            $q->where('t.voucher_type','CR')
+                            ->orWhere('t.voucher_type','Advance');
+                        })
+                        ->sum('t.credit');
+
+            $income_from_dealer = DB::table('transactions as t')
+                        ->join('chart_of_accounts as coa','t.chart_of_account_id','=','coa.id')
+                        ->whereNotNull('coa.dealer_id')
+                        ->whereBetween('t.voucher_date',[$start_date,$end_date])
+                        ->where(function($q){
+                            $q->where('t.voucher_type','CR')
+                            ->orWhere('t.voucher_type','Advance');
+                        })
+                        ->sum('t.credit');
             $data = [
                 'sale'              => $sale,
                 'purchase'          => $purchase,
-                'income'            => $income,
                 'expense'           => $expense,
-                'supplier_due'      => $supplier_due ? $supplier_due->due : 0,
-                'customer_due'      => $total_customer_dues,
-                'sr_commission_due' => $sr_commission_due ? $sr_commission_due->due_commission : 0,
-                'total_customer'    => $customers,
+                'income'   => ($income_from_depo ?? 0) + ($income_from_dealer ?? 0)
             ];
             return response()->json($data);
         }
