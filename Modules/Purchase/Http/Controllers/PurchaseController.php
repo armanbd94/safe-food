@@ -398,7 +398,7 @@ class PurchaseController extends BaseController
         if(permission('purchase-edit')){
             $this->setPageData('Edit Purchase','Edit Purchase','fas fa-edit',[['name'=>'Purchase','link' => route('purchase')],['name' => 'Edit Purchase']]);
             $data = [
-                'purchase'   => $this->model->with('purchase_materials','supplier','purchase_payments')->find($id),
+                'purchase'   => $this->model->with('purchase_materials','supplier')->find($id),
                 'materials'      => Material::with('purchase_unit')->get(),
             ];
             return view('purchase::edit',$data);
@@ -411,7 +411,7 @@ class PurchaseController extends BaseController
     {
         if($request->ajax()){
             if(permission('purchase-edit')){
-                //dd($request->all());
+                // dd($request->all());
                 DB::beginTransaction();
                 try {
                     $purchaseData = $this->model->with('purchase_materials')->find($request->purchase_id);
@@ -440,8 +440,7 @@ class PurchaseController extends BaseController
                         'grand_total'     => $request->grand_total,
                         'discount_amount' => $request->discount_amount ? $request->discount_amount : 0,
                         'net_total'       => $request->net_total,
-                        'paid_amount'     => $request->paid_amount ? $request->paid_amount : 0,
-                        'due_amount'      => $request->due_amount,
+                        'due_amount'      => $balance,
                         'payment_status'  => $payment_status,
                         'purchase_date'   => $request->purchase_date,
                         'modified_by'     => auth()->user()->name
@@ -479,7 +478,7 @@ class PurchaseController extends BaseController
                             
                         }
                     }
-
+                   
                     //purchase materials
                     $materials = [];
                     if($request->has('materials'))
@@ -544,13 +543,48 @@ class PurchaseController extends BaseController
                                 ]);
                             }
                         }
-
                     }
                     $purchase = $purchaseData->update($purchase_data);
+
+                    
                     $purchaseData->purchase_materials()->sync($materials);
                     $supplier = Supplier::with('coa')->find($request->supplier_id);
-                    Transaction::where('voucher_no', (string) $request->memo_no)->where('voucher_type', (string) "Purchase")->delete();
-                    $this->purchase_balance_add($purchase->id,$request->memo_no,$request->net_total,$supplier->coa->id,$supplier->name,$request->purchase_date,$payment_data);
+                    
+                    $purchase_coa_transaction = Transaction::where(['chart_of_account_id' => $supplier->coa->id,'voucher_no' => $request->memo_no,'voucher_type'=> 'Purchase'])->first();
+                    if($purchase_coa_transaction)
+                    {
+                        $purchase_coa_transaction->update([
+                            'voucher_date' => $request->purchase_date,
+                            'credit'       => $request->net_total,
+                            'modified_by'  => auth()->user()->name,
+                            'updated_at'   => date('Y-m-d H:i:s')
+                        ]);
+                    }
+
+                    $purchase_coscr = Transaction::where([
+                        'chart_of_account_id' => DB::table('chart_of_accounts')->where('code', $this->coa_head_code('inventory'))->value('id'),
+                        'voucher_no' => $request->memo_no,'voucher_type'=> 'Purchase'])->first();
+                    if($purchase_coscr)
+                    {
+                        $purchase_coscr->update([
+                            'voucher_date' => $request->purchase_date,
+                            'debit'        => $request->net_total,
+                            'modified_by'  => auth()->user()->name,
+                            'updated_at'   => date('Y-m-d H:i:s')
+                        ]);
+                    }
+                    $company_expense = Transaction::where([
+                        'chart_of_account_id' => DB::table('chart_of_accounts')->where('code', $this->coa_head_code('material_purchase'))->value('id'),
+                        'voucher_no' => $request->memo_no,'voucher_type'=> 'Purchase'])->first();
+                    if($company_expense)
+                    {
+                        $company_expense->update([
+                            'voucher_date' => $request->purchase_date,
+                            'debit'        => $request->net_total,
+                            'modified_by'  => auth()->user()->name,
+                            'updated_at'   => date('Y-m-d H:i:s')
+                        ]);
+                    }
                     $output  = $this->store_message($purchase, $request->purchase_id);
                     DB::commit();
                     // return response()->json($output);

@@ -55,7 +55,7 @@
 
 
 
-                            <div class="col-md-12">
+                            <div class="col-md-12 table-responsive">
                                 <table class="table table-bordered" id="material_table">
                                     <thead class="bg-primary">
                                         <th>Name</th>
@@ -66,25 +66,37 @@
                                         <th class="text-center"><i class="fas fa-trash text-white"></i></th>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td class="col-md-3">                                                  
-                                                <select name="materials[1][id]" id="materials_1_id" class="fcs col-md-12 form-control selectpicker" onchange="setMaterialDetails(1)"  data-live-search="true" data-row="1">                                            
-                                                    @if (!$materials->isEmpty())
-                                                        <option value="0">Please Select</option>
-                                                    @foreach ($materials as $material)
-                                                        <option value="{{ $material->id }}" data-unitid="{{ $material->purchase_unit_id }}" data-unitname="{{ $material->purchase_unit->unit_name }}">{{ $material->material_name.' ('.$material->material_code.')'; }}</option>
-                                                    @endforeach
+                                        @if(!$purchase->purchase_materials->isEmpty())
+                                            @foreach($purchase->purchase_materials as $key => $value)
+                                            @php
+                                                $unit_name = DB::table('units')->where('id',$value->pivot->purchase_unit_id)->value('unit_name');
+                                            @endphp
+                                            <tr>
+                                                <td class="col-md-3">                                                  
+                                                    <select name="materials[{{ $key+1 }}][id]" id="materials_{{ $key+1 }}_id" class="fcs col-md-12 form-control selectpicker" onchange="setMaterialDetails({{ $key+1 }})"  data-live-search="true" data-row="{{ $key+1 }}">                                            
+                                                        @if (!$materials->isEmpty())
+                                                            <option value="0">Please Select</option>
+                                                        @foreach ($materials as $material)
+                                                            <option value="{{ $material->id }}" {{ $value->id == $material->id ? 'selected' : '' }} data-unitid="{{ $material->purchase_unit_id }}" 
+                                                                data-unitname="{{ $material->purchase_unit->unit_name }}">{{ $material->material_name }}</option>
+                                                        @endforeach
+                                                        @endif
+                                                    </select>
+                                                </td>                                        
+                                                <td class="unit_name_{{ $key+1 }} text-center" data-row="{{ $key+1 }}">{{ $unit_name }}</td>
+                                                <td><input type="text" class="form-control qty text-center" value="{{ $value->pivot->qty }}" onkeyup="calculateRowTotal({{ $key+1 }})" name="materials[{{ $key+1 }}][qty]" id="materials_{{ $key+1 }}_qty"  data-row="{{ $key+1 }}"></td>
+                                                <td><input type="text" class="text-right form-control net_unit_cost"  value="{{ number_format($value->pivot->net_unit_cost,2,'.','') }}" onkeyup="calculateRowTotal({{ $key+1 }})" name="materials[{{ $key+1 }}][net_unit_cost]" id="materials_{{ $key+1 }}_net_unit_cost" data-row="{{ $key+1 }}"></td>
+                                                <td class="subtotal_{{ $key+1 }} text-right" data-row="{{ $key+1 }}">{{ number_format($value->pivot->total,2,'.','') }}</td>
+                                                <td class="text-center">
+                                                    @if($key != 0)
+                                                    <button type="button" class="btn btn-danger btn-sm remove-material"><i class="fas fa-trash"></i></button>
                                                     @endif
-                                                </select>
-                                            </td>                                        
-                                            <td class="unit_name_1 text-center" data-row="1"></td>
-                                            <td><input type="text" class="form-control qty text-center" onkeyup="calculateRowTotal(1)" name="materials[1][qty]" id="materials_1_qty"  data-row="1"></td>
-                                            <td><input type="text" class="text-right form-control net_unit_cost" onkeyup="calculateRowTotal(1)" name="materials[1][net_unit_cost]" id="materials_1_net_unit_cost" data-row="1"></td>
-                                            <td class="subtotal_1 text-right" data-row="1"></td>
-                                            <td></td>
-                                            <input type="hidden" id="materials_1_purchase_unit_id" name="materials[1][purchase_unit_id]" data-row="1">
-                                            <input type="hidden" class="subtotal" id="materials_1_subtotal" name="materials[1][subtotal]" data-row="1">
-                                       </tr>
+                                                </td>
+                                                <input type="hidden" id="materials_{{ $key+1 }}_purchase_unit_id" value="{{ $value->pivot->purchase_unit_id }}" name="materials[{{ $key+1 }}][purchase_unit_id]" data-row="{{ $key+1 }}">
+                                                <input type="hidden" class="subtotal" id="materials_{{ $key+1 }}_subtotal" value="{{ number_format($value->pivot->total,2,'.','') }}" name="materials[{{ $key+1 }}][subtotal]" data-row="{{ $key+1 }}">
+                                            </tr>
+                                            @endforeach
+                                        @endif
                                     </tbody>
                                     <tfoot>
                                         <tr>
@@ -102,47 +114,11 @@
                                             <td></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="3">
-                                                <div class="row">
-                                                    <x-form.selectbox labelName="Payment Status" name="payment_status" required="required"  col="col-md-6 mb-0" class="fcs selectpicker" data-live-search="true">
-                                                        @foreach (PAYMENT_STATUS as $key => $value)
-                                                        <option value="{{ $key }}" {{ $purchase->payment_status == $key ? 'selected' : '' }}>{{ $value }}</option>
-                                                        @endforeach
-                                                    </x-form.selectbox>
-                                                    <x-form.selectbox labelName="Payment Method" name="payment_method" onchange="account_list(this.value)" required="required"  col="col-md-6 payment_row d-none" class="selectpicker" data-live-search="true">
-                                                        @foreach (SALE_PAYMENT_METHOD as $key => $value)
-                                                        <option value="{{ $key }}" {{ $purchase->payment_method == $key ? 'selected' : '' }}>{{ $value }}</option>
-                                                        @endforeach
-                                                    </x-form.selectbox>
-                                                </div>
-                                            </td>
-                                            <td class="text-right font-weight-bolder">Net Total</td>
+                                            <td class="text-right font-weight-bolder" colspan="4">Net Total</td>
                                             <td><input type="text" class="fcs form-control text-right bg-secondary" name="net_total" id="net_total" value="{{ number_format($purchase->net_total,2,'.','') }}" placeholder="0.00" readonly></td>
                                             <td></td>
                                         </tr>
-                                        <tr class="payment_row d-none">
-                                            <td colspan="3">
-                                                <div class="row">
-                                                    <x-form.selectbox labelName="Account" name="account_id" required="required"  col="col-md-6" class="fcs selectpicker"/>
-                                                    <div class="form-group col-md-6 d-none reference_no">
-                                                        <label for="reference_no">Reference No.</label>
-                                                        <input type="text" class="fcs form-control" name="reference_no" id="reference_no" >
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="text-right font-weight-bolder">Paid Amount</td>
-                                            <td>
-                                                <div class="form-group mb-0">
-                                                <input type="text" class="fcs form-control text-right" name="paid_amount" id="paid_amount" value="{{ number_format($purchase->paid_amount,2,'.','') }}" placeholder="0.00">
-                                                </div>
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr class="payment_row d-none">
-                                            <td class="text-right font-weight-bolder" colspan="4">Due Amount</td>
-                                            <td><input type="text" class="fcs form-control bg-secondary text-right" name="due_amount" id="due_amount" value="{{ number_format($purchase->due_amount,2,'.','') }}" placeholder="0.00" readonly></td>
-                                            <td></td>
-                                        </tr>
+
                                     </tfoot>
                                 </table>
                             </div>
@@ -177,46 +153,15 @@
 $(document).ready(function () {
     $('.date').datetimepicker({format: 'YYYY-MM-DD'});
 
-    $('#payment_status').on('change',function(){
-        if($(this).val() != 3){
-            $('.payment_row').removeClass('d-none');
-        }else{
-            $('#paid_amount').val('');
-            $('.payment_row').addClass('d-none');
-        }
-        var net_total   = $('#net_total').val() ? parseFloat($('#net_total').val()) : 0;
-        $('#due_amount').val(parseFloat(net_total).toFixed(2));
-    });
-
-    $('#payment_method').on('change',function(){
-        if($(this).val() != 1){
-            $('.reference_no').removeClass('d-none');
-        }else{
-            $('.reference_no').addClass('d-none');
-        }
-    });
-
-    
-    $('#paid_amount').on('input',function(){
-
-        var net_total   = $('#net_total').val() ? parseFloat($('#net_total').val()) : 0;
-        var paid_amount = parseFloat($(this).val());
-        
-        if(paid_amount < 0){
-            paid_amount = 0;
-            $('#paid_amount').val('');
-            notification('error','Paid amount must be greater than 0!');
-        }
-        $('#due_amount').val(parseFloat(net_total - paid_amount).toFixed(2));
-        
-    });
-
     $('#material_table').on('click','.remove-material',function(){
         $(this).closest('tr').remove();
         calculateTotal();
     });
 
     var count = 1;
+    @if(!$purchase->purchase_materials->isEmpty())
+    count = "{{ count($purchase->purchase_materials) }}";
+    @endif
     $('#material_table').on('click','.add-material',function(){
         count++;
         material_row_add(count);
@@ -229,7 +174,8 @@ $(document).ready(function () {
                                 @if (!$materials->isEmpty())
                                     <option value="0">Please Select</option>
                                 @foreach ($materials as $material)
-                                    <option value="{{ $material->id }}" data-unitid="{{ $material->purchase_unit_id }}" data-unitname="{{ $material->purchase_unit->unit_name }}">{{ $material->material_name.' ('.$material->material_code.')'; }}</option>
+                                    <option value="{{ $material->id }}" data-unitid="{{ $material->purchase_unit_id }}" 
+                                    data-unitname="{{ $material->purchase_unit->unit_name }}">{{ $material->material_name }}</option>
                                 @endforeach
                                 @endif
                             </select>
@@ -335,7 +281,7 @@ function store_data(){
     }else{
         let form = document.getElementById('purchase_store_form');
         let formData = new FormData(form);
-        let url = "{{route('purchase.store')}}";
+        let url = "{{route('purchase.update')}}";
         $.ajax({
             url: url,
             type: "POST",
@@ -365,7 +311,7 @@ function store_data(){
                 } else {
                     notification(data.status, data.message);
                     if (data.status == 'success') {
-                        window.location.replace("{{ url('purchase/view') }}/"+data.purchase_id);
+                        window.location.replace("{{ url('purchase') }}");
                         
                     }
                 }

@@ -68,10 +68,11 @@
                                                     @if (!$materials->isEmpty())
                                                         <option value="0">Please Select</option>
                                                     @foreach ($materials as $material)
-                                                        <option value="{{ $material->id }}" data-unitid="{{ $material->purchase_unit_id }}" data-unitname="{{ $material->purchase_unit->unit_name }}">{{ $material->material_name.' ('.$material->material_code.')'; }}</option>
+                                                        <option value="{{ $material->id }}" data-unitid="{{ $material->purchase_unit_id }}" 
+                                                            data-unitname="{{ $material->purchase_unit->unit_name }}">{{ $material->material_name }}</option>
                                                     @endforeach
                                                     @endif
-                                                </select>
+                                                </select> 
                                             </td>                                        
                                             <td class="unit_name_1 text-center" data-row="1"></td>
                                             <td><input type="text" class="form-control qty text-center" onkeyup="calculateRowTotal(1)" name="materials[1][qty]" id="materials_1_qty"  data-row="1"></td>

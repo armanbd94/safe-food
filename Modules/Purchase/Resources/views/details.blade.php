@@ -36,6 +36,7 @@
                             body,html {
                                 background: #fff !important;
                                 -webkit-print-color-adjust: exact !important;
+  
                             }
 
                             .invoice {
@@ -47,7 +48,7 @@
                             .invoice header {
                                 padding: 10px 0;
                                 margin-bottom: 20px;
-                                border-bottom: 1px solid #036;
+                                border-bottom: 1px solid #000;
                             }
 
                             .invoice .company-details {
@@ -78,7 +79,7 @@
 
                             .invoice .invoice-details .invoice-id {
                                 margin-top: 0;
-                                color: #036;
+                                color: #000;
                             }
 
                             .invoice main {
@@ -93,7 +94,7 @@
 
                             .invoice main .notices {
                                 padding-left: 6px;
-                                border-left: 6px solid #036;
+                                border-left: 6px solid #000;
                             }
 
                             .invoice table {
@@ -104,16 +105,23 @@
                             }
 
                             .invoice table th {
-                                background: #036;
+                                background: #000;
                                 color: #fff;
-                                padding: 15px;
+                                padding: 5px;
                                 border-bottom: 1px solid #fff
                             }
 
                             .invoice table td {
-                                padding: 15px;
+                                padding: 5px;
                                 border-bottom: 1px solid #fff
                             }
+                            .invoice #product_table td{
+                                border: 1px solid #000 !important;
+                            }
+                            .invoice #product_table tbody tr:last-child td {
+                                border: 1px solid #000 !important;
+                            }
+                            #info-table td{padding:0px !important;}
 
                             .invoice table th {
                                 white-space: nowrap;
@@ -121,7 +129,7 @@
 
                             .invoice table td h3 {
                                 margin: 0;
-                                color: #036;
+                                color: #000;
                             }
 
                             .invoice table .qty {
@@ -137,11 +145,11 @@
 
                             .invoice table .no {
                                 color: #fff;
-                                background: #036
+                                background: #000
                             }
 
                             .invoice table .total {
-                                background: #036;
+                                background: #000;
                                 color: #fff
                             }
 
@@ -164,8 +172,8 @@
                             }
 
                             /* .invoice table tfoot tr:last-child td {
-                                color: #036;
-                                border-top: 1px solid #036
+                                color: #000;
+                                border-top: 1px solid #000
                             } */
 
                             .invoice table tfoot tr td:first-child {
@@ -183,7 +191,7 @@
                             .invoice a {
                                 content: none !important;
                                 text-decoration: none !important;
-                                color: #036 !important;
+                                color: #000 !important;
                             }
 
                             .page-header,
@@ -238,9 +246,14 @@
                                     -webkit-print-color-adjust: exact !important;
                                     font-family: sans-serif;
                                     /* font-size: 12px !important; */
-                                    margin-bottom: 100px !important;
+                                    /* margin-bottom: 100px !important; */
                                 }
-
+                                html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend,  {
+                                    font-size: 10pt !important;
+                                }
+                                #product_table tbody td{
+                                    font-size: 9pt !important;
+                                }
                                 .m-0 {
                                     margin: 0 !important;
                                 }
@@ -265,7 +278,7 @@
                                 a {
                                     content: none !important;
                                     text-decoration: none !important;
-                                    color: #036 !important;
+                                    color: #000 !important;
                                 }
 
                                 .text-center {
@@ -335,39 +348,58 @@
                                         </td>
                                     </tr>
                                 </table>
-                                <div style="width: 100%;height:3px;border-top:1px solid #036;border-bottom:1px solid #036;"></div>
-                                <table>
+                                <div style="width: 100%;height:3px;border-top:1px solid #000;border-bottom:1px solid #000;"></div>
+                                <table style="margin-bottom: 0px;margin-top:10px;" id="info-table">
                                     <tr>
-                                        <td width="50%">
-                                            <div class="invoice-to">
-                                                <div class="text-grey-light"><b>BILLING TO</b></div>
-                                                <div class="to">{{ $purchase->supplier->name }}</div>
-                                                <div class="phone">{{ $purchase->supplier->mobile }}</div>
-                                                @if($purchase->supplier->email)<div class="email">{{ $purchase->supplier->email }}</div>@endif
-                                                @if($purchase->supplier->address)<div class="address">{{ $purchase->supplier->address }}</div>@endif
-                                            </div>
+                                        <td width="40%">
+                                            <table>
+                                                <tr>
+                                                    <td colspan="2"><b>Billing To</b></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><b>Supplier Name</b></td>
+                                                    <td><b>: {{ $purchase->supplier->name}}</b></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><b>Mobile No.</b></td>
+                                                    <td><b>: </b>{{ $purchase->supplier->mobile }}</td>
+                                                </tr>
+                                                @if($purchase->supplier->address)
+                                                <tr>
+                                                    <td><b>Address</b></td>
+                                                    <td><b>: </b>{{ $purchase->supplier->address }}</td>
+                                                </tr>
+                                                @endif
+                                            </table>
                                         </td>
-                                        <td width="50%" class="text-right">
-                                            <h4 class="name m-0">{{ $purchase->memo_no }}</h4>
-                                            <div class="m-0 date"><b>Date:</b>{{ date('d-M-Y',strtotime($purchase->purchase_date)) }}</div>
-                                            <div class="m-0 date"><b>Status:</b>{{ $purchase->purchase_status ? PURCHASE_STATUS[$purchase->purchase_status] : 'N/A' }}</div>
+                                        <td width="20%"></td>
+                                        <td width="40%">
+                                            <table>
+                                                <tr><td colspan="2"></td></tr>
+                                                <tr>
+                                                    <td><b>Memo No.</b></td>
+                                                    <td><b>: #{{ $purchase->memo_no }}</b></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><b>Date</b></td>
+                                                    <td><b>: </b> {{ date('d-M-Y',strtotime($purchase->purchase_date)) }}</td>
+                                                </tr>
+                                            </table>
                                         </td>
                                     </tr>
                                 </table>
-                                <table border="0" cellspacing="0" cellpadding="0">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center">SL</th>
-                                            <th class="text-left">DESCRIPTION</th>
-                                            <th class="text-center">QUANTITY</th>
-                                            <th class="text-right">PRICE</th>
-                                            <th class="text-right">DISCOUNT</th>
-                                            {{-- <th class="text-right">LABOR COST</th> --}}
-                                            <th class="text-right">TAX</th>
-                                            <th class="text-right">SUBTOTAL</th>
-                                        </tr>
-                                    </thead>
+
+                                <table cellspacing="0" cellpadding="0" id="product_table">
                                     <tbody>
+                                        <tr>
+                                            <td class="text-center font-weight-bolder">SL</td>
+                                            <td class="text-left font-weight-bolder">DESCRIPTION</td>
+                                            <td class="text-center font-weight-bolder">UNIT</td>
+                                            <td class="text-center font-weight-bolder">QUANTITY</td>
+                                            <td class="text-right font-weight-bolder">COST</td>
+                                            <td class="text-right font-weight-bolder">DISCOUNT</td>
+                                            <td class="text-right font-weight-bolder">SUBTOTAL</td>
+                                        </tr>
                                         @if (!$purchase->purchase_materials->isEmpty())
                                             @foreach ($purchase->purchase_materials as $key => $item)
                                                 @php
@@ -378,146 +410,69 @@
                                                     }
                                                 @endphp
                                                 <tr>
-                                                    <td class="text-center no">{{ $key+1 }}</td>
+                                                    <td class="text-center">{{ $key+1 }}</td>
                                                     <td class="text-left">{{ $item->material_name }}</td>
-                                                    <td class="text-center qty">{{ $item->pivot->qty.' '.$unit_name }}</td>
-                                                    <td class="text-right price">{{ number_format($item->pivot->net_unit_cost,2) }}</td>
-                                                    <td class="text-right discount">{{ number_format($item->pivot->discount,2) }}</td>
-                                                    {{-- <td class="text-right discount">{{ number_format($item->pivot->labor_cost,2) }}</td> --}}
-                                                    <td class="text-right tax">{{ number_format($item->pivot->tax,2) }}</td>
-                                                    <td class="text-right total">
-                                                        @if (config('settings.currency_position') == 2)
-                                                            {{ number_format($item->pivot->total,2) }} {{ config('settings.currency_symbol') }}
-                                                        @else 
-                                                            {{ config('settings.currency_symbol') }} {{ number_format($item->pivot->total,2) }}
-                                                        @endif
-                                                    </td>
+                                                    <td class="text-center">{{ $unit_name }}</td>
+                                                    <td class="text-center">{{ $item->pivot->qty }}</td>
+                                                    <td class="text-right">{{ number_format($item->pivot->net_unit_cost,2) }}</td>
+                                                    <td class="text-right">{{ number_format($item->pivot->discount,2) }}</td>
+                                                    <td class="text-right"> {{ number_format($item->pivot->total,2) }}</td>
                                                 </tr>
                                             @endforeach
                                         @endif
+                                        <tr>
+                                            <td colspan="4" rowspan="5" style="border-left:0 !important;border-bottom:0 !important;">
+                                                <div class="notices">
+                                                    <b>Note:</b>
+                                                    <p class="notice">{{ $purchase->note }}</p>
+                                                </div>
+                                            </td>
+                                            <td colspan="2"  class="text-right font-weight-bolder">TOTAL</td>
+                                            <td class="text-right font-weight-bolder"> {{ number_format($purchase->grand_total,2,'.',',')}}</td>
+                                        </tr>
+                                        <tr>
+                                            
+                                            <td colspan="2"  class="text-right font-weight-bolder">DISCOUNT</td>
+                                            <td class="text-right font-weight-bolder"> {{ number_format($purchase->discount_amount,2,'.',',') }} </td>
+                                        </tr>
+
+                                        <tr>
+                                            
+                                            <td colspan="2"  class="text-right font-weight-bolder">NET TOTAL</td>
+                                            <td class="text-right font-weight-bolder"> {{ number_format($purchase->net_total,2,'.',',') }}</td>
+                                        </tr>
+
+                                        <tr>
+                                            
+                                            <td colspan="2"  class="text-right font-weight-bolder">PAID AMOUNT</td>
+                                            <td class="text-right font-weight-bolder"> {{ number_format($purchase->paid_amount,2,'.',',') }}</td>
+                                        </tr>
+                                        <tr>
+                                            
+                                            <td colspan="2"  class="text-right font-weight-bolder">DUE AMOUNT</td>
+                                            <td class="text-right font-weight-bolder"> {{ number_format($purchase->due_amount,2,'.',',') }} </td>
+                                        </tr>
                                     </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colspan="4"></td>
-                                            <td colspan="2"  class="text-right">TOTAL</td>
-                                            <td class="text-right">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format($purchase->total_cost,2) }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format($purchase->total_cost,2) }}
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="4"></td>
-                                            <td colspan="2"  class="text-right">DISCOUNT</td>
-                                            <td class="text-right">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format($purchase->order_discount,2) }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format($purchase->order_discount,2) }}
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="4"></td>
-                                            <td colspan="2"  class="text-right">TAX {{ $purchase->order_tax_rate }}%</td>
-                                            <td class="text-right">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format($purchase->order_tax,2) }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format($purchase->order_tax,2) }}
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="4"></td>
-                                            <td colspan="2"  class="text-right">SHIPPING COST</td>
-                                            <td class="text-right">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format($purchase->shipping_cost,2) }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format($purchase->shipping_cost,2) }}
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="4"></td>
-                                            <td colspan="2"  class="text-right">LABOR COST</td>
-                                            <td class="text-right">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format($purchase->total_labor_cost,2) }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format($purchase->total_labor_cost,2) }}
-                                                @endif
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td colspan="4"></td>
-                                            <td colspan="2"  class="text-right">GRAND TOTAL</td>
-                                            <td class="text-right">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format($purchase->grand_total,2) }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format($purchase->grand_total,2) }}
-                                                @endif
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td colspan="4"></td>
-                                            <td colspan="2"  class="text-right">PAID AMOUNT</td>
-                                            <td class="text-right">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format($purchase->paid_amount,2) }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format($purchase->paid_amount,2) }}
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="4"></td>
-                                            <td colspan="2"  class="text-right">DUE AMOUNT</td>
-                                            <td class="text-right">
-                                                @if (config('settings.currency_position') == 2)
-                                                    {{ number_format(($purchase->grand_total - $purchase->paid_amount),2) }} {{ config('settings.currency_symbol') }}
-                                                @else 
-                                                    {{ config('settings.currency_symbol') }} {{ number_format(($purchase->grand_total - $purchase->paid_amount),2) }}
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    </tfoot>
                                 </table>
-                                <table>
-                                    <tr>
-                                        <td>
-                                            <div class="thanks"><h4>Thank you!</h4></div>
-                                            <div class="notices">
-                                                <div>Note:</div>
-                                                <div class="notice">{{ $purchase->note }}</div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </table>
-                                <table style="width: 100%;">
+                                <table style="width: 100%;margin-top:10px;">
                                     <tr>
                                         <td class="text-center">
                                             <div class="font-size-10" style="width:250px;float:left;">
-                                                <p style="margin:0;padding:0;"><b class="text-uppercase">{{ $purchase->created_by }}</b>
-                                                    <br> {{ date('d-M-Y h:i:s A',strtotime($purchase->created_at)) }}</p>
-                                                <p class="dashed-border"></p>
-                                                <p style="margin:0;padding:0;">Created By</p>
-                                            </div>
-                                        </td>
-
-                                        <td class="text-center">
-                                            <div class="font-size-10" style="width:250px;float:right;">
                                                 <p style="margin:0;padding:0;"><b class="text-uppercase">{{ $purchase->received_by }}</b></p>
                                                 <p class="dashed-border"></p>
                                                 <p style="margin:0;padding:0;">Received By</p>
                                             </div>
                                         </td>
+                                        <td class="text-center">
+                                            <div class="font-size-10" style="width:250px;float:right;">
+                                                <p style="margin:0;padding:0;"><b class="text-uppercase">{{ $purchase->created_by }}</b>
+                                                    <br> {{ date('d-M-Y h:i:s A',strtotime($purchase->created_at)) }}</p>
+                                                <p class="dashed-border"></p>
+                                                <p style="margin:0;padding:0;">Generated By</p>
+                                            </div>
+                                        </td>
+
+                                        
                                     </tr>
                                 </table>
                             </div>

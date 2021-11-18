@@ -77,8 +77,7 @@ class PaymentController extends Controller
                             $payment_data['supplier_debit_transaction_id'] = $payment->supplier_debit_transaction_id;
                             $payment_data['transaction_id'] = $payment->transaction_id;
                         }
-                        
-                       
+                        $purchase_data->due_amount = $balance;
                         $purchase_data->modified_by = auth()->user()->name;
                         $purchase_data->update();
                         $result = $this->purchase_payment($payment_data);
@@ -212,6 +211,7 @@ class PaymentController extends Controller
                             $purchase_data->payment_status = 3;//due
                         }
                     }
+                    $purchase_data->due_amount = $balance;
                     if($purchase_data->update()){
                         $result = $payment_data->delete();
                         Transaction::whereIn('id',[$payment_data->supplier_debit_transaction_id,$payment_data->transaction_id])->delete();
