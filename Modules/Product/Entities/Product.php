@@ -16,7 +16,7 @@ class Product extends BaseModel
 {
     protected $fillable = [ 'category_id', 'name', 'code',  'product_type', 'barcode_symbology', 
     'base_unit_id', 'unit_id', 'cost', 'base_unit_qty', 'alert_quantity', 'image',
-    'tax_id', 'tax_method', 'status', 'description', 'created_by', 'modified_by'];
+    'tax_id', 'tax_method', 'status', 'description','has_opening_stock','opening_stock_qty', 'created_by', 'modified_by'];
 
     public function category()
     {

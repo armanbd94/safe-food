@@ -19,6 +19,7 @@ class ProductFormRequest extends FormRequest
         $this->rules['code']              = ['required','string','unique:products,code'];
         $this->rules['category_id']       = ['required'];
         $this->rules['barcode_symbology'] = ['required'];
+        
         $this->rules['tax_id']            = ['nullable','numeric'];
         $this->rules['tax_method']        = ['required','numeric'];
         $this->rules['description']       = ['nullable','string'];
@@ -28,7 +29,13 @@ class ProductFormRequest extends FormRequest
             $this->rules['name'][2] = 'unique:products,name,'.request()->update_id;
             $this->rules['code'][2] = ['required','string','unique:products,code,'.request()->update_id];
             
+        }else{
+            $this->rules['has_opening_stock'] = ['required'];
+            if(request()->has_opening_stock){
+                $this->rules['opening_stock_qty']        = ['required','numeric','gte:0'];
+            }
         }
+        
         $this->rules['base_unit_id']    = ['required'];
         $this->rules['unit_id']         = ['required'];
         $this->rules['alert_quantity']  = ['nullable','numeric','gte:0'];

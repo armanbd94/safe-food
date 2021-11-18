@@ -13,6 +13,7 @@ use Modules\Product\Entities\Product;
 use Modules\Sale\Entities\SaleProduct;
 use Modules\Material\Entities\Material;
 use App\Http\Controllers\BaseController;
+use Modules\Product\Entities\WarehouseProduct;
 use Modules\Product\Http\Requests\ProductFormRequest;
 
 class ProductController extends BaseController
@@ -149,11 +150,21 @@ class ProductController extends BaseController
                             $this->delete_file($request->old_image, PRODUCT_IMAGE_PATH);
                         }
                     }
+                    $has_opening_stock = $request->has_opening_stock;
+                    if($request->has_opening_stock == 1)
+                    {
+                        $opening_stock_qty =  $request->opening_stock_qty;
+                        $base_unit_qty =  $request->opening_stock_qty;
+                        $collection = $collection->merge(compact('opening_stock_qty','base_unit_qty'));
+                    }
                     $tax_id     = $request->tax_id ? $request->tax_id : null;
                     $collection = $collection->merge(compact('tax_id','image'));
                     $result     = $this->model->updateOrCreate(['id'=>$request->update_id],$collection->all());
                     $product    = $this->model->with('product_prices')->find($result->id);
-
+                    if($request->has_opening_stock == 1 && $request->opening_stock_qty > 0)
+                    {
+                        WarehouseProduct::create(['warehouse_id'=>1,'product_id'=>$product->id,'qty'=>$request->opening_stock_qty]);
+                    }
                     $product_prices = [];
                     if($request->has('prices')){
                         foreach($request->prices as $value)

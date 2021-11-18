@@ -120,14 +120,9 @@ class HomeController extends BaseController
     public function stock_alert()
     {
         $materials = DB::table('materials')->where('status',1)->whereColumn('alert_qty','>','qty')->count();
-        $products = DB::table('warehouse_product as wp')
-        ->join('products as p','wp.product_id','=','p.id')
-        ->join('categories as c','p.category_id','=','c.id')
-        ->join('units as u','p.base_unit_id','=','u.id')
-        ->selectRaw('wp.*,p.name,c.name as category_name,u.unit_name')
-        ->groupBy('wp.product_id')
-        ->where('wp.warehouse_id',1)
-        ->whereColumn('p.alert_quantity','>','wp.qty')->get()->count();
+        $products = DB::table('products')
+        ->where('status',1)
+        ->whereColumn('alert_quantity','>','base_unit_qty')->count();
         return response()->json(['materials' => $materials,'products'=>$products]);
     }
 }

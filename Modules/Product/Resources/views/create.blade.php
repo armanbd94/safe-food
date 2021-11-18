@@ -102,6 +102,14 @@
                                     @endforeach
                                     </select>
                                 </div>
+                                <div class="col-md-6 form-group required">
+                                    <label for="has_opening_stock">Has opening stock?</label>
+                                    <select name="has_opening_stock" id="has_opening_stock" class="form-control selectpicker" onchange="openingStockQty(this.value)">
+                                        <option value="1">Yes</option>
+                                        <option value="2" selected>No</option>
+                                    </select>
+                                </div>
+                                <x-form.textbox labelName="Opening Stock Quantity" name="opening_stock_qty" col="col-md-6 opening_stock_qty d-none" required="required" placeholder="0"/>
                             </div>
                         </div>
                         <div class="col-md-2">
@@ -120,9 +128,6 @@
                         </div>
                     </div>
                     <div class="row">
-
-                        
-
                         <div class="col-md-12 pt-5" id="material-section">
                             <div class="row" style="position: relative;border: 1px solid #E4E6EF;padding: 10px 0 0 0; margin: 0;border-radius:5px;">
                                 <div style="width: 100px;background: #fa8c15;text-align: center;margin: 0 auto;color: white;padding: 5px 0;
@@ -197,43 +202,6 @@ $(document).ready(function () {
     /** End :: Product Image **/
 
 
-    /** Start :: Add More Material Field **/
-    // var material_count = 1;
-    // function add_more_material_field(row){
-    //     html = ` <div class="row row_remove">
-    //                 <div class="form-group col-md-5 required">
-    //                     <select name="materials[`+row+`][id]" id="materials_`+row+`_id" required="required" class="form-control selectpicker">
-    //                         <option value="">Select Please</option>
-    //                         @if (!$materials->isEmpty())
-    //                             @foreach ($materials as $material)
-    //                                 <option value="{{ $material->id }}">{{ $material->material_name }}</option>
-    //                             @endforeach 
-    //                         @endif
-    //                     </select>
-    //                 </div>
-    //                 <div class="form-group col-md-2">
-    //                     <button type="button" class="btn btn-danger btn-sm remove" data-toggle="tooltip" 
-    //                         data-placement="top" data-original-title="Remove">
-    //                         <i class="fas fa-minus-square"></i>
-    //                     </button>
-    //                 </div>
-    //             </div>`;
-    //     $('.material_section').append(html);
-    //     $('.selectpicker').selectpicker('refresh');
-    // }
-
-    // $(document).on('click','#add-material',function(){
-    //     material_count++;
-    //     add_more_material_field(material_count);
-    // });
-    // $(document).on('click','.remove',function(){
-    //     material_count--;
-    //     $(this).closest('.row_remove').remove();
-    // });
-    /** End :: Add More Material Field **/
-
-    
-
     //Generate Code
     $(document).on('click','#generate-code',function(){
         $.ajax({
@@ -256,6 +224,12 @@ $(document).ready(function () {
     });
 
 });
+
+function openingStockQty(value)
+{
+    alert(value);
+    value == 1 ? $('.opening_stock_qty').removeClass('d-none') : $('.opening_stock_qty').addClass('d-none');
+}
 function storeData(btn)
 {
     let form = document.getElementById('store_or_update_form');
