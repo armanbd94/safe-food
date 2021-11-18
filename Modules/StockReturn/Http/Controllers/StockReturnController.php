@@ -48,10 +48,7 @@ class StockReturnController extends BaseController
             // dd($purchase);
             if($purchase){
                 $this->setPageData('Purchase Return','Purchase Return','fas fa-undo-alt',[['name' => 'Purchase Return']]);
-                $data = [
-                    'purchase'=>$purchase,
-                ];
-                return view('stockreturn::purchase.edit',$data);
+                return view('stockreturn::purchase.edit',compact('purchase'));
             }else{
                 return redirect('return')->with(['status'=>'error','message'=>'No Purchase Data Found']);
             }

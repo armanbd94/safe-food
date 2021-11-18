@@ -103,7 +103,7 @@ class PurchaseReturnController extends BaseController
                         'purchase_id'     => $request->purchase_id,
                         'item'            => $request->item,
                         'total_qty'       => $request->total_qty,
-                        'total_price'     => $request->total_price,
+                        'total_cost'     => $request->total_cost,
                         'total_deduction' => $request->total_deduction ? $request->total_deduction : 0,
                         'grand_total'     => $request->grand_total,
                         'reason'          => $request->reason,
