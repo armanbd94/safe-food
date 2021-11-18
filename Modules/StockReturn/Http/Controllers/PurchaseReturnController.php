@@ -186,8 +186,8 @@ class PurchaseReturnController extends BaseController
     {
         if(permission('purchase-return-view')){
             $this->setPageData('Purchase Return Details','Purchase Return Details','fas fa-file',[['name' => 'Purchase Return Details']]);
-            $purchase = $this->model->with('purchase','return_materials')->find($id);
-            return view('stockreturn::purchase.details',compact('purchase'));
+            $purchase_return = $this->model->with('purchase','return_materials')->find($id);
+            return view('stockreturn::purchase.details',compact('purchase_return'));
         }else{
             return $this->access_blocked();
         }

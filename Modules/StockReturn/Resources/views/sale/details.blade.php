@@ -354,6 +354,9 @@
                                         <td width="40%">
                                             <table>
                                                 <tr>
+                                                    <td colspan="2"><b>Return From</b></td>
+                                                </tr>
+                                                <tr>
                                                     <td><b>Dealer Name</b></td>
                                                     <td><b>: {{ $sale_return->sale->dealer->name }}</b></td>
                                                 </tr>
