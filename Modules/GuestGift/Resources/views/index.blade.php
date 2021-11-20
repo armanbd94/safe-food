@@ -33,7 +33,7 @@
                 <form method="POST" id="form-filter" class="col-md-12 px-0">
                     <div class="row">
                         <x-form.textbox labelName="Memo No." name="memo_no" col="col-md-4" />
-                        <div class="form-group col-md-3">
+                        <div class="form-group col-md-4">
                             <label for="name">Choose Your Date</label>
                             <div class="input-group">
                                 <input type="text" class="form-control daterangepicker-filed">

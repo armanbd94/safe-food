@@ -23,16 +23,22 @@
             <div class="card-header flex-wrap py-5">
                 <form method="POST" id="form-filter" class="col-md-12 px-0">
                     <div class="row justify-content-center">
-                        <x-form.textbox labelName="Product Name" name="product_name" required="required"  col="col-md-3" />
-                        <input type="hidden" class="form-control bg-brand" name="product_id" id="product_id">
-                        <x-form.selectbox labelName="Warehouse" name="warehouse_id" col="col-md-3" required="required" class="selectpicker">
-                            @if (!$warehouses->isEmpty())
-                            @foreach ($warehouses as $id => $name)
+                        <x-form.selectbox labelName="Category" name="category_id" col="col-md-4" class="selectpicker">
+                            <option value="0" selected>All Category</option>
+                            @if (!$categories->isEmpty())
+                            @foreach ($categories as $item)
+                                <option value="{{ $item->id }}">{{ $item->name }}</option>
+                            @endforeach
+                            @endif
+                        </x-form.selectbox>
+                        <x-form.selectbox labelName="Product" name="product_id" col="col-md-4" class="selectpicker">
+                            @if (!$products->isEmpty())
+                            @foreach ($products as $id => $name)
                                 <option value="{{ $id }}">{{ $name }}</option>
                             @endforeach
                             @endif
                         </x-form.selectbox>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div style="margin-top:28px;">      
                                     <button id="btn-reset" class="btn btn-danger btn-sm btn-elevate btn-icon float-right" type="button"
                                     data-toggle="tooltip" data-theme="dark" title="Reset">
@@ -78,51 +84,11 @@
 @endsection
 
 @push('scripts')
-<script src="js/jquery-ui.js"></script>
 <script src="js/jquery.printarea.js"></script>
 <script>
 $(document).ready(function(){
-    $('#product_name').autocomplete({
-        source: function( request, response ) {
-            // Fetch data
-            $.ajax({
-                url:"{{url('stock/product-search')}}",
-                type: 'post',
-                dataType: "json",
-                data: { _token: _token,search: request.term},
-                success: function( data ) {
-                    response( data );
-                }
-            });
-        },
-        minLength: 3,
-        response: function(event, ui) {
-            if (ui.content.length == 1) {
-                $('#product_name').val(ui.content[0].value);
-                $('#product_id').val(ui.content[0].id);
-                $(this).autocomplete( "close" );
-            };
-        },
-        select: function (event, ui) {
-            $('#product_name').val(ui.item.value);
-            $('#product_id').val(ui.item.id);
-            // var data = ui.item.value;
-        },
-    }).data('ui-autocomplete')._renderItem = function (ul, item) {
-        return $("<li class='ui-autocomplete-row'></li>")
-            .data("item.autocomplete", item)
-            .append(item.label)
-            .appendTo(ul);
-    };
-
-    $('#product_name').on('keyup',function(){
-        if($(this).val() == ''){ $('#product_id').val(''); }
-    });
-    
-
     $('#btn-reset').click(function () {
         $('#form-filter')[0].reset();
-        $('#product_id').val('');
         $('#form-filter .selectpicker').selectpicker('refresh');
         $('#product_list').html('');
     });
@@ -142,14 +108,11 @@ $(document).ready(function(){
 
 function load_data()
 {
-    var warehouse_id = $('#warehouse_id option:selected').val();
-    var product_id   = $('#product_id').val();
-    if(product_id)
-    {
+
         $.ajax({
             url: "{{ route('product.stock.datatable.data') }}",
             type: "POST",
-            data: {product_id:product_id,warehouse_id:warehouse_id,_token:_token},
+            data: {product_id:$('#product_id option:selected').val(),category_id:$('#category_id option:selected').val(),_token:_token},
             beforeSend: function(){
                 $('#table-loader').removeClass('d-none');
             },
@@ -163,9 +126,6 @@ function load_data()
                 console.log(thrownError + '\r\n' + xhr.statusText + '\r\n' + xhr.responseText);
             }
         });
-    }else{
-        notification('error','Please select product');
-    }
 }
 </script>
 @endpush

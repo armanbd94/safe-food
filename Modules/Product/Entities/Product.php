@@ -49,6 +49,11 @@ class Product extends BaseModel
         ->withTimestamps();
     }
 
+    public function regular_price()
+    {
+        return $this->hasOne(ProductPrice::class)->where('dealer_group_id',1)->withDefault(['unit_price'=>0]);
+    }
+
     public function warehouse_product()
     {
         return $this->hasMany(WarehouseProduct::class,'product_id','id')

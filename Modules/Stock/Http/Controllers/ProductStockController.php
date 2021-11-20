@@ -22,7 +22,8 @@ class ProductStockController extends BaseController
         if(permission('product-stock-report-access')){
             $this->setPageData('Product Stock Report','Product Stock Report','fas fa-boxes',[['name' => 'Product Stock Report']]);
             $data = [
-                'warehouses' => DB::table('warehouses')->where('status',1)->pluck('name','id')
+                'categories' => Category::where([['type',2],['status',1]])->get(),
+                'products' => DB::table('products')->where('status',1)->pluck('name','id')
             ];
             return view('stock::product.index',$data);
         }else{
@@ -34,46 +35,25 @@ class ProductStockController extends BaseController
     {
         if($request->ajax())
         {
-            $warehouse_id = $request->warehouse_id;
+            $category_id = $request->category_id;
             $product_id   = $request->product_id;
 
-            $warehouses = Warehouse::with('products')
-            ->whereHas('products',function($q) use ($product_id){
-                $q->where([['product_id',$product_id],['qty','>',0]]);
-            })
-            ->when($warehouse_id, function($q) use ($warehouse_id){
-                $q->where('id',$warehouse_id);
-            })
-            ->where('status',1)->get();
-
-            $product = Product::select('id','name')->find($request->product_id);
-
-            return view('stock::product.product-list',compact('warehouses','product_id','product'))->render();
-        }
-    }
-
-    public function product_search(Request $request)
-    {
-        if ($request->ajax()) {
-            if(!empty($request->search)){
-                $data = Product::toBase()->where('name', 'like','%'.$request->search.'%')->orWhere('code', 'like','%'.$request->search.'%')->get();
-                $output = array();
-                if(!empty($data) && count($data) > 0)
-                {
-                    foreach($data as $row)
-                    {
-                        $temp_array             = array();
-                        $temp_array['id']       = $row->id;
-                        $temp_array['value']    = $row->name;
-                        $temp_array['label']    = $row->name;
-                        $output[]               = $temp_array;
-                    }
-                } else{
-                    $output['value']            = '';
-                    $output['label']            = 'No Record Found';
-                }
-                return $output; 
+            $categories = Category::with('products')
+            ->where([['type',2],['status',1]])
+            ->when($category_id, function($q) use ($category_id){
+                $q->where('id',$category_id);
+            });
+            
+            if($product_id){
+                $categories->whereHas('products',function($q) use ($product_id){
+                    $q->where('id',$product_id);
+                });
             }
+            $categories = $categories->get();
+
+            return view('stock::product.product-list',compact('categories','product_id'))->render();
         }
     }
+
+
 }

@@ -186,7 +186,7 @@ class GuestGiftController extends BaseController
 
             $data = [
                 'products'  => Product::with(['base_unit','unit'])->get(),
-                'sale'      => $this->model->with('products')->find($id),
+                'gift'      => $this->model->with('products')->find($id),
 
             ];
             // dd($data['sale']);
@@ -207,7 +207,8 @@ class GuestGiftController extends BaseController
                     $giftData = $this->model->with('products')->find($request->gift_id);
                     if(!$giftData->products->isEmpty())
                     {
-                        foreach ($giftData as $key => $value) {
+                        foreach ($giftData->products as $key => $value) {
+
                             $product = Product::find($value->id);
                             if($product)
                             {
@@ -225,7 +226,6 @@ class GuestGiftController extends BaseController
                             }
                         }
                     }
-
                     $products = [];
                     if($request->has('products'))
                     {
@@ -265,7 +265,6 @@ class GuestGiftController extends BaseController
                         'date'        => $request->date,
                         'modified_by' => auth()->user()->name
                     ]);
-
                     $output  = $this->store_message($gift, $request->gift_id);
                     DB::commit();
                 } catch (Exception $e) {
@@ -293,7 +292,7 @@ class GuestGiftController extends BaseController
     
                     if(!$giftData->products->isEmpty())
                     {
-                        foreach ($giftData as $key => $value) {
+                        foreach ($giftData->products as $key => $value) {
                             $product = Product::find($value->id);
                             if($product)
                             {
@@ -310,7 +309,7 @@ class GuestGiftController extends BaseController
                                 $warehosue_product->update();
                             }
                         }
-                        $giftData->products->detach();
+                        $giftData->products()->detach();
                     }
     
                     $result = $giftData->delete();
@@ -346,7 +345,7 @@ class GuestGiftController extends BaseController
         
                         if(!$giftData->products->isEMpty())
                         {
-                            foreach ($giftData as $key => $value) {
+                            foreach ($giftData->products as $key => $value) {
                                 $product = Product::find($value->id);
                                 if($product)
                                 {
@@ -363,7 +362,7 @@ class GuestGiftController extends BaseController
                                     $warehosue_product->update();
                                 }
                             }
-                            $giftData->products->detach();
+                            $giftData->products()->detach();
                         }
                     }
                     $result = $this->model->destroy($request->ids);

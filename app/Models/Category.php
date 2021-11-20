@@ -5,22 +5,20 @@ namespace App\Models;
 use App\Models\BaseModel;
 use Illuminate\Support\Facades\Cache;
 use Modules\Material\Entities\Material;
-use Modules\Material\Entities\WarehouseMaterial;
 use Modules\Product\Entities\Product;
-use Modules\Product\Entities\WarehouseProduct;
 
 class Category extends BaseModel
 {
 
     protected $fillable = ['name','type','status','created_by','modified_by'];
 
-    public function warehouse_materials()
+    public function materials()
     {
-        return $this->hasManyThrough(WarehouseMaterial::class, Material::class,'category_id','material_id','id','id');
+        return $this->hasMany(Material::class, 'category_id','id');
     }
-    public function warehouse_products()
+    public function products()
     {
-        return $this->hasManyThrough(WarehouseProduct::class, Product::class,'category_id','product_id','id','id');
+        return $this->hasMany(Product::class, 'category_id','id');
     }
     /******************************************
      * * * Begin :: Custom Datatable Code * * *
