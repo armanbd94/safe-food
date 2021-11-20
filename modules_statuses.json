@@ -21,5 +21,6 @@
     "DamageProduct": true,
     "MaterialStockOut": true,
     "Depo": true,
-    "Dealer": true
+    "Dealer": true,
+    "GuestGift": true
 }

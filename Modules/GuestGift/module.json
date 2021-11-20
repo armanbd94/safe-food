@@ -1,0 +1,13 @@
+{
+    "name": "GuestGift",
+    "alias": "guestgift",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\GuestGift\\Providers\\GuestGiftServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

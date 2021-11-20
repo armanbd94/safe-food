@@ -35,7 +35,4 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('warehouse-wise-products', 'ProductController@warehouse_products')->name('warehouse.wise.products');
        });      
 
-    //Invoice Report
-    Route::get('invoice-report', 'SaleController@invoice_report');
-    Route::post('invoice/report', 'SaleController@invoice_report_details');
 });
