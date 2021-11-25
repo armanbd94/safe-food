@@ -227,7 +227,6 @@ $(document).ready(function () {
 
 function openingStockQty(value)
 {
-    alert(value);
     value == 1 ? $('.opening_stock_qty').removeClass('d-none') : $('.opening_stock_qty').addClass('d-none');
 }
 function storeData(btn)
