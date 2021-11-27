@@ -86,7 +86,7 @@ class SaleController extends BaseController
                     if (permission('sale-delete') && $value->delivery_status == 2) {
                         $action .= ' <a class="dropdown-item delete_data"  data-id="' . $value->id . '" data-name="' . $value->memo_no . '">'.self::ACTION_BUTTON['Delete'].'</a>';
                     }
-
+                    $total_qty = $value->total_qty+($value->total_free_qty ? $value->total_free_qty : 0);
                     $row = [];
                     if(permission('sale-bulk-delete')){
                         $row[] = row_checkbox($value->id);//custom helper function to show the table each row checkbox
@@ -100,7 +100,7 @@ class SaleController extends BaseController
                     $row[] = $value->area_name;
                     $row[] = $value->upazila_name;
                     $row[] = $value->district_name;
-                    $row[] = $value->item.'('.$value->total_qty+($value->total_free_qty ?? 0).')';
+                    $row[] = $value->item.'('.$total_qty.')';
                     $row[] = number_format($value->grand_total,2,'.','');
                     $row[] = number_format($value->commission_rate,2,'.','');
                     $row[] = number_format($value->total_commission,2,'.','');
