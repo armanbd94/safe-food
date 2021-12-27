@@ -12,14 +12,6 @@
 
 @section('content')
 <div class="d-flex flex-column-fluid">
-    @php
-        $payment_method = $account_id = $reference_no = '';
-        if($purchase->purchase_payments->isEmpty())
-        {
-            $account_id = $purchase->purchase_payments[0]->account_id;
-            $reference_no = $purchase->purchase_payments[0]->reference_no;
-        }
-    @endphp
     <div class="container-fluid">
         <!--begin::Notice-->
         <div class="card card-custom gutter-b">
