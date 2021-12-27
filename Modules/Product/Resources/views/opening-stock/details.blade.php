@@ -38,9 +38,6 @@
                                     <th width="35%">Name</th>
                                     <th width="10%" class="text-center">Unit</th>
                                     <th width="10%" class="text-center">Qty</th>
-                                    <th width="10%" class="text-right">Price</th>
-                                    <th width="10%" class="text-right">Tax</th>
-                                    <th width="15%" class="text-right">Sub Total</th>
                                 </thead>
                                 <tbody>
                                     @if (!$opening_stock->products->isEmpty())
@@ -53,9 +50,6 @@
                                                 <td>{{  $opening_stock_product->name.' - ('.$opening_stock_product->code.')' }}</td>
                                                 <td class="text-center">{{ $unit_name }}</td>
                                                 <td class="text-center">{{ $opening_stock_product->pivot->base_unit_qty }}</td>
-                                                <td class="text-right">{{ $opening_stock_product->pivot->base_unit_price }}</td>
-                                                <td class="text-right">{{ number_format($opening_stock_product->pivot->tax,2,'.','') }}</td>
-                                                <td class="text-right">{{ number_format($opening_stock_product->pivot->total,2,'.','') }}</td>
                                             </tr>
                                         @endforeach
                                     @endif
@@ -63,9 +57,6 @@
                                 <tfoot class="bg-primary">
                                     <th colspan="2" class="font-weight-bolder">Total</th>
                                     <th id="total-qty" class="text-center font-weight-bolder">{{ number_format($opening_stock->total_qty,2,'.','') }}</th>
-                                    <th></th>
-                                    <th id="total-tax" class="text-right font-weight-bolder">{{ number_format($opening_stock->total_tax,2,'.','') }}</th>
-                                    <th id="total" class="text-right font-weight-bolder">{{ number_format($opening_stock->grand_total,2,'.','') }}</th>
                                 </tfoot>
                             </table>
                         </div>
@@ -78,7 +69,6 @@
                             <table class="table table-bordered">
                                 <thead class="bg-primary">
                                     <th><strong>Items</strong><span class="float-right" id="item">{{ $opening_stock->item.'('.$opening_stock->total_qty.')' }}</span></th>
-                                    <th><strong>Grand Total</strong><span class="float-right" id="grand_total">{{ number_format($opening_stock->grand_total,2,'.','') }}</span></th>
                                 </thead>
                             </table>
                         </div>

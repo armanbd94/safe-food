@@ -68,9 +68,6 @@
                                         <th width="35%">Name</th>
                                         <th width="10%" class="text-center">Base Unit</th>
                                         <th width="10%" class="text-center">Qty Base Unit</th>
-                                        <th width="10%" class="text-right">Base Unit Price</th>
-                                        <th width="10%" class="text-right">Tax</th>
-                                        <th width="15%" class="text-right">Sub Total</th>
                                         <th class="text-center"><i class="fas fa-trash text-white"></i></th>
                                     </thead>
                                     <tbody>
@@ -92,25 +89,13 @@
                                                     {{-- <td><input type="text" class="form-control batch_no text-center" value="{{ $opening_stock_product->pivot->batch_no }}" name="products[{{ $key+1 }}][batch_no]" id="products_{{ $key+1 }}_batch_no" data="{{ $key+1 }}"></td> --}}
                                                     <td class="text-center">{{ $unit_name }}</td>
                                                     <td><input type="text" class="form-control base_unit_qty text-center" value="{{ $opening_stock_product->pivot->base_unit_qty }}" name="products[{{ $key+1 }}][base_unit_qty]" id="products_{{ $key+1 }}_base_unit_qty" data="{{ $key+1 }}"></td>
-                                                    <td class="net_unit_price text-right">{{ $opening_stock_product->pivot->base_unit_price }}</td>
-                                                    <td class="tax text-right">{{ number_format($opening_stock_product->pivot->tax,2,'.','') }}</td>
-                                                    <td class="sub-total text-right">{{ number_format($opening_stock_product->pivot->total,2,'.','') }}</td>
                                                     <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-product small-btn"><i class="fas fa-trash"></i></button></td>
                                                     
                                                     <input type="hidden" class="product-id" name="products[{{ $key+1 }}][id]"  value="{{ $opening_stock_product->id }}">
                                                     <input type="hidden"  name="products[{{ $key+1 }}][name]" value="{{ $opening_stock_product->name }}">
                                                     <input type="hidden" class="product-code" name="products[{{ $key+1 }}][code]" value="{{ $opening_stock_product->code }}">
                                                     <input type="hidden" class="product-unit" name="products[{{ $key+1 }}][base_unit_id]" value="{{ $opening_stock_product->pivot->base_unit_id }}">
-                                                    <input type="hidden" class="product-price" name="products[{{ $key+1 }}][base_unit_price]" value="{{ $opening_stock_product->pivot->base_unit_price }}">
-                                                    <input type="hidden" class="tax-rate" name="products[{{ $key+1 }}][tax_rate]" value="{{ $opening_stock_product->pivot->tax_rate }}">
-                                                    @if ($tax)
-                                                    <input type="hidden" class="tax-name" value="{{ $tax->name }}">
-                                                    @else
-                                                    <input type="hidden" class="tax-name" value="No Tax">
-                                                    @endif
-                                                    <input type="hidden" class="tax-method" value="{{ $opening_stock_product->tax_method }}">
-                                                    <input type="hidden" class="tax-value" name="products[{{ $key+1 }}][tax]" value="{{ $opening_stock_product->pivot->tax }}">
-                                                    <input type="hidden" class="subtotal-value" name="products[{{ $key+1 }}][subtotal]" value="{{ $opening_stock_product->pivot->total }}">
+                                            
                                                 </tr>
                                             @endforeach
                                         @endif
@@ -118,9 +103,6 @@
                                     <tfoot class="bg-primary">
                                         <th colspan="2" class="font-weight-bolder">Total</th>
                                         <th id="total-qty" class="text-center font-weight-bolder">{{ number_format($opening_stock->total_qty,2,'.','') }}</th>
-                                        <th></th>
-                                        <th id="total-tax" class="text-right font-weight-bolder">{{ number_format($opening_stock->total_tax,2,'.','') }}</th>
-                                        <th id="total" class="text-right font-weight-bolder">{{ number_format($opening_stock->grand_total,2,'.','') }}</th>
                                         <th></th>
                                     </tfoot>
                                 </table>
@@ -134,16 +116,12 @@
                                 <table class="table table-bordered">
                                     <thead class="bg-primary">
                                         <th><strong>Items</strong><span class="float-right" id="item">{{ $opening_stock->item.'('.$opening_stock->total_qty.')' }}</span></th>
-                                        <th><strong>Grand Total</strong><span class="float-right" id="grand_total">{{ number_format($opening_stock->grand_total,2,'.','') }}</span></th>
                                     </thead>
                                 </table>
                             </div>
                             <div class="col-md-12">
                                 <input type="hidden" name="total_qty" value="{{ $opening_stock->total_qty }}">
-                                <input type="hidden" name="total_tax" value="{{ $opening_stock->total_tax }}">
-                                <input type="hidden" name="total_price" value="{{ $opening_stock->total_price }}">
                                 <input type="hidden" name="item" value="{{ $opening_stock->item }}">
-                                <input type="hidden" name="grand_total" value="{{ $opening_stock->grand_total }}">
                             </div>
                             <div class="form-grou col-md-12 text-center pt-5">
                                 <a href="{{ route('opening.stock') }}" class="btn btn-danger btn-sm mr-3"><i class="far fa-window-close"></i> Cancel</a>
@@ -182,11 +160,7 @@ $(document).ready(function () {
     var rownumber = $('#product_table tbody tr:last').index();
 
     for (rowindex = 0; rowindex <= rownumber; rowindex++) {
-        product_price.push(parseFloat($('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.product-price').val()));
         var quantity = parseFloat($('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.base_unit_qty').val());
-        tax_rate.push(parseFloat($('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.tax-rate').val()));
-        tax_name.push($('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.tax-name').val());
-        tax_method.push($('#product_table tbody tr:nth-child('+ (rowindex + 1) +')').find('.tax-method').val());
     }
     console.log(tax_rate);
 
@@ -245,15 +219,13 @@ $(document).ready(function () {
     $('#product_table').on('click','.remove-product',function(){
         $(this).closest('tr').remove();
         rowindex = $(this).closest('tr').index();
-        product_price.splice(rowindex,1);
-        tax_rate.splice(rowindex,1);
-        tax_name.splice(rowindex,1);
-        tax_method.splice(rowindex,1);
         calculateTotal();
     });
 
     var count = 1;
-
+    @if (!$opening_stock->products->isEmpty())
+    count = "{{ count($opening_stock->products) + 1 }}";
+    @endif
     function productSearch(data) {
         $.ajax({
             url: '{{ route("barcode.search.product") }}',
@@ -278,25 +250,15 @@ $(document).ready(function () {
                     // cols += `<td><input type="text" class="form-control batch_no text-center" name="products[`+count+`][batch_no]" id="products_`+count+`_batch_no" data="${count}"></td>`;
                     cols += `<td class="text-center">${data.base_unit_name}</td>`;
                      cols += `<td><input type="text" class="form-control base_unit_qty text-center" value="1" name="products[`+count+`][base_unit_qty]" id="products_`+count+`_base_unit_qty" data="${count}"></td>`;
-                    cols += `<td class="net_unit_price text-right">${data.price}</td>`;
-                    cols += `<td class="tax text-right"></td>`;
-                    cols += `<td class="sub-total text-right"></td>`;
                     cols += `<td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-product small-btn"><i class="fas fa-trash"></i></button></td>`;
                     
                     cols += `<input type="hidden" class="product-id" name="products[`+count+`][id]"  value="`+data.id+`">`;
                     cols += `<input type="hidden"  name="products[`+count+`][name]" value="`+data.name+`">`;
                     cols += `<input type="hidden" class="product-code" name="products[`+count+`][code]" value="`+data.code+`">`;
                     cols += `<input type="hidden" class="product-unit" name="products[`+count+`][base_unit_id]" value="`+data.base_unit_id+`">`;
-                    cols += `<input type="hidden" class="product-price" name="products[`+count+`][base_unit_price]" value="`+data.price+`">`;
-                    cols += `<input type="hidden" class="tax-rate" name="products[`+count+`][tax_rate]" value="`+data.tax_rate+`">`;
-                    cols += `<input type="hidden" class="tax-value" name="products[`+count+`][tax]">`;
-                    cols += `<input type="hidden" class="subtotal-value" name="products[`+count+`][subtotal]">`;
+
                     newRow.append(cols);
                     $('#product_table tbody').append(newRow);
-                    product_price.push(parseFloat(data.price));
-                    tax_rate.push(parseFloat(data.tax_rate));
-                    tax_name.push(data.tax_name);
-                    tax_method.push(data.tax_method);
                     rowindex = newRow.index();
                     calculateProductData(1);
                     count++;
@@ -310,22 +272,6 @@ $(document).ready(function () {
         unitConversion();
 
         $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.tax-rate').val(tax_rate[rowindex].toFixed(2));
-
-        if(tax_method[rowindex] == 1)
-        {
-            var tax = row_product_price * quantity * (tax_rate[rowindex]/100);
-            var sub_total = (row_product_price * quantity) + tax;
-        }else{
-            var net_unit_price = (100 / (100 + tax_rate[rowindex])) * row_product_price;
-            var tax = (row_product_price - net_unit_price) * quantity;
-            var sub_total = row_product_price * quantity;
-        }
-
-        // $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(5)').text(net_unit_price.toFixed(2));
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(5)').text(tax.toFixed(2));
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.tax-value').val(tax.toFixed(2));
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(6)').text(sub_total.toFixed(2));
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.subtotal-value').val(sub_total.toFixed(2));
 
         calculateTotal();
     }
@@ -356,22 +302,6 @@ $(document).ready(function () {
         $('#total-qty').text(total_qty);
         $('input[name="total_qty"]').val(total_qty);
 
-        //sum of tax
-        var total_tax = 0;
-        $('.tax').each(function() {
-            total_tax += parseFloat($(this).text());
-        });
-        $('#total-tax').text(total_tax.toFixed(2));
-        $('input[name="total_tax"]').val(total_tax.toFixed(2));
-
-        //sum of subtotal
-        var total = 0;
-        $('.sub-total').each(function() {
-            total += parseFloat($(this).text());
-        });
-        $('#total').text(total.toFixed(2));
-        $('input[name="total_price"]').val(total.toFixed(2));
-
         calculateGrandTotal();
     }
 
@@ -379,12 +309,10 @@ $(document).ready(function () {
     {
         var item           = $('#product_table tbody tr:last').index();
         var total_qty      = parseFloat($('#total-qty').text());
-        var subtotal       = parseFloat($('#total').text());
+
         item = ++item + '(' + total_qty + ')';
         $('#item').text(item);
         $('input[name="item"]').val($('#product_table tbody tr:last').index() + 1);
-        $('#subtotal,#grand_total').text(subtotal.toFixed(2));
-        $('input[name="grand_total"]').val(subtotal.toFixed(2));
     }
 
 

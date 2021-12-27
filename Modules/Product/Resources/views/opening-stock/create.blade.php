@@ -67,9 +67,6 @@
                                         <th width="35%">Name</th>
                                         <th width="10%" class="text-center">Base Unit</th>
                                         <th width="10%" class="text-center">Qty Base Unit</th>
-                                        <th width="10%" class="text-right">Base Unit Price</th>
-                                        <th width="10%" class="text-right">Tax</th>
-                                        <th width="15%" class="text-right">Sub Total</th>
                                         <th class="text-center"><i class="fas fa-trash text-white"></i></th>
                                     </thead>
                                     <tbody>
@@ -77,9 +74,6 @@
                                     <tfoot class="bg-primary">
                                         <th colspan="2" class="font-weight-bolder">Total</th>
                                         <th id="total-qty" class="text-center font-weight-bolder">0</th>
-                                        <th></th>
-                                        <th id="total-tax" class="text-right font-weight-bolder">0.00</th>
-                                        <th id="total" class="text-right font-weight-bolder">0.00</th>
                                         <th></th>
                                     </tfoot>
                                 </table>
@@ -95,16 +89,12 @@
                                 <table class="table table-bordered">
                                     <thead class="bg-primary">
                                         <th><strong>Items</strong><span class="float-right" id="item">0.00</span></th>
-                                        <th><strong>Grand Total</strong><span class="float-right" id="grand_total">0.00</span></th>
                                     </thead>
                                 </table>
                             </div>
                             <div class="col-md-12">
                                 <input type="hidden" name="total_qty">
-                                <input type="hidden" name="total_tax">
-                                <input type="hidden" name="total_price">
                                 <input type="hidden" name="item">
-                                <input type="hidden" name="grand_total">
                             </div>
                             <div class="form-grou col-md-12 text-center pt-5">
                                 <button type="button" class="btn btn-danger btn-sm mr-3"><i class="fas fa-sync-alt"></i> Reset</button>
@@ -196,10 +186,6 @@ $(document).ready(function () {
     $('#product_table').on('click','.remove-product',function(){
         $(this).closest('tr').remove();
         rowindex = $(this).closest('tr').index();
-        product_price.splice(rowindex,1);
-        tax_rate.splice(rowindex,1);
-        tax_name.splice(rowindex,1);
-        tax_method.splice(rowindex,1);
         calculateTotal();
     });
 
@@ -229,25 +215,15 @@ $(document).ready(function () {
                     //cols += `<td><input type="text" class="form-control batch_no text-center" name="products[`+count+`][batch_no]" id="products_`+count+`_batch_no" data="${count}"></td>`;
                     cols += `<td class="text-center">${data.base_unit_name}</td>`;
                      cols += `<td><input type="text" class="form-control base_unit_qty text-center" value="1" name="products[`+count+`][base_unit_qty]" id="products_`+count+`_base_unit_qty" data="${count}"></td>`;
-                    cols += `<td class="net_unit_price text-right">${data.price}</td>`;
-                    cols += `<td class="tax text-right"></td>`;
-                    cols += `<td class="sub-total text-right"></td>`;
                     cols += `<td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-product small-btn"><i class="fas fa-trash"></i></button></td>`;
                     
                     cols += `<input type="hidden" class="product-id" name="products[`+count+`][id]"  value="`+data.id+`">`;
                     cols += `<input type="hidden"  name="products[`+count+`][name]" value="`+data.name+`">`;
                     cols += `<input type="hidden" class="product-code" name="products[`+count+`][code]" value="`+data.code+`">`;
                     cols += `<input type="hidden" class="product-unit" name="products[`+count+`][base_unit_id]" value="`+data.base_unit_id+`">`;
-                    cols += `<input type="hidden" class="product-price" name="products[`+count+`][base_unit_price]" value="`+data.price+`">`;
-                    cols += `<input type="hidden" class="tax-rate" name="products[`+count+`][tax_rate]" value="`+data.tax_rate+`">`;
-                    cols += `<input type="hidden" class="tax-value" name="products[`+count+`][tax]">`;
-                    cols += `<input type="hidden" class="subtotal-value" name="products[`+count+`][subtotal]">`;
+
                     newRow.append(cols);
                     $('#product_table tbody').append(newRow);
-                    product_price.push(parseFloat(data.price));
-                    tax_rate.push(parseFloat(data.tax_rate));
-                    tax_name.push(data.tax_name);
-                    tax_method.push(data.tax_method);
                     rowindex = newRow.index();
                     calculateProductData(1);
                     count++;
@@ -259,25 +235,6 @@ $(document).ready(function () {
 
     function calculateProductData(quantity){ 
         unitConversion();
-
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.tax-rate').val(tax_rate[rowindex].toFixed(2));
-
-        if(tax_method[rowindex] == 1)
-        {
-            var tax = row_product_price * quantity * (tax_rate[rowindex]/100);
-            var sub_total = (row_product_price * quantity) + tax;
-        }else{
-            var net_unit_price = (100 / (100 + tax_rate[rowindex])) * row_product_price;
-            var tax = (row_product_price - net_unit_price) * quantity;
-            var sub_total = row_product_price * quantity;
-        }
-
-        // $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(5)').text(net_unit_price.toFixed(2));
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(5)').text(tax.toFixed(2));
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.tax-value').val(tax.toFixed(2));
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('td:nth-child(6)').text(sub_total.toFixed(2));
-        $('#product_table tbody tr:nth-child('+(rowindex + 1)+')').find('.subtotal-value').val(sub_total.toFixed(2));
-
         calculateTotal();
     }
 
@@ -307,21 +264,7 @@ $(document).ready(function () {
         $('#total-qty').text(total_qty);
         $('input[name="total_qty"]').val(total_qty);
 
-        //sum of tax
-        var total_tax = 0;
-        $('.tax').each(function() {
-            total_tax += parseFloat($(this).text());
-        });
-        $('#total-tax').text(total_tax.toFixed(2));
-        $('input[name="total_tax"]').val(total_tax.toFixed(2));
 
-        //sum of subtotal
-        var total = 0;
-        $('.sub-total').each(function() {
-            total += parseFloat($(this).text());
-        });
-        $('#total').text(total.toFixed(2));
-        $('input[name="total_price"]').val(total.toFixed(2));
 
         calculateGrandTotal();
     }
@@ -330,12 +273,10 @@ $(document).ready(function () {
     {
         var item           = $('#product_table tbody tr:last').index();
         var total_qty      = parseFloat($('#total-qty').text());
-        var subtotal       = parseFloat($('#total').text());
+
         item = ++item + '(' + total_qty + ')';
         $('#item').text(item);
         $('input[name="item"]').val($('#product_table tbody tr:last').index() + 1);
-        $('#subtotal,#grand_total').text(subtotal.toFixed(2));
-        $('input[name="grand_total"]').val(subtotal.toFixed(2));
     }
 
 

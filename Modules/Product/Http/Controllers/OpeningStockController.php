@@ -126,8 +126,6 @@ class OpeningStockController extends BaseController
                         'warehouse_id'  => $request->warehouse_id,
                         'item'          => $request->item,
                         'total_qty'     => $request->total_qty,
-                        'total_tax'     => $request->total_tax,
-                        'grand_total'   => $request->grand_total,
                         'date'          => $request->date,
                         'note'          => $request->note,
                         'created_by'    => auth()->user()->name
@@ -142,10 +140,6 @@ class OpeningStockController extends BaseController
                                 'product_id'      => $value['id'],
                                 'base_unit_id'    => $value['base_unit_id'],
                                 'base_unit_qty'   => $value['base_unit_qty'],
-                                'base_unit_price' => $value['base_unit_price'],
-                                'tax_rate'        => $value['tax_rate'],
-                                'tax'             => $value['tax'],
-                                'total'           => $value['subtotal'],
                                 'created_at'      => date('Y-m-d')
                             ];
 
@@ -242,10 +236,6 @@ class OpeningStockController extends BaseController
                             $products[$value['id']] = [
                                 'base_unit_id'    => $value['base_unit_id'],
                                 'base_unit_qty'   => $value['base_unit_qty'],
-                                'base_unit_price' => $value['base_unit_price'],
-                                'tax_rate'        => $value['tax_rate'],
-                                'tax'             => $value['tax'],
-                                'total'           => $value['subtotal']
                             ];
 
                             $warehouse_product = WarehouseProduct::where([
@@ -273,8 +263,6 @@ class OpeningStockController extends BaseController
                         'warehouse_id' => $request->warehouse_id,
                         'item'         => $request->item,
                         'total_qty'    => $request->total_qty,
-                        'total_tax'    => $request->total_tax,
-                        'grand_total'  => $request->grand_total,
                         'date'         => $request->date,
                         'note'         => $request->note,
                         'modified_by'  => auth()->user()->name
