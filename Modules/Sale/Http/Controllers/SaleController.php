@@ -83,7 +83,7 @@ class SaleController extends BaseController
                         $action .= ' <a class="dropdown-item view_data" href="'.route("sale.show",$value->id).'">'.self::ACTION_BUTTON['View'].'</a>';
                     }
 
-                    if (permission('sale-delete') && $value->delivery_status == 2) {
+                    if (permission('sale-delete') && (auth()->user()->role_id == 2 || auth()->user()->role_id == 1)) {
                         $action .= ' <a class="dropdown-item delete_data"  data-id="' . $value->id . '" data-name="' . $value->memo_no . '">'.self::ACTION_BUTTON['Delete'].'</a>';
                     }
                     $total_qty = $value->total_qty+($value->total_free_qty ? $value->total_free_qty : 0);
@@ -424,7 +424,7 @@ class SaleController extends BaseController
     
                     $saleData = $this->model->with('sale_products')->find($request->id);
     
-                    if(!$saleData->sale_products->isEmpty() && $saleData->delivery_status == 2)
+                    if(!$saleData->sale_products->isEmpty())
                     {
                         $saleData->sale_products()->detach();
                         
@@ -462,7 +462,7 @@ class SaleController extends BaseController
                     foreach ($request->ids as $id) {
                         $saleData = $this->model->with('sale_products')->find($id);
         
-                        if(!$saleData->sale_products->isEmpty() && $saleData->delivery_status == 2)
+                        if(!$saleData->sale_products->isEmpty())
                         {
                             $saleData->sale_products()->detach(); 
                         }

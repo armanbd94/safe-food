@@ -278,7 +278,7 @@ class ProductController extends BaseController
                 try {
                     $sale_product = SaleProduct::where('product_id',$request->id)->get()->count();
                     if($sale_product > 0){
-                        $output = ['status'=>'error','message'=>'Cannot delete because this product is realted with sale and purchase data'];
+                        $output = ['status'=>'error','message'=>'Cannot delete because this product is related with sale data'];
                     }else{
        
                         $product  = $this->model->with('product_prices')->find($request->id);

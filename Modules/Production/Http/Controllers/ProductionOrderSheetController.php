@@ -199,11 +199,11 @@ class ProductionOrderSheetController extends BaseController
     
                     $orderSheetData = $this->model->with('products','memos')->find($request->id);
     
-                    if(!$orderSheetData->products->isEmpty() && $orderSheetData->delivery_status == 2)
+                    if(!$orderSheetData->products->isEmpty())
                     {
                         $orderSheetData->products()->detach();
                     }
-                    if(!$orderSheetData->memos->isEmpty() && $orderSheetData->delivery_status == 2)
+                    if(!$orderSheetData->memos->isEmpty())
                     {
                         $orderSheetData->memos()->detach();
                     }
