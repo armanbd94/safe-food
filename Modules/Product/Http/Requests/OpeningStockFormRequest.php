@@ -15,13 +15,13 @@ class OpeningStockFormRequest extends FormRequest
      */
     public function rules()
     {
-        $this->rules['opening_no'] = ['required','unique:opening_Stocks,opening_no'];
+        $this->rules['opening_no'] = ['required','unique:opening_stocks,opening_no'];
         $this->rules['date']  = ['required','date','date_format:Y-m-d'];
         $this->rules['warehouse_id']  = ['required'];
         $this->rules['note']          = ['nullable'];
         if(request()->update_id)
         {
-            $this->rules['opening_no'] = 'unique:opening_Stocks,opening_no,'.request()->update_id;
+            $this->rules['opening_no'] = 'unique:opening_stocks,opening_no,'.request()->update_id;
         }
 
         if(request()->has('products'))
