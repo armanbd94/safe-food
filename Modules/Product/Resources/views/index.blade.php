@@ -140,15 +140,13 @@
                 "type": "POST",
                 "data": function (data) {
                     data.name = $("#form-filter #name").val();
-                    data.category_id  = $("#form-filter #category_id option:selected").val();
-                    data.status       = $("#form-filter #status option:selected").val();
-                    // data.product_type       = $("#form-filter #product_type option:selected").val();
-                    // data.type       = $("#form-filter #type option:selected").val();
+                    data.category_id  = $("#form-filter #category_id").val();
+                    data.status       = $("#form-filter #status").val();
                     data._token       = _token;
                 }
             },
             "columnDefs": [{
-                    @if (permission('product-bulk-delete'))
+                    @if(permission('product-bulk-delete'))
                     "targets": [0,12],
                     @else 
                     "targets": [11],
@@ -160,7 +158,7 @@
                     @if (permission('product-bulk-delete'))
                     "targets": [1,2,4,6,7,8,9,10,11],
                     @else 
-                    "targets": [0,1,3,5,6,7,89,10],
+                    "targets": [0,1,3,5,6,7,8,9,10],
                     @endif
                     "className": "text-center"
                 },
@@ -243,15 +241,29 @@
                     "pageSize": "A4", //A3,A5,A6,legal,letter
                     "exportOptions": {
                         @if (permission('product-bulk-delete'))
-                        columns: ':visible:not(:eq(0),:eq(12))' 
+                        columns: [1,3,4,5,6,7,8,9],
                         @else 
-                        columns: ':visible:not(:eq(11))' 
+                        columns: [0,2,3,4,5,6,7,8],
                         @endif
                     },
                     customize: function(doc) {
                         doc.defaultStyle.fontSize = 7; //<-- set fontsize to 16 instead of 10 
                         doc.styles.tableHeader.fontSize = 7;
                         doc.pageMargins = [5,5,5,5];
+                        
+                        doc.content[1].table.widths = Array(doc.content[1].table.body[0].length + 1).join('*').split('');
+                        var rowCount = doc.content[1].table.body.length;
+                        for (i = 0; i < rowCount; i++) {
+                            doc.content[1].table.body[i][0].alignment = 'center';
+                            doc.content[1].table.body[i][1].alignment = 'left';
+                            doc.content[1].table.body[i][2].alignment = 'center';
+                            doc.content[1].table.body[i][3].alignment = 'right';
+                            doc.content[1].table.body[i][4].alignment = 'center';
+                            doc.content[1].table.body[i][5].alignment = 'center';
+                            doc.content[1].table.body[i][6].alignment = 'right';
+                            doc.content[1].table.body[i][7].alignment = 'right';
+                        }
+
                     } 
                 },
                 @if (permission('product-bulk-delete'))

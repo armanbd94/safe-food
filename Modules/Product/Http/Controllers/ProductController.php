@@ -99,8 +99,6 @@ class ProductController extends BaseController
                     $row[] = number_format($value->cost,2,'.','');
                     $row[] = $value->base_unit->unit_name.' ('.$value->base_unit->unit_code.')';
                     $row[] = $value->unit->unit_name.' ('.$value->unit->unit_code.')';
-                    // $row[] = number_format($value->base_unit_price,2,'.','');
-                    // $row[] = number_format($value->unit_price,2,'.','');
                     $row[] = $base_unit_stock_qty;
                     $row[] = number_format($unit_stock_qty,2,'.','');
                     $row[] = $value->alert_quantity ?? 0;

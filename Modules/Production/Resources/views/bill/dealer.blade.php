@@ -247,10 +247,10 @@
                                     /* margin-bottom: 100px !important; */
                                 }
                                 html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend,  {
-                                    font-size: 10pt !important;
+                                    font-size: 8pt !important;
                                 }
                                 #product_table tbody td{
-                                    font-size: 9pt !important;
+                                    font-size: 7.5pt !important;
                                 }
                                 .print_body {page-break-after: always;}
                                 .m-0 {
@@ -423,9 +423,9 @@
                                                 <tr>
                                                     <td class="text-center">{{ convert_bangla_number($key+1) }}</td>
                                                     <td>{{ $item->name }}</td>
-                                                    <td class="text-center">{{ convert_bangla_number($item->pivot->unit_qty) }}</td>
-                                                    <td class="text-center">{{ convert_bangla_number($item->pivot->qty) }}</td>
-                                                    <td class="text-center">{{ convert_bangla_number($item->pivot->free_qty ?? 0) }}</td>
+                                                    <td class="text-center">{{ convert_bangla_number(number_format($item->pivot->unit_qty,2,'.',',')) }}</td>
+                                                    <td class="text-center">{{ convert_bangla_number(number_format($item->pivot->qty,2,'.',',')) }}</td>
+                                                    <td class="text-center">{{ convert_bangla_number(number_format(($item->pivot->free_qty ?? 0),2,'.',',')) }}</td>
                                                     <td class="text-center">{{ convert_bangla_carton_size($item->unit->unit_name) }}</td>
                                                     <td class="text-right">{{ convert_bangla_number(number_format($item->pivot->net_unit_price,2,'.',',')) }}</td>
                                                     <td class="text-right">{{ convert_bangla_number(number_format($item->pivot->total,2,'.',',')) }}</td>

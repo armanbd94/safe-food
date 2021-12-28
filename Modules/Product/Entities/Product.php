@@ -96,9 +96,9 @@ class Product extends BaseModel
     {
         //set column sorting index table column name wise (should match with frontend table header)
         if (permission('product-bulk-delete')){
-            $this->column_order = [null,'id', 'id', 'name', 'category_id', 'cost', null, null, 'alert_quantity', 'status', null];
+            $this->column_order = [null,'id', 'id', 'name', 'category_id', 'cost', null, null,null,null, 'alert_quantity', 'status', null];
         }else{
-            $this->column_order = ['id', 'id', 'name', 'category_id', 'cost', null, null, 'alert_quantity', 'status', null];
+            $this->column_order = ['id', 'id', 'name', 'category_id', 'cost', null, null,null,null, 'alert_quantity', 'status', null];
         }
         
         $query = self::with('category:id,name','warehouse_product');
