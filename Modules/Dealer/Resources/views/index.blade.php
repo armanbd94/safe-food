@@ -8,14 +8,12 @@
     table#dataTable{
         min-width: 1500px !important;
     }
-    /* Works on Firefox */
-    *{
+    
+    /* *{
     scrollbar-width: thin !important;
     scrollbar-color: #034d97 #FA8C15 !important;
     }
 
-
-    /* Works on Chrome, Edge, and Safari */
     *::-webkit-scrollbar {
     width: 12px !important;
     }
@@ -28,7 +26,7 @@
     background-color: #034d97 !important;
     border-radius: 20px !important;
     border: 3px solid #FA8C15 !important;
-    }
+    } */
 
 </style>
 @endpush

@@ -9,6 +9,7 @@ use App\Http\Controllers\BaseController;
 use Modules\Product\Entities\OpeningStock;
 use Modules\Product\Entities\WarehouseProduct;
 use Modules\Product\Entities\OpeningStockProduct;
+use Modules\Product\Entities\Product;
 use Modules\Product\Http\Requests\OpeningStockFormRequest;
 
 class OpeningStockController extends BaseController
@@ -143,6 +144,13 @@ class OpeningStockController extends BaseController
                                 'created_at'      => date('Y-m-d')
                             ];
 
+                            $product = Product::findOrFail($value['id']);
+                            if($product)
+                            {
+                                $product->base_unit_qty += $value['base_unit_qty'];
+                                $product->update();
+                            }
+
                             $warehouse_product = WarehouseProduct::where([
                                 ['warehouse_id', $request->warehouse_id],
                                 ['product_id', $value['id']],
@@ -218,6 +226,12 @@ class OpeningStockController extends BaseController
                     if(!$openingStockData->products->isEmpty())
                     {
                         foreach ($openingStockData->products as  $opening_stock_product) {
+                            $product = Product::findOrFail($opening_stock_product->id);
+                            if($product)
+                            {
+                                $product->base_unit_qty -= $opening_stock_product->pivot->base_unit_qty;
+                                $product->update();
+                            }
                             $warehouse_product = WarehouseProduct::where([
                                 ['warehouse_id', $openingStockData->warehouse_id],
                                 ['product_id', $opening_stock_product->id],
@@ -237,6 +251,13 @@ class OpeningStockController extends BaseController
                                 'base_unit_id'    => $value['base_unit_id'],
                                 'base_unit_qty'   => $value['base_unit_qty'],
                             ];
+
+                            $product = Product::findOrFail($value['id']);
+                            if($product)
+                            {
+                                $product->base_unit_qty += $value['base_unit_qty'];
+                                $product->update();
+                            }
 
                             $warehouse_product = WarehouseProduct::where([
                                 ['warehouse_id', $request->warehouse_id],
@@ -292,6 +313,12 @@ class OpeningStockController extends BaseController
                     if(!$openingStockData->products->isEmpty())
                     {
                         foreach ($openingStockData->products as  $opening_stock_product) {
+                            $product = Product::findOrFail($opening_stock_product->id);
+                            if($product)
+                            {
+                                $product->base_unit_qty -= $opening_stock_product->pivot->base_unit_qty;
+                                $product->update();
+                            }
                             $warehouse_product = WarehouseProduct::where([
                                 ['warehouse_id', $openingStockData->warehouse_id],
                                 ['product_id', $opening_stock_product->id],
@@ -331,6 +358,12 @@ class OpeningStockController extends BaseController
                         if(!$openingStockData->products->isEmpty())
                         {
                             foreach ($openingStockData->products as  $opening_stock_product) {
+                                $product = Product::findOrFail($opening_stock_product->id);
+                                if($product)
+                                {
+                                    $product->base_unit_qty -= $opening_stock_product->pivot->base_unit_qty;
+                                    $product->update();
+                                }
                                 $warehouse_product = WarehouseProduct::where([
                                     ['warehouse_id', $openingStockData->warehouse_id],
                                     ['product_id', $opening_stock_product->id],

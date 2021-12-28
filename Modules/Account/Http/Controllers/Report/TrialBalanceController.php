@@ -36,7 +36,7 @@ class TrialBalanceController extends BaseController
                 'transactional_accounts' => ChartOfAccount::where(['general_ledger'=>1,'status'=>1])->whereIn('type',['A','L'])->orderBy('code','asc')->get(),
                 'income_expense_accounts' => ChartOfAccount::where(['general_ledger'=>1,'status'=>1])->whereIn('type',['I','E'])->orderBy('code','asc')->get(),
             ];
-            // dd($data);
+            dd($data);
             return view('account::report.trial-balance.report',$data)->render();
         }
     }
